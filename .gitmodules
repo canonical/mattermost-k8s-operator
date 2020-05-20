@@ -4,3 +4,6 @@
 [submodule "mod/resource-oci-image"]
 	path = mod/resource-oci-image
 	url = https://github.com/johnsca/resource-oci-image
+[submodule "mod/interface-pgsql"]
+	path = mod/interface-pgsql
+	url = lp:~stub/interface-pgsql/+git/operator
