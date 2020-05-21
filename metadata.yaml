@@ -1,14 +1,18 @@
 name: mattermost
 summary: Mattermost charm
-maitainers:
+maintainers:
   - launchpad.net/~canonical-is-sre
 description: |
   A charm which deploys Mattermost on kubernetes.
   Mattermost is a flexible, open source messaging platform that enables
   secure team collaboration.
   https://mattermost.com
+min-juju-version: 2.8.0  # charm storage in state
 series:
   - kubernetes
+requires:
+  db:
+    interface: pgsql
 resources:
   mattermost_image:
     type: oci-image
