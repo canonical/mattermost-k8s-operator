@@ -116,13 +116,13 @@ class MattermostK8sCharm(CharmBase):
         # TODO(pjdc): Emit event when we add support for read replicas.
 
     def configure_pod(self, event):
-        if not self.framework.model.unit.is_leader():
-            self.model.unit.status = WaitingStatus('Not a leader')
-            return
-
         if not self.state.db_uri:
             self.model.unit.status = WaitingStatus('Waiting for database relation')
             event.defer()
+            return
+
+        if not self.framework.model.unit.is_leader():
+            self.model.unit.status = WaitingStatus('Not a leader')
             return
 
         mattermost_image_details = self.mattermost_image.fetch()
