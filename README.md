@@ -34,6 +34,8 @@ Notes for deploying a test setup locally using microk8s:
     sudo snap install juju-wait --classic
     sudo snap install microk8s --classic
     sudo snap alias microk8s.kubectl kubectl
+    git clone https://git.launchpad.net/charm-k8s-mattermost
+    git clone https://git.launchpad.net/~mattermost-charmers/charm-k8s-mattermost/+git/image-build mattermost-image-build
 
     microk8s.reset  # Warning! Clean slate!
     microk8s.enable dns dashboard registry storage
@@ -41,12 +43,12 @@ Notes for deploying a test setup locally using microk8s:
     microk8s.config | juju add-k8s myk8s --client
 
     # Build your Mattermost image
-    docker build -f mattermost-dockerfile.yaml -t localhost:32000/mattermost .
+    docker build -t localhost:32000/mattermost ./mattermost-image-build
     docker push localhost:32000/mattermost
     
     juju bootstrap myk8s
     juju add-model mattermost-test
-    juju deploy ./charm-mattermost --resource mattermost_image='localhost:32000/mattermost:latest' mattermost
+    juju deploy ./charm-k8s-mattermost --resource mattermost_image=localhost:32000/mattermost:latest mattermost
     juju config mattermost pg_db_host=10.1.1.1 pg_password=secret
     juju wait
     juju status
