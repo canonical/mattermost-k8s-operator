@@ -113,7 +113,7 @@ class MattermostK8sCharm(CharmBase):
 
         self.state.db_ro_uris = [c.uri for c in event.standbys]
 
-        # TODO(pjdc): Emit event when we add support for read replicacs.
+        # TODO(pjdc): Emit event when we add support for read replicas.
 
     def configure_pod(self, event):
         if not self.framework.model.unit.is_leader():
