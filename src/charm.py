@@ -110,6 +110,16 @@ class MattermostK8sCharm(CharmBase):
         mattermost_image_details = self.mattermost_image.fetch()
         self.model.unit.status = MaintenanceStatus('Configuring pod')
         config = self.model.config
+
+        pod_config = {
+            'MATTERMOST_HTTPD_LISTEN_PORT': int(config['mattermost_port']),
+            'MM_SQLSETTINGS_DATASOURCE': self.state.db_uri,
+            'MM_ENABLEOPENSERVER': config['open_server'],
+        }
+
+        if config['site_url']:
+            pod_config['MM_SERVICESETTINGS_SITEURL'] = config['site_url']
+
         self.model.pod.set_spec({
             'containers': [{
                 'name': self.framework.model.app.name,
@@ -118,11 +128,7 @@ class MattermostK8sCharm(CharmBase):
                     'containerPort': int(self.framework.model.config['mattermost_port']),
                     'protocol': 'TCP',
                 }],
-                'config': {
-                    'MATTERMOST_HTTPD_LISTEN_PORT': int(config['mattermost_port']),
-                    'MM_SQLSETTINGS_DATASOURCE': self.state.db_uri,
-                    'MM_ENABLEOPENSERVER': config['open_server'],
-                },
+                'config': pod_config,
             }]
         })
         self.state.is_started = True

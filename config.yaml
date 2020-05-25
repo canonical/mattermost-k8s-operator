@@ -7,3 +7,10 @@ options:
         type: boolean
         description: Allows users to sign up from the root page without an invite
         default: false
+    site_url:
+        type: string
+        description: |
+          The URL by which the site is reached.  This must be set for all of Mattermost's features to work correctly.
+
+          For more information, see https://docs.mattermost.com/administration/config-settings.html#site-url
+        default: ''
