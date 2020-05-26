@@ -14,3 +14,10 @@ options:
 
           For more information, see https://docs.mattermost.com/administration/config-settings.html#site-url
         default: ''
+    tls_secret_name:
+        type: string
+        description: |
+          The name of the Kubernetes secret to be associated with the ingress resource.
+
+          This setting is ignored unless site_url begins with "https".
+        default: ''
