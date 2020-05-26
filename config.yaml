@@ -1,8 +1,4 @@
 options:
-    mattermost_port:
-        type: int
-        description: The port number for Mattermost to listen to.
-        default: 8000
     open_server:
         type: boolean
         description: Allows users to sign up from the root page without an invite
@@ -13,4 +9,11 @@ options:
           The URL by which the site is reached.  This must be set for all of Mattermost's features to work correctly.
 
           For more information, see https://docs.mattermost.com/administration/config-settings.html#site-url
+        default: ''
+    tls_secret_name:
+        type: string
+        description: |
+          The name of the Kubernetes secret to be associated with the ingress resource.
+
+          This setting is ignored unless site_url begins with "https".
         default: ''

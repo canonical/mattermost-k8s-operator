@@ -3,6 +3,8 @@
 import sys
 sys.path.append('lib')  # noqa: E402
 
+from urllib.parse import urlparse
+
 from ops.charm import (
     CharmBase,
     CharmEvents,
@@ -26,6 +28,7 @@ import logging
 logger = logging.getLogger()
 
 
+CONTAINER_PORT = 8000
 DATABASE_NAME = 'mattermost'
 
 
@@ -97,22 +100,27 @@ class MattermostK8sCharm(CharmBase):
 
         # TODO(pjdc): Emit event when we add support for read replicas.
 
-    def configure_pod(self, event):
-        if not self.state.db_uri:
-            self.model.unit.status = WaitingStatus('Waiting for database relation')
-            event.defer()
-            return
-
-        if not self.framework.model.unit.is_leader():
-            self.model.unit.status = WaitingStatus('Not a leader')
-            return
-
+    def _make_pod_spec(self):
         mattermost_image_details = self.mattermost_image.fetch()
-        self.model.unit.status = MaintenanceStatus('Configuring pod')
-        config = self.model.config
+        pod_spec = {
+            'version': 2,       # otherwise resources are ignored
+            'containers': [{
+                'name': self.app.name,
+                'imageDetails': mattermost_image_details,
+                'ports': [{
+                    'containerPort': CONTAINER_PORT,
+                    'protocol': 'TCP',
+                }],
+                'config': self._make_pod_config(),
+            }]
+        }
 
+        return pod_spec
+
+    def _make_pod_config(self):
+        config = self.model.config
         pod_config = {
-            'MATTERMOST_HTTPD_LISTEN_PORT': int(config['mattermost_port']),
+            'MATTERMOST_HTTPD_LISTEN_PORT': CONTAINER_PORT,
             'MM_SQLSETTINGS_DATASOURCE': self.state.db_uri,
             'MM_ENABLEOPENSERVER': config['open_server'],
         }
@@ -120,19 +128,71 @@ class MattermostK8sCharm(CharmBase):
         if config['site_url']:
             pod_config['MM_SERVICESETTINGS_SITEURL'] = config['site_url']
 
-        self.model.pod.set_spec({
-            'containers': [{
-                'name': self.framework.model.app.name,
-                'imageDetails': mattermost_image_details,
-                'ports': [{
-                    'containerPort': int(self.framework.model.config['mattermost_port']),
-                    'protocol': 'TCP',
-                }],
-                'config': pod_config,
-            }]
-        })
+        return pod_config
+
+    def _make_k8s_resources(self):
+        site_url = self.model.config['site_url']
+        if not site_url:
+            return None
+        parsed = urlparse(site_url)
+
+        if parsed.scheme.startswith('http'):
+            ingress = {
+                "name": self.app.name,
+                "spec": {
+                    "rules": [{
+                        "host": parsed.hostname,
+                        "http": {
+                            "paths": [{
+                                "path": "/",
+                                "backend": {
+                                    "serviceName": self.app.name,
+                                    "servicePort": CONTAINER_PORT,
+                                }
+                            }]
+                        }
+                    }]
+                }
+            }
+            if parsed.scheme == 'https':
+                ingress['spec']['tls'] = [
+                    {
+                        'hosts': [parsed.hostname],
+                    }
+                ]
+                tls_secret_name = self.model.config['tls_secret_name']
+                if tls_secret_name:
+                    ingress['spec']['tls'][0]['secretName'] = tls_secret_name
+
+            return {
+                "kubernetesResources": {
+                    "ingressResources": [ingress],
+                }
+            }
+
+    def configure_pod(self, event):
+        if not self.state.db_uri:
+            self.unit.status = WaitingStatus('Waiting for database relation')
+            event.defer()
+            return
+
+        if not self.unit.is_leader():
+            self.unit.status = ActiveStatus()
+            return
+
+        self.unit.status = MaintenanceStatus('Configuring pod')
+
+        pod_spec = self._make_pod_spec()
+
+        # Due to https://github.com/canonical/operator/issues/293 we
+        # can't use pod.set_spec's k8s_resources argument.
+        k8s_resources = self._make_k8s_resources()
+        if k8s_resources:
+            pod_spec.update(k8s_resources)
+
+        self.model.pod.set_spec(pod_spec)
         self.state.is_started = True
-        self.model.unit.status = ActiveStatus()
+        self.unit.status = ActiveStatus()
 
 
 if __name__ == '__main__':
