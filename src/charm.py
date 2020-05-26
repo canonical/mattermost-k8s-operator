@@ -137,7 +137,7 @@ class MattermostK8sCharm(CharmBase):
 
         if parsed.scheme.startswith('http'):
             ingress = {
-                "name": "{}".format(self.app.name),
+                "name": self.app.name,
                 "spec": {
                     "rules": [{
                         "host": parsed.hostname,
