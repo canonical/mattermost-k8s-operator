@@ -7,20 +7,3 @@ options:
         type: boolean
         description: Allows users to sign up from the root page without an invite
         default: false
-    pg_db_host:
-        type: string
-        description: The hostname or IP of the postgresql backend.
-        default: ''
-    pg_db_port:
-        type: int
-        description: The port number for the postgresql backend.
-        default: 5432
-    pg_user:
-        type: string
-        description: The postgresql user.
-        default: 'mattermost'
-    pg_password:
-        type: string
-        description: The postgresql password.
-        default: ''
-        
