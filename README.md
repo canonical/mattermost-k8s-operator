@@ -48,7 +48,7 @@ The charm will not function without a database, so you will need to
 deploy `cs:postgresql` somewhere.
 
 If postgresql is deployed in the same model you plan to use for
-mattermost, simply use `juju relate mattermost postgresql`.  (This
+mattermost, simply use `juju relate mattermost postgresql:db`.  (This
 deployment style is recommended for testing purposes only.)
 
 Cross-model relations are also supported.  Create a suitable model on
