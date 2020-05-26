@@ -28,6 +28,7 @@ import logging
 logger = logging.getLogger()
 
 
+CONTAINER_PORT = 8000
 DATABASE_NAME = 'mattermost'
 
 
@@ -107,7 +108,7 @@ class MattermostK8sCharm(CharmBase):
                 'name': self.app.name,
                 'imageDetails': mattermost_image_details,
                 'ports': [{
-                    'containerPort': int(self.model.config['mattermost_port']),
+                    'containerPort': CONTAINER_PORT,
                     'protocol': 'TCP',
                 }],
                 'config': self._make_pod_config(),
@@ -119,7 +120,7 @@ class MattermostK8sCharm(CharmBase):
     def _make_pod_config(self):
         config = self.model.config
         pod_config = {
-            'MATTERMOST_HTTPD_LISTEN_PORT': int(config['mattermost_port']),
+            'MATTERMOST_HTTPD_LISTEN_PORT': CONTAINER_PORT,
             'MM_SQLSETTINGS_DATASOURCE': self.state.db_uri,
             'MM_ENABLEOPENSERVER': config['open_server'],
         }
@@ -146,7 +147,7 @@ class MattermostK8sCharm(CharmBase):
                                 "path": "/",
                                 "backend": {
                                     "serviceName": self.app.name,
-                                    "servicePort": self.model.config['mattermost_port'],
+                                    "servicePort": CONTAINER_PORT,
                                 }
                             }]
                         }
