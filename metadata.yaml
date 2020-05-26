@@ -13,6 +13,7 @@ series:
 requires:
   db:
     interface: pgsql
+    limit: 1
 resources:
   mattermost_image:
     type: oci-image

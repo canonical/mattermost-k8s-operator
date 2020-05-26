@@ -15,7 +15,6 @@ from ops.framework import (
 from ops.main import main
 from ops.model import (
     ActiveStatus,
-    BlockedStatus,
     MaintenanceStatus,
     WaitingStatus,
 )
@@ -58,12 +57,12 @@ class MattermostK8sCharm(CharmBase):
         # database
         self.state.set_default(db_conn_str=None, db_uri=None, db_ro_uris=[])
         self.db = pgsql.PostgreSQLClient(self, 'db')
-        self.framework.observe(self.db.on.database_relation_joined, self.on_database_relation_joined)
-        self.framework.observe(self.db.on.master_changed, self.on_master_changed)
-        self.framework.observe(self.db.on.standby_changed, self.on_standby_changed)
+        self.framework.observe(self.db.on.database_relation_joined, self._on_database_relation_joined)
+        self.framework.observe(self.db.on.master_changed, self._on_master_changed)
+        self.framework.observe(self.db.on.standby_changed, self._on_standby_changed)
         self.framework.observe(self.on.db_master_available, self.configure_pod)
 
-    def on_database_relation_joined(self, event: pgsql.DatabaseRelationJoinedEvent):
+    def _on_database_relation_joined(self, event: pgsql.DatabaseRelationJoinedEvent):
         if self.model.unit.is_leader():
             # Provide requirements to the PostgreSQL server.
             event.database = DATABASE_NAME  # Request database named mydbname
@@ -74,21 +73,10 @@ class MattermostK8sCharm(CharmBase):
             event.defer()
             return
 
-    def on_master_changed(self, event: pgsql.MasterChangedEvent):
-        # Enforce a single 'db' relation, or else we risk directing writes to
-        # an the wrong backend. This can happen via user error, or redeploying
-        # the PostgreSQL backend.
-        if len(self.model.relations['db']) > 1:
-            self.unit.status = BlockedStatus("Too many db relations!")
-            event.defer()
-            return
-        if event.relation.id not in (r.id for r in self.model.relations['db']):
-            return  # Deferred event for relation that no longer exists.
-
+    def _on_master_changed(self, event: pgsql.MasterChangedEvent):
         if event.database != DATABASE_NAME:
-            # Leader has not yet set requirements. Defer, or risk connecting to
-            # an incorrect database.
-            event.defer()
+            # Leader has not yet set requirements. Wait until next
+            # event, or risk connecting to an incorrect database.
             return
 
         self.state.db_conn_str = None if event.master is None else event.master.conn_str
@@ -99,16 +87,10 @@ class MattermostK8sCharm(CharmBase):
 
         self.on.db_master_available.emit()
 
-    def on_standby_changed(self, event: pgsql.StandbyChangedEvent):
-        if len(self.model.relations['db']) > 1:
-            self.unit.status = BlockedStatus("Too many db relations!")
-            event.defer()
-            return
-        if event.relation.id not in (r.id for r in self.model.relations['db']):
-            return  # Deferred event for relation that no longer exists.
-
+    def _on_standby_changed(self, event: pgsql.StandbyChangedEvent):
         if event.database != DATABASE_NAME:
-            event.defer()
+            # Leader has not yet set requirements. Wait until next
+            # event, or risk connecting to an incorrect database.
             return
 
         self.state.db_ro_uris = [c.uri for c in event.standbys]
