@@ -177,7 +177,7 @@ class MattermostK8sCharm(CharmBase):
             return
 
         if not self.unit.is_leader():
-            self.unit.status = WaitingStatus('Not a leader')
+            self.unit.status = ActiveStatus()
             return
 
         self.unit.status = MaintenanceStatus('Configuring pod')
