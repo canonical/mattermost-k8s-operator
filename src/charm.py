@@ -177,6 +177,7 @@ class MattermostK8sCharm(CharmBase):
         if not site_url:
             return None
         parsed = urlparse(site_url)
+        annotations = {}
 
         if parsed.scheme.startswith('http'):
             ingress = {
@@ -205,11 +206,13 @@ class MattermostK8sCharm(CharmBase):
                 tls_secret_name = self.model.config['tls_secret_name']
                 if tls_secret_name:
                     ingress['spec']['tls'][0]['secretName'] = tls_secret_name
+            else:
+                annotations['nginx.ingress.kubernetes.io/ssl-redirect'] = 'false'
 
-            annotations = {}
             ingress_whitelist_source_range = self.model.config['ingress_whitelist_source_range']
             if ingress_whitelist_source_range:
                 annotations['nginx.ingress.kubernetes.io/whitelist-source-range'] = ingress_whitelist_source_range
+
             if annotations:
                 ingress['annotations'] = annotations
 
