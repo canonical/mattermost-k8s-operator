@@ -28,7 +28,7 @@ import logging
 logger = logging.getLogger()
 
 
-CONTAINER_PORT = 8000
+CONTAINER_PORT = 8065  # Mattermost's default port, and what we expect the image to use
 DATABASE_NAME = 'mattermost'
 
 
