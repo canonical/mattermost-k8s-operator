@@ -6,7 +6,7 @@ options:
     ingress_whitelist_source_range:
         type: string
         description: |
-          A comma-separated list of CIDRs to storein the ingress.kubernetes.io/whitelist-source-range annotation.
+          A comma-separated list of CIDRs to store in the ingress.kubernetes.io/whitelist-source-range annotation.
 
           This can be used to lock down access to Mattermost based on source IP address.
         default: ''
