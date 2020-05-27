@@ -1,4 +1,8 @@
 options:
+    debug:
+        type: boolean
+        description: Set the Mattermost log level to DEBUG, otherwise INFO.
+        default: false
     open_server:
         type: boolean
         description: Allows users to sign up from the root page without an invite
