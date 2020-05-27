@@ -119,9 +119,12 @@ class MattermostK8sCharm(CharmBase):
 
     def _make_pod_config(self):
         config = self.model.config
+        # https://github.com/mattermost/mattermost-server/pull/14666
+        db_uri = self.state.db_uri.replace('postgresql://', 'postgres://')
         pod_config = {
             'MATTERMOST_HTTPD_LISTEN_PORT': CONTAINER_PORT,
-            'MM_SQLSETTINGS_DATASOURCE': self.state.db_uri,
+            'MM_CONFIG': db_uri,
+            'MM_SQLSETTINGS_DATASOURCE': db_uri,
             'MM_ENABLEOPENSERVER': config['open_server'],
         }
 
