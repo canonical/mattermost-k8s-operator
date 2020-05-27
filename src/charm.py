@@ -126,6 +126,10 @@ class MattermostK8sCharm(CharmBase):
             'MM_CONFIG': db_uri,
             'MM_SQLSETTINGS_DATASOURCE': db_uri,
             'MM_ENABLEOPENSERVER': config['open_server'],
+            # logging
+            'MM_LOGSETTINGS_CONSOLELEVEL': 'DEBUG' if config['debug'] else 'INFO',
+            'MM_LOGSETTINGS_ENABLECONSOLE': 'true',
+            'MM_LOGSETTINGS_ENABLEFILE': 'false',
         }
 
         if config['site_url']:
