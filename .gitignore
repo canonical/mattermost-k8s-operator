@@ -1,1 +1,4 @@
 *~
+.tox
+.coverage
+__pycache__
