@@ -7,6 +7,27 @@ options:
         type: boolean
         description: Allows users to sign up from the root page without an invite
         default: false
+    outbound_proxy:
+        type: string
+        description: The proxy to use for outbound requests.
+        default: ''
+    outbound_proxy_exceptions:
+        type: string
+        description: |
+          A list of destinations for which the outbound proxy will not
+          be used.
+
+          This can be configured as a set of comma-separated IP
+          addresses (e.g. "1.2.3.4"), IP address ranges specified in
+          CIDR notation (e.g. "1.2.3.4/8"), or domain names.  An IP
+          address or domain name can also include a port number.
+
+          When a domain name is specified, the domain and all of its
+          subdomains are matched.  However, a domain name with a
+          leading "." only matches the subdomains.  For example,
+          "example.com" matches both "example.com" and "sub.example.com"
+          while ".example.com" only matches the latter.
+        default: ''
     site_url:
         type: string
         description: |

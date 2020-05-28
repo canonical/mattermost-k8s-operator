@@ -135,6 +135,12 @@ class MattermostK8sCharm(CharmBase):
         if config['site_url']:
             pod_config['MM_SERVICESETTINGS_SITEURL'] = config['site_url']
 
+        if config['outbound_proxy']:
+            pod_config['HTTP_PROXY'] = config['outbound_proxy']
+            pod_config['HTTPS_PROXY'] = config['outbound_proxy']
+            if config['outbound_proxy_exceptions']:
+                pod_config['NO_PROXY'] = config['outbound_proxy_exceptions']
+
         return pod_config
 
     def _make_k8s_resources(self):
