@@ -42,3 +42,52 @@ options:
 
           This setting is ignored unless site_url begins with "https".
         default: ''
+    max_file_size:
+        type: int
+        description: |
+          The maximum file size, in megabytes.
+
+          If there is a reverse proxy in front of Mattermost, it may
+          need to be configured to handle the requested size.
+
+          For more information, see the Mattermost documentation.
+        default: 5
+    s3_enabled:
+        type: boolean
+        description: |
+          Store files and attachments in an S3-compatible object storage service instead of a local directory.
+        default: false
+    s3_endpoint:
+        type: string
+        description: |
+          The S3 endpoint to use.  This may be a non-Amazon S3-compatible endpoint.
+
+          For more information, see the Mattermost documentation.
+        default: 's3.amazonaws.com'
+    s3_bucket:
+        type: string
+        description: |
+          The S3 bucket to use.
+        default: ''
+    s3_region:
+        type: string
+        description: |
+          The S3 region to use.
+        default: ''
+    s3_access_key_id:
+        type: string
+        description: |
+          The S3 access key ID to use.
+        default: ''
+    s3_secret_access_key:
+        type: string
+        description: |
+          The S3 secret key to use.
+        default: ''
+    s3_server_side_encryption:
+        type: boolean
+        description: |
+          Whether to use S3 Server-Side Encryption.
+
+          This requires configuration on the S3 side, as well as a suitable Mattermost licence.
+        default: false
