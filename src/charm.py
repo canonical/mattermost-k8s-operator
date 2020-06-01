@@ -30,6 +30,7 @@ logger = logging.getLogger()
 
 CONTAINER_PORT = 8065  # Mattermost's default port, and what we expect the image to use
 DATABASE_NAME = 'mattermost'
+REQUIRED_S3_SETTINGS = ['s3_bucket', 's3_region', 's3_access_key_id', 's3_secret_access_key']
 
 
 class MattermostDBMasterAvailableEvent(EventBase):
@@ -102,7 +103,10 @@ class MattermostK8sCharm(CharmBase):
 
     def _make_pod_spec(self):
         mattermost_image_details = self.mattermost_image.fetch()
-        pod_spec = {
+        pod_config = self._make_pod_config()
+        pod_config.update(self._make_s3_pod_config())
+
+        return {
             'version': 2,       # otherwise resources are ignored
             'containers': [{
                 'name': self.app.name,
@@ -111,11 +115,9 @@ class MattermostK8sCharm(CharmBase):
                     'containerPort': CONTAINER_PORT,
                     'protocol': 'TCP',
                 }],
-                'config': self._make_pod_config(),
+                'config': pod_config,
             }]
         }
-
-        return pod_spec
 
     def _make_pod_config(self):
         config = self.model.config
@@ -142,6 +144,33 @@ class MattermostK8sCharm(CharmBase):
                 pod_config['NO_PROXY'] = config['outbound_proxy_exceptions']
 
         return pod_config
+
+    def _missing_charm_settings(self):
+        config = self.model.config
+        missing = []
+
+        if config['s3_enabled']:
+            missing.extend([setting for setting in REQUIRED_S3_SETTINGS if not config[setting]])
+
+        return missing
+
+    def _make_s3_pod_config(self):
+        config = self.model.config
+        if not config['s3_enabled']:
+            return {}
+
+        return {
+            'MM_FILESETTINGS_DRIVERNAME': 'amazons3',
+            'MM_FILESETTINGS_MAXFILESIZE': str(config['max_file_size'] * 1048576),  # LP:1881227
+            'MM_FILESETTINGS_AMAZONS3SSL': 'true',  # defaults to true; belt and braces
+            'MM_FILESETTINGS_AMAZONS3ENDPOINT': config['s3_endpoint'],
+            'MM_FILESETTINGS_AMAZONS3BUCKET': config['s3_bucket'],
+            'MM_FILESETTINGS_AMAZONS3REGION': config['s3_region'],
+            'MM_FILESETTINGS_AMAZONS3ACCESSKEYID': config['s3_access_key_id'],
+            'MM_FILESETTINGS_AMAZONS3SECRETACCESSKEY': config['s3_secret_access_key'],
+            'MM_FILESETTINGS_AMAZONS3SSE': 'true' if config['s3_server_side_encryption'] else 'false',
+            'MM_FILESETTINGS_AMAZONS3TRACE': 'true' if config['debug'] else 'false',
+        }
 
     def _make_k8s_resources(self):
         site_url = self.model.config['site_url']
@@ -191,6 +220,11 @@ class MattermostK8sCharm(CharmBase):
 
         if not self.unit.is_leader():
             self.unit.status = ActiveStatus()
+            return
+
+        missing = self._missing_charm_settings()
+        if missing:
+            self.unit.status = WaitingStatus('Some required settings are empty: {}'.format(', '.join(sorted(missing))))
             return
 
         self.unit.status = MaintenanceStatus('Configuring pod')
