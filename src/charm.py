@@ -120,6 +120,10 @@ class MattermostK8sCharm(CharmBase):
     def _check_for_config_problems(self):
         problems = []
 
+        missing = self._missing_charm_settings()
+        if missing:
+            problems.append('required settings are empty: {}'.format(', '.join(sorted(missing))))
+
         ranges = self.model.config['ingress_whitelist_source_range']
         if ranges:
             problems.append(check_ranges(ranges, 'ingress_whitelist_source_range'))
@@ -255,11 +259,6 @@ class MattermostK8sCharm(CharmBase):
 
         if not self.unit.is_leader():
             self.unit.status = ActiveStatus()
-            return
-
-        missing = self._missing_charm_settings()
-        if missing:
-            self.unit.status = BlockedStatus('Some required settings are empty: {}'.format(', '.join(sorted(missing))))
             return
 
         problems = self._check_for_config_problems()
