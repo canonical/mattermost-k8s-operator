@@ -161,7 +161,7 @@ class MattermostK8sCharm(CharmBase):
 
         return {
             'MM_FILESETTINGS_DRIVERNAME': 'amazons3',
-            'MM_FILESETTINGS_MAXFILESIZE': str(config['max_file_size'] * 1048576),  # otherwise json.dumps renders it in scientific notation
+            'MM_FILESETTINGS_MAXFILESIZE': str(config['max_file_size'] * 1048576),  # LP:1881227
             'MM_FILESETTINGS_AMAZONS3SSL': 'true',  # defaults to true; belt and braces
             'MM_FILESETTINGS_AMAZONS3ENDPOINT': config['s3_endpoint'],
             'MM_FILESETTINGS_AMAZONS3BUCKET': config['s3_bucket'],
