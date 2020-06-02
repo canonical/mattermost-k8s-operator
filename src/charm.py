@@ -3,6 +3,8 @@
 import sys
 sys.path.append('lib')  # noqa: E402
 
+from ipaddress import ip_network
+
 from urllib.parse import urlparse
 
 from ops.charm import (
@@ -17,6 +19,7 @@ from ops.framework import (
 from ops.main import main
 from ops.model import (
     ActiveStatus,
+    BlockedStatus,
     MaintenanceStatus,
     WaitingStatus,
 )
@@ -40,6 +43,19 @@ class MattermostDBMasterAvailableEvent(EventBase):
 class MattermostCharmEvents(CharmEvents):
     """Custom charm events."""
     db_master_available = EventSource(MattermostDBMasterAvailableEvent)
+
+
+def check_ranges(ranges, name):
+    if ranges:
+        networks = ranges.split(',')
+        invalid_networks = []
+        for network in networks:
+            try:
+                ip_network(network)
+            except ValueError:
+                invalid_networks.append(network)
+        if invalid_networks:
+            return '{}: invalid network(s): {}'.format(name, ', '.join(invalid_networks))
 
 
 class MattermostK8sCharm(CharmBase):
@@ -100,6 +116,19 @@ class MattermostK8sCharm(CharmBase):
         self.state.db_ro_uris = [c.uri for c in event.standbys]
 
         # TODO(pjdc): Emit event when we add support for read replicas.
+
+    def _check_for_config_problems(self):
+        problems = []
+
+        missing = self._missing_charm_settings()
+        if missing:
+            problems.append('required setting(s) empty: {}'.format(', '.join(sorted(missing))))
+
+        ranges = self.model.config['ingress_whitelist_source_range']
+        if ranges:
+            problems.append(check_ranges(ranges, 'ingress_whitelist_source_range'))
+
+        return '; '.join(filter(None, problems))
 
     def _make_pod_spec(self):
         mattermost_image_details = self.mattermost_image.fetch()
@@ -177,6 +206,7 @@ class MattermostK8sCharm(CharmBase):
         if not site_url:
             return None
         parsed = urlparse(site_url)
+        annotations = {}
 
         if parsed.scheme.startswith('http'):
             ingress = {
@@ -205,6 +235,15 @@ class MattermostK8sCharm(CharmBase):
                 tls_secret_name = self.model.config['tls_secret_name']
                 if tls_secret_name:
                     ingress['spec']['tls'][0]['secretName'] = tls_secret_name
+            else:
+                annotations['nginx.ingress.kubernetes.io/ssl-redirect'] = 'false'
+
+            ingress_whitelist_source_range = self.model.config['ingress_whitelist_source_range']
+            if ingress_whitelist_source_range:
+                annotations['nginx.ingress.kubernetes.io/whitelist-source-range'] = ingress_whitelist_source_range
+
+            if annotations:
+                ingress['annotations'] = annotations
 
             return {
                 "kubernetesResources": {
@@ -222,13 +261,12 @@ class MattermostK8sCharm(CharmBase):
             self.unit.status = ActiveStatus()
             return
 
-        missing = self._missing_charm_settings()
-        if missing:
-            self.unit.status = WaitingStatus('Some required settings are empty: {}'.format(', '.join(sorted(missing))))
+        problems = self._check_for_config_problems()
+        if problems:
+            self.unit.status = BlockedStatus(problems)
             return
 
         self.unit.status = MaintenanceStatus('Configuring pod')
-
         pod_spec = self._make_pod_spec()
 
         # Due to https://github.com/canonical/operator/issues/293 we

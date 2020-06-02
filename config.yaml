@@ -3,6 +3,13 @@ options:
         type: boolean
         description: Set the Mattermost log level to DEBUG, otherwise INFO.
         default: false
+    ingress_whitelist_source_range:
+        type: string
+        description: |
+          A comma-separated list of CIDRs to store in the ingress.kubernetes.io/whitelist-source-range annotation.
+
+          This can be used to lock down access to Mattermost based on source IP address.
+        default: ''
     open_server:
         type: boolean
         description: Allows users to sign up from the root page without an invite
