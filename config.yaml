@@ -10,6 +10,11 @@ options:
 
           This can be used to lock down access to Mattermost based on source IP address.
         default: ''
+    mattermost_image_path:
+        type: string
+        description: |
+          The location of the image to use, e.g. "registry.example.com/mattermost:v1".
+        default: ''
     open_server:
         type: boolean
         description: Allows users to sign up from the root page without an invite

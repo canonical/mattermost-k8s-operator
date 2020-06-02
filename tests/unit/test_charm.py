@@ -15,6 +15,9 @@ from charm import (
 from ops import testing
 
 CONFIG_NO_S3_SETTINGS_S3_ENABLED = {
+    'mattermost_image_path': 'example.com/mattermost:latest',
+    'mattermost_image_username': '',
+    'mattermost_image_password': '',
     's3_enabled': True,
     's3_endpoint': 's3.amazonaws.com',
     's3_bucket': '',
@@ -24,6 +27,9 @@ CONFIG_NO_S3_SETTINGS_S3_ENABLED = {
 }
 
 CONFIG_NO_S3_SETTINGS_S3_DISABLED_NO_DEFAULTS = {
+    'mattermost_image_path': 'example.com/mattermost:latest',
+    'mattermost_image_username': '',
+    'mattermost_image_password': '',
     's3_enabled': False,
 }
 
