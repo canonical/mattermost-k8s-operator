@@ -14,6 +14,27 @@ from charm import (
 
 from ops import testing
 
+CONFIG_IMAGE_NO_CREDS = {
+    'mattermost_image_path': 'example.com/mattermost:latest',
+    'mattermost_image_username': '',
+    'mattermost_image_password': '',
+    's3_enabled': False,
+}
+
+CONFIG_IMAGE_NO_IMAGE = {
+    'mattermost_image_path': '',
+    'mattermost_image_username': '',
+    'mattermost_image_password': '',
+    's3_enabled': False,
+}
+
+CONFIG_IMAGE_NO_PASSWORD = {
+    'mattermost_image_path': 'example.com/mattermost:latest',
+    'mattermost_image_username': 'production',
+    'mattermost_image_password': '',
+    's3_enabled': False,
+}
+
 CONFIG_NO_S3_SETTINGS_S3_ENABLED = {
     'mattermost_image_path': 'example.com/mattermost:latest',
     'mattermost_image_username': '',
@@ -43,6 +64,21 @@ class TestMattermostK8sCharm(unittest.TestCase):
     def setUp(self):
         self.harness = testing.Harness(MattermostK8sCharm)
         self.harness.begin()
+
+    def test_missing_charm_settings_image_no_creds(self):
+        self.harness.charm.model.config = copy.deepcopy(CONFIG_IMAGE_NO_CREDS)
+        expected = []
+        self.assertEqual(sorted(self.harness.charm._missing_charm_settings()), expected)
+
+    def test_missing_charm_settings_image_no_image(self):
+        self.harness.charm.model.config = copy.deepcopy(CONFIG_IMAGE_NO_IMAGE)
+        expected = sorted(['mattermost_image_path'])
+        self.assertEqual(sorted(self.harness.charm._missing_charm_settings()), expected)
+
+    def test_missing_charm_settings_image_no_password(self):
+        self.harness.charm.model.config = copy.deepcopy(CONFIG_IMAGE_NO_PASSWORD)
+        expected = sorted(['mattermost_image_password'])
+        self.assertEqual(sorted(self.harness.charm._missing_charm_settings()), expected)
 
     def test_missing_charm_settings_no_s3_settings_s3_enabled(self):
         self.harness.charm.model.config = copy.deepcopy(CONFIG_NO_S3_SETTINGS_S3_ENABLED)
