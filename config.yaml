@@ -27,10 +27,6 @@ options:
         description: |
           The password associated with mattermost_image_username for accessing the registry specified in mattermost_image_path.
         default: ''
-    open_server:
-        type: boolean
-        description: Allows users to sign up from the root page without an invite
-        default: false
     outbound_proxy:
         type: string
         description: The proxy to use for outbound requests.

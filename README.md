@@ -8,11 +8,10 @@ configurable to use a postgresql backend.
 This is a k8s workload charm and can only be deployed to to a Juju k8s
 cloud, attached to a controller using `juju add-k8s`.
 
-On a fresh deployment, you need to set Mattermost in Open Server mode,
-which will let you create an admin account.  Once this is done, you
-can restrict access with:
+When visiting a fresh deployment, you will first be asked to create an admin
+account.  Further accounts must be created using this admin account, or by
+setting up an external authentication source, such as SAML.
 
-    juju config mattermost open_server=false
 
 ## Details
 

@@ -176,7 +176,6 @@ class MattermostK8sCharm(CharmBase):
             'MATTERMOST_HTTPD_LISTEN_PORT': CONTAINER_PORT,
             'MM_CONFIG': db_uri,
             'MM_SQLSETTINGS_DATASOURCE': db_uri,
-            'MM_ENABLEOPENSERVER': config['open_server'],
             # logging
             'MM_LOGSETTINGS_CONSOLELEVEL': 'DEBUG' if config['debug'] else 'INFO',
             'MM_LOGSETTINGS_ENABLECONSOLE': 'true',
