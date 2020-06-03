@@ -130,9 +130,15 @@ class MattermostK8sCharm(CharmBase):
         return '; '.join(filter(None, problems))
 
     def _make_pod_spec(self):
+        config = self.model.config
         mattermost_image_details = {
-            'imagePath': self.model.config['mattermost_image_path'],
+            'imagePath': config['mattermost_image_path'],
         }
+        if config['mattermost_image_username']:
+            mattermost_image_details.update({
+                'username': config['mattermost_image_username'],
+                'password': config['mattermost_image_password'],
+            })
         pod_config = self._make_pod_config()
         pod_config.update(self._make_s3_pod_config())
 
@@ -180,6 +186,9 @@ class MattermostK8sCharm(CharmBase):
         missing = []
 
         missing.extend([setting for setting in REQUIRED_SETTINGS if not config[setting]])
+
+        if config['mattermost_image_username'] and not config['mattermost_image_password']:
+            missing.append('mattermost_image_password')
 
         if config['s3_enabled']:
             missing.extend([setting for setting in REQUIRED_S3_SETTINGS if not config[setting]])
