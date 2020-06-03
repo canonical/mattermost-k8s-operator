@@ -28,6 +28,8 @@ from ops.model import (
 from interface import pgsql
 from oci_image import OCIImageResource
 
+# Until https://github.com/canonical/operator/issues/317 is
+# resolved, we'll store charm state in the leader settings.
 from leadership import leader_get, leader_set
 
 import logging
