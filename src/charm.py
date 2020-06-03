@@ -3,6 +3,8 @@
 import sys
 sys.path.append('lib')  # noqa: E402
 
+import json
+
 from ipaddress import ip_network
 
 from urllib.parse import urlparse
@@ -14,7 +16,6 @@ from ops.charm import (
 from ops.framework import (
     EventBase,
     EventSource,
-    StoredState,
 )
 from ops.main import main
 from ops.model import (
@@ -26,6 +27,10 @@ from ops.model import (
 
 from interface import pgsql
 from oci_image import OCIImageResource
+
+# Until https://github.com/canonical/operator/issues/317 is
+# resolved, we'll store charm state in the leader settings.
+from leadership import leader_get, leader_set
 
 import logging
 logger = logging.getLogger()
@@ -60,7 +65,6 @@ def check_ranges(ranges, name):
 
 class MattermostK8sCharm(CharmBase):
 
-    state = StoredState()
     on = MattermostCharmEvents()
 
     def __init__(self, *args):
@@ -75,7 +79,6 @@ class MattermostK8sCharm(CharmBase):
         self.framework.observe(self.on.upgrade_charm, self.configure_pod)
 
         # database
-        self.state.set_default(db_conn_str=None, db_uri=None, db_ro_uris=[])
         self.db = pgsql.PostgreSQLClient(self, 'db')
         self.framework.observe(self.db.on.database_relation_joined, self._on_database_relation_joined)
         self.framework.observe(self.db.on.master_changed, self._on_master_changed)
@@ -99,8 +102,13 @@ class MattermostK8sCharm(CharmBase):
             # event, or risk connecting to an incorrect database.
             return
 
-        self.state.db_conn_str = None if event.master is None else event.master.conn_str
-        self.state.db_uri = None if event.master is None else event.master.uri
+        if not self.model.unit.is_leader():
+            return
+
+        leader_set({
+            'db_conn_str': None if event.master is None else event.master.conn_str,
+            'db_uri': None if event.master is None else event.master.uri,
+        })
 
         if event.master is None:
             return
@@ -113,7 +121,12 @@ class MattermostK8sCharm(CharmBase):
             # event, or risk connecting to an incorrect database.
             return
 
-        self.state.db_ro_uris = [c.uri for c in event.standbys]
+        if not self.model.unit.is_leader():
+            return
+
+        leader_set({
+            'db_ro_uris': json.dumps([c.uri for c in event.standbys]),
+        })
 
         # TODO(pjdc): Emit event when we add support for read replicas.
 
@@ -151,7 +164,7 @@ class MattermostK8sCharm(CharmBase):
     def _make_pod_config(self):
         config = self.model.config
         # https://github.com/mattermost/mattermost-server/pull/14666
-        db_uri = self.state.db_uri.replace('postgresql://', 'postgres://')
+        db_uri = leader_get('db_uri').replace('postgresql://', 'postgres://')
         pod_config = {
             'MATTERMOST_HTTPD_LISTEN_PORT': CONTAINER_PORT,
             'MM_CONFIG': db_uri,
@@ -252,7 +265,7 @@ class MattermostK8sCharm(CharmBase):
             }
 
     def configure_pod(self, event):
-        if not self.state.db_uri:
+        if not leader_get('db_uri'):
             self.unit.status = WaitingStatus('Waiting for database relation')
             event.defer()
             return
@@ -276,7 +289,6 @@ class MattermostK8sCharm(CharmBase):
             pod_spec.update(k8s_resources)
 
         self.model.pod.set_spec(pod_spec)
-        self.state.is_started = True
         self.unit.status = ActiveStatus()
 
 
