@@ -14,7 +14,3 @@ requires:
   db:
     interface: pgsql
     limit: 1
-resources:
-  mattermost_image:
-    type: oci-image
-    description: Image used for the mattermost pod.

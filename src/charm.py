@@ -26,7 +26,6 @@ from ops.model import (
 )
 
 from interface import pgsql
-from oci_image import OCIImageResource
 
 # Until https://github.com/canonical/operator/issues/317 is
 # resolved, we'll store charm state in the leader settings.
@@ -39,6 +38,7 @@ logger = logging.getLogger()
 CONTAINER_PORT = 8065  # Mattermost's default port, and what we expect the image to use
 DATABASE_NAME = 'mattermost'
 REQUIRED_S3_SETTINGS = ['s3_bucket', 's3_region', 's3_access_key_id', 's3_secret_access_key']
+REQUIRED_SETTINGS = ['mattermost_image_path']
 
 
 class MattermostDBMasterAvailableEvent(EventBase):
@@ -72,7 +72,6 @@ class MattermostK8sCharm(CharmBase):
 
         # get our mattermost_image from juju
         # ie: juju deploy . --resource mattermost_image=mattermost:latest )
-        self.mattermost_image = OCIImageResource(self, 'mattermost_image')
         self.framework.observe(self.on.start, self.configure_pod)
         self.framework.observe(self.on.config_changed, self.configure_pod)
         self.framework.observe(self.on.leader_elected, self.configure_pod)
@@ -144,7 +143,15 @@ class MattermostK8sCharm(CharmBase):
         return '; '.join(filter(None, problems))
 
     def _make_pod_spec(self):
-        mattermost_image_details = self.mattermost_image.fetch()
+        config = self.model.config
+        mattermost_image_details = {
+            'imagePath': config['mattermost_image_path'],
+        }
+        if config['mattermost_image_username']:
+            mattermost_image_details.update({
+                'username': config['mattermost_image_username'],
+                'password': config['mattermost_image_password'],
+            })
         pod_config = self._make_pod_config()
         pod_config.update(self._make_s3_pod_config())
 
@@ -190,6 +197,11 @@ class MattermostK8sCharm(CharmBase):
     def _missing_charm_settings(self):
         config = self.model.config
         missing = []
+
+        missing.extend([setting for setting in REQUIRED_SETTINGS if not config[setting]])
+
+        if config['mattermost_image_username'] and not config['mattermost_image_password']:
+            missing.append('mattermost_image_password')
 
         if config['s3_enabled']:
             missing.extend([setting for setting in REQUIRED_S3_SETTINGS if not config[setting]])
