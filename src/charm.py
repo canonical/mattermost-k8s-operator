@@ -3,6 +3,7 @@
 import sys
 sys.path.append('lib')  # noqa: E402
 
+import copy
 import json
 
 from ipaddress import ip_network
@@ -219,55 +220,59 @@ class MattermostK8sCharm(CharmBase):
             'MM_FILESETTINGS_AMAZONS3TRACE': 'true' if config['debug'] else 'false',
         }
 
-    def _make_k8s_resources(self):
+    def _update_pod_spec_for_k8s_ingress(self, pod_spec):
         site_url = self.model.config['site_url']
         if not site_url:
-            return None
+            return pod_spec
+
         parsed = urlparse(site_url)
         annotations = {}
 
-        if parsed.scheme.startswith('http'):
-            ingress = {
-                "name": self.app.name,
-                "spec": {
-                    "rules": [{
-                        "host": parsed.hostname,
-                        "http": {
-                            "paths": [{
-                                "path": "/",
-                                "backend": {
-                                    "serviceName": self.app.name,
-                                    "servicePort": CONTAINER_PORT,
-                                }
-                            }]
-                        }
-                    }]
-                }
-            }
-            if parsed.scheme == 'https':
-                ingress['spec']['tls'] = [
-                    {
-                        'hosts': [parsed.hostname],
+        if not parsed.scheme.startswith('http'):
+            return pod_spec
+
+        pod_spec = copy.deepcopy(pod_spec)
+        ingress = {
+            "name": self.app.name,
+            "spec": {
+                "rules": [{
+                    "host": parsed.hostname,
+                    "http": {
+                        "paths": [{
+                            "path": "/",
+                            "backend": {
+                                "serviceName": self.app.name,
+                                "servicePort": CONTAINER_PORT,
+                            }
+                        }]
                     }
-                ]
-                tls_secret_name = self.model.config['tls_secret_name']
-                if tls_secret_name:
-                    ingress['spec']['tls'][0]['secretName'] = tls_secret_name
-            else:
-                annotations['nginx.ingress.kubernetes.io/ssl-redirect'] = 'false'
-
-            ingress_whitelist_source_range = self.model.config['ingress_whitelist_source_range']
-            if ingress_whitelist_source_range:
-                annotations['nginx.ingress.kubernetes.io/whitelist-source-range'] = ingress_whitelist_source_range
-
-            if annotations:
-                ingress['annotations'] = annotations
-
-            return {
-                "kubernetesResources": {
-                    "ingressResources": [ingress],
-                }
+                }]
             }
+        }
+        if parsed.scheme == 'https':
+            ingress['spec']['tls'] = [
+                {
+                    'hosts': [parsed.hostname],
+                }
+            ]
+            tls_secret_name = self.model.config['tls_secret_name']
+            if tls_secret_name:
+                ingress['spec']['tls'][0]['secretName'] = tls_secret_name
+        else:
+            annotations['nginx.ingress.kubernetes.io/ssl-redirect'] = 'false'
+
+        ingress_whitelist_source_range = self.model.config['ingress_whitelist_source_range']
+        if ingress_whitelist_source_range:
+            annotations['nginx.ingress.kubernetes.io/whitelist-source-range'] = ingress_whitelist_source_range
+
+        if annotations:
+            ingress['annotations'] = annotations
+
+        resources = pod_spec.get('kubernetesResources', {})
+        resources['ingressResources'] = [ingress]
+        pod_spec['kubernetesResources'] = resources
+
+        return pod_spec
 
     def configure_pod(self, event):
         if not state_get('db_uri'):
@@ -289,9 +294,7 @@ class MattermostK8sCharm(CharmBase):
 
         # Due to https://github.com/canonical/operator/issues/293 we
         # can't use pod.set_spec's k8s_resources argument.
-        k8s_resources = self._make_k8s_resources()
-        if k8s_resources:
-            pod_spec.update(k8s_resources)
+        pod_spec = self._update_pod_spec_for_k8s_ingress(pod_spec)
 
         self.model.pod.set_spec(pod_spec)
         self.unit.status = ActiveStatus()
