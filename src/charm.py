@@ -163,7 +163,15 @@ class MattermostK8sCharm(CharmBase):
                     'protocol': 'TCP',
                 }],
                 'envConfig': pod_config,
-            }]
+                'kubernetes': {
+                      'readinessProbe': {
+                          'httpGet': {
+                              'path': '/api/v4/system/ping',
+                              'port': CONTAINER_PORT,
+                          }
+                      }
+                },
+            }],
         }
 
     def _make_pod_config(self):
