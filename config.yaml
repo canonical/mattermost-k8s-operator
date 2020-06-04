@@ -1,4 +1,11 @@
 options:
+    clustering:
+        type: boolean
+        description: |
+          Enable clustering.
+
+          This feature requires a Mattermost Enterprise Edition licence.
+        default: false
     debug:
         type: boolean
         description: Set the Mattermost log level to DEBUG, otherwise INFO.
