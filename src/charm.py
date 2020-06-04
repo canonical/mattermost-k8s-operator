@@ -344,7 +344,7 @@ class MattermostK8sCharm(CharmBase):
 
         pod_spec['containers'][0]['envConfig'].update({
             "MM_CLUSTERSETTINGS_ENABLE": "true",
-            "MM_CLUSTERSETTINGS_CLUSTERNAME": os.environ['JUJU_MODEL_UUID'],
+            "MM_CLUSTERSETTINGS_CLUSTERNAME": '{}-{}'.format(self.app.name, os.environ['JUJU_MODEL_UUID']),
             "MM_CLUSTERSETTINGS_USEIPADDRESS": "true",
         })
 
