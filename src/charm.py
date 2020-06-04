@@ -150,7 +150,7 @@ class MattermostK8sCharm(CharmBase):
         pod_config.update(self._make_s3_pod_config())
 
         return {
-            'version': 2,       # otherwise resources are ignored
+            'version': 3,       # otherwise resources are ignored
             'containers': [{
                 'name': self.app.name,
                 'imageDetails': mattermost_image_details,
@@ -158,7 +158,7 @@ class MattermostK8sCharm(CharmBase):
                     'containerPort': CONTAINER_PORT,
                     'protocol': 'TCP',
                 }],
-                'config': pod_config,
+                'envConfig': pod_config,
             }]
         }
 
