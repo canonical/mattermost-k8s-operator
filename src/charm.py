@@ -342,7 +342,7 @@ class MattermostK8sCharm(CharmBase):
             self.unit.status = BlockedStatus(problems)
             return
 
-        self.unit.status = MaintenanceStatus('Configuring pod')
+        self.unit.status = MaintenanceStatus('Assembling pod spec')
         pod_spec = self._make_pod_spec()
 
         # Due to https://github.com/canonical/operator/issues/293 we
@@ -351,6 +351,7 @@ class MattermostK8sCharm(CharmBase):
 
         pod_spec = self._update_pod_spec_for_licence(pod_spec)
 
+        self.unit.status = MaintenanceStatus('Setting pod spec')
         self.model.pod.set_spec(pod_spec)
         self.unit.status = ActiveStatus()
 
