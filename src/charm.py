@@ -28,8 +28,8 @@ from ops.model import (
 from interface import pgsql
 
 # Until https://github.com/canonical/operator/issues/317 is
-# resolved, we'll store charm state in the leader settings.
-from leadership import leader_get, leader_set
+# resolved, we'll directly manage charm state ourselves.
+from charmstate import state_get, state_set
 
 import logging
 logger = logging.getLogger()
@@ -101,10 +101,7 @@ class MattermostK8sCharm(CharmBase):
             # event, or risk connecting to an incorrect database.
             return
 
-        if not self.model.unit.is_leader():
-            return
-
-        leader_set({
+        state_set({
             'db_conn_str': None if event.master is None else event.master.conn_str,
             'db_uri': None if event.master is None else event.master.uri,
         })
@@ -120,10 +117,7 @@ class MattermostK8sCharm(CharmBase):
             # event, or risk connecting to an incorrect database.
             return
 
-        if not self.model.unit.is_leader():
-            return
-
-        leader_set({
+        state_set({
             'db_ro_uris': json.dumps([c.uri for c in event.standbys]),
         })
 
@@ -171,7 +165,7 @@ class MattermostK8sCharm(CharmBase):
     def _make_pod_config(self):
         config = self.model.config
         # https://github.com/mattermost/mattermost-server/pull/14666
-        db_uri = leader_get('db_uri').replace('postgresql://', 'postgres://')
+        db_uri = state_get('db_uri').replace('postgresql://', 'postgres://')
         pod_config = {
             'MATTERMOST_HTTPD_LISTEN_PORT': CONTAINER_PORT,
             'MM_CONFIG': db_uri,
@@ -276,7 +270,7 @@ class MattermostK8sCharm(CharmBase):
             }
 
     def configure_pod(self, event):
-        if not leader_get('db_uri'):
+        if not state_get('db_uri'):
             self.unit.status = WaitingStatus('Waiting for database relation')
             event.defer()
             return
