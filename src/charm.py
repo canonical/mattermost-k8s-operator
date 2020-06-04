@@ -274,6 +274,55 @@ class MattermostK8sCharm(CharmBase):
 
         return pod_spec
 
+    def _make_licence_volume_configs(self):
+        config = self.model.config
+        if not config['licence']:
+            return []
+        return [{
+            'name': 'licence',
+            'mountPath': '/secrets',
+            'secret': {
+                'name': '{}-licence'.format(self.app.name),
+                'files': [{
+                    'key': 'licence',
+                    'path': 'licence.txt',
+                    'mode': 0o444,
+                }],
+            },
+        }]
+
+    def _make_licence_k8s_secrets(self):
+        config = self.model.config
+        if not config['licence']:
+            return []
+        return [{
+            'name': '{}-licence'.format(self.app.name),
+            'type': 'Opaque',
+            'stringData': {
+                'licence': config['licence'],
+            },
+        }]
+
+    def _update_pod_spec_for_licence(self, pod_spec):
+        config = self.model.config
+        if not config['licence']:
+            return pod_spec
+        pod_spec = copy.deepcopy(pod_spec)
+
+        secrets = pod_spec['kubernetesResources'].get('secrets', [])
+        secrets.extend(self._make_licence_k8s_secrets())
+        pod_spec['kubernetesResources']['secrets'] = secrets
+
+        volume_config = pod_spec['containers'][0].get('volumeConfig', [])
+        volume_config.extend(self._make_licence_volume_configs())
+        pod_spec['containers'][0]['volumeConfig'] = volume_config
+
+        pod_spec['containers'][0]['envConfig'].update(
+            {'MM_SERVICESETTINGS_LICENSEFILELOCATION': '/secrets/licence.txt'},
+        )
+
+        return pod_spec
+
     def configure_pod(self, event):
         if not state_get('db_uri'):
             self.unit.status = WaitingStatus('Waiting for database relation')
@@ -295,6 +344,8 @@ class MattermostK8sCharm(CharmBase):
         # Due to https://github.com/canonical/operator/issues/293 we
         # can't use pod.set_spec's k8s_resources argument.
         pod_spec = self._update_pod_spec_for_k8s_ingress(pod_spec)
+
+        pod_spec = self._update_pod_spec_for_licence(pod_spec)
 
         self.model.pod.set_spec(pod_spec)
         self.unit.status = ActiveStatus()

@@ -10,6 +10,14 @@ options:
 
           This can be used to lock down access to Mattermost based on source IP address.
         default: ''
+    licence:
+        type: string
+        description: |
+          The contents of the licence file as supplied by Mattermost.
+
+          Some features are not available without a licence.  For more
+          information, consult the Mattermost documentation.
+        default: ''
     mattermost_image_path:
         type: string
         description: |
