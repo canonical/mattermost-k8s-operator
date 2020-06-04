@@ -38,6 +38,7 @@ logger = logging.getLogger()
 
 CONTAINER_PORT = 8065  # Mattermost's default port, and what we expect the image to use
 DATABASE_NAME = 'mattermost'
+LICENCE_SECRET_KEY_NAME = 'licence'
 REQUIRED_S3_SETTINGS = ['s3_bucket', 's3_region', 's3_access_key_id', 's3_secret_access_key']
 REQUIRED_SETTINGS = ['mattermost_image_path']
 
@@ -274,6 +275,9 @@ class MattermostK8sCharm(CharmBase):
 
         return pod_spec
 
+    def _get_licence_secret_name(self):
+        return '{}-licence'.format(self.app.name)
+
     def _make_licence_volume_configs(self):
         config = self.model.config
         if not config['licence']:
@@ -282,9 +286,9 @@ class MattermostK8sCharm(CharmBase):
             'name': 'licence',
             'mountPath': '/secrets',
             'secret': {
-                'name': '{}-licence'.format(self.app.name),
+                'name': self._get_licence_secret_name(),
                 'files': [{
-                    'key': 'licence',
+                    'key': LICENCE_SECRET_KEY_NAME,
                     'path': 'licence.txt',
                     'mode': 0o444,
                 }],
@@ -296,10 +300,10 @@ class MattermostK8sCharm(CharmBase):
         if not config['licence']:
             return []
         return [{
-            'name': '{}-licence'.format(self.app.name),
+            'name': self._get_licence_secret_name(),
             'type': 'Opaque',
             'stringData': {
-                'licence': config['licence'],
+                LICENCE_SECRET_KEY_NAME: config['licence'],
             },
         }]
 
