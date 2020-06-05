@@ -20,6 +20,7 @@ CONFIG_IMAGE_NO_CREDS = {
     'mattermost_image_username': '',
     'mattermost_image_password': '',
     's3_enabled': False,
+    'sso': False,
 }
 
 CONFIG_IMAGE_NO_IMAGE = {
@@ -28,6 +29,7 @@ CONFIG_IMAGE_NO_IMAGE = {
     'mattermost_image_username': '',
     'mattermost_image_password': '',
     's3_enabled': False,
+    'sso': False,
 }
 
 CONFIG_IMAGE_NO_PASSWORD = {
@@ -36,6 +38,7 @@ CONFIG_IMAGE_NO_PASSWORD = {
     'mattermost_image_username': 'production',
     'mattermost_image_password': '',
     's3_enabled': False,
+    'sso': False,
 }
 
 CONFIG_NO_S3_SETTINGS_S3_ENABLED = {
@@ -49,6 +52,7 @@ CONFIG_NO_S3_SETTINGS_S3_ENABLED = {
     's3_region': '',
     's3_access_key_id': '',
     's3_secret_access_key': '',
+    'sso': False,
 }
 
 CONFIG_NO_S3_SETTINGS_S3_DISABLED_NO_DEFAULTS = {
@@ -57,6 +61,7 @@ CONFIG_NO_S3_SETTINGS_S3_DISABLED_NO_DEFAULTS = {
     'mattermost_image_username': '',
     'mattermost_image_password': '',
     's3_enabled': False,
+    'sso': False,
 }
 
 RANGE_BAD = '10.242.0.0/8,91.189.92.242/25'

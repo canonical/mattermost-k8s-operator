@@ -126,3 +126,10 @@ options:
 
           This requires configuration on the S3 side, as well as a suitable Mattermost licence.
         default: false
+    sso:
+        type: boolean
+        description: |
+          Whether to use Ubuntu SSO to log in.
+
+          This will not work unless the administrators of login.ubuntu.com have created a suitable SAML config first.
+        default: false
