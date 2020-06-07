@@ -372,7 +372,7 @@ class MattermostK8sCharm(CharmBase):
             'MM_SAMLSETTINGS_ENABLE': 'true',
             'MM_SAMLSETTINGS_IDPURL': 'https://login.ubuntu.com/saml/',
             'MM_SAMLSETTINGS_VERIFY': 'true',
-            'MM_SAMLSETTINGS_ENCRYPT': 'false',  # FIXME(pjdc): per POC
+            'MM_SAMLSETTINGS_ENCRYPT': 'false',  # per POC
             'MM_SAMLSETTINGS_IDPDESCRIPTORURL': 'https://login.ubuntu.com',
             'MM_SAMLSETTINGS_IDPMETADATAURL': 'https://login.ubuntu.com/+saml/metadata',
             'MM_SAMLSETTINGS_ASSERTIONCONSUMERSERVICEURL': 'https://chat.canonical.com/login/sso/saml',
@@ -382,7 +382,6 @@ class MattermostK8sCharm(CharmBase):
             'MM_SAMLSETTINGS_IDATTRIBUTE': 'openid',
             'MM_SAMLSETTINGS_FIRSTNAMEATTRIBUTE': 'fullname',
             'MM_SAMLSETTINGS_LASTNAMEATTRIBUTE': '',
-            # TODO(pjdc): Figure out how to get the SAML certificate into the database.
             'MM_SAMLSETTINGS_IDPCERTIFICATEFILE': SAML_IDP_CRT,
             # Otherwise we have to install xmlsec1 and Mattermost forks on every login(!).
             'MM_EXPERIMENTALSETTINGS_USENEWSAMLLIBRARY': 'true',
