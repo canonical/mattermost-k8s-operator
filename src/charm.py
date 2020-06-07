@@ -31,6 +31,7 @@ from interface import pgsql
 # Until https://github.com/canonical/operator/issues/317 is
 # resolved, we'll directly manage charm state ourselves.
 from charmstate import state_get, state_set
+from utils import extend_list_merging_dicts_matched_by_key
 
 import logging
 logger = logging.getLogger()
@@ -314,11 +315,13 @@ class MattermostK8sCharm(CharmBase):
         pod_spec = copy.deepcopy(pod_spec)
 
         secrets = pod_spec['kubernetesResources'].get('secrets', [])
-        secrets.extend(self._make_licence_k8s_secrets())
+        secrets = extend_list_merging_dicts_matched_by_key(
+            secrets, self._make_licence_k8s_secrets(), key='name')
         pod_spec['kubernetesResources']['secrets'] = secrets
 
         volume_config = pod_spec['containers'][0].get('volumeConfig', [])
-        volume_config.extend(self._make_licence_volume_configs())
+        volume_config = extend_list_merging_dicts_matched_by_key(
+            volume_config, self._make_licence_volume_configs(), key='name')
         pod_spec['containers'][0]['volumeConfig'] = volume_config
 
         pod_spec['containers'][0]['envConfig'].update(
