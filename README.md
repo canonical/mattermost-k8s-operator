@@ -67,3 +67,24 @@ know what the source addresses or address range is for the next step.
 
 (In the case of postgresql, `--via` is needed so that the charm can
 configure `pga_hba.conf` to let the k8s pods connect to the database.)
+
+## Authentication
+
+This charm supports configuring [Ubuntu SSO](https://login.ubuntu.com)
+as the authentication method.  This requires the following:
+
+ * a Mattermost Enterprise Edition licence to be obtained and activated
+ * a SAML config for the Mattermost installtion to be added to `login.ubuntu.com`
+ * the SAML config will need to have a new certificate generated (refer to "Canonical RT#107985" when requesting this)
+    * this is because the default certificate available via the [SAML metadata URL](https://login.ubuntu.com/+saml/metadata) has expired
+ * the new certificate to be installed in the Mattermost database (see below)
+
+### Installing the SAML Identity Provider Certificate
+
+Invoke `psql` against the mattermost database on the current primary
+and use the following query to install the certificate:
+
+    INSERT INTO configurationfiles (name, createat, updateat, data)
+        VALUES ('saml-idp.crt', (extract(epoch from now()) * 1000)::bigint ,(extract(epoch from now()) * 1000)::bigint, $$-----BEGIN CERTIFICATE-----
+    [...]
+    -----END CERTIFICATE-----$$);
