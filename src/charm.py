@@ -43,6 +43,8 @@ DATABASE_NAME = 'mattermost'
 LICENCE_SECRET_KEY_NAME = 'licence'
 REQUIRED_S3_SETTINGS = ['s3_bucket', 's3_region', 's3_access_key_id', 's3_secret_access_key']
 REQUIRED_SETTINGS = ['mattermost_image_path']
+REQUIRED_SSO_SETTINGS = ['licence', 'site_url']
+SAML_IDP_CRT = 'saml-idp.crt'
 
 
 class MattermostDBMasterAvailableEvent(EventBase):
@@ -214,7 +216,10 @@ class MattermostK8sCharm(CharmBase):
         if config['s3_enabled']:
             missing.extend([setting for setting in REQUIRED_S3_SETTINGS if not config[setting]])
 
-        return missing
+        if config['sso']:
+            missing.extend([setting for setting in REQUIRED_SSO_SETTINGS if not config[setting]])
+
+        return sorted(list(set(missing)))
 
     def _make_s3_pod_config(self):
         config = self.model.config
@@ -358,6 +363,34 @@ class MattermostK8sCharm(CharmBase):
 
         return pod_spec
 
+    def _update_pod_spec_for_sso(self, pod_spec):
+        config = self.model.config
+        if not config['sso'] or [setting for setting in REQUIRED_SSO_SETTINGS if not config[setting]]:
+            return pod_spec
+        pod_spec = copy.deepcopy(pod_spec)
+        site_hostname = urlparse(config['site_url']).hostname
+
+        pod_spec['containers'][0]['envConfig'].update({
+            'MM_SAMLSETTINGS_ENABLE': 'true',
+            'MM_SAMLSETTINGS_IDPURL': 'https://login.ubuntu.com/saml/',
+            'MM_SAMLSETTINGS_VERIFY': 'true',
+            'MM_SAMLSETTINGS_ENCRYPT': 'false',  # per POC
+            'MM_SAMLSETTINGS_IDPDESCRIPTORURL': 'https://login.ubuntu.com',
+            'MM_SAMLSETTINGS_IDPMETADATAURL': 'https://login.ubuntu.com/+saml/metadata',
+            'MM_SAMLSETTINGS_ASSERTIONCONSUMERSERVICEURL': 'https://{}/login/sso/saml'.format(site_hostname),
+            'MM_SAMLSETTINGS_LOGINBUTTONTEXT': 'Ubuntu SSO',
+            'MM_SAMLSETTINGS_EMAILATTRIBUTE': 'email',
+            'MM_SAMLSETTINGS_USERNAMEATTRIBUTE': 'username',
+            'MM_SAMLSETTINGS_IDATTRIBUTE': 'openid',
+            'MM_SAMLSETTINGS_FIRSTNAMEATTRIBUTE': 'fullname',
+            'MM_SAMLSETTINGS_LASTNAMEATTRIBUTE': '',
+            'MM_SAMLSETTINGS_IDPCERTIFICATEFILE': SAML_IDP_CRT,
+            # Otherwise we have to install xmlsec1 and Mattermost forks on every login(!).
+            'MM_EXPERIMENTALSETTINGS_USENEWSAMLLIBRARY': 'true',
+        })
+
+        return pod_spec
+
     def configure_pod(self, event):
         if not state_get('db_uri'):
             self.unit.status = WaitingStatus('Waiting for database relation')
@@ -378,6 +411,7 @@ class MattermostK8sCharm(CharmBase):
         pod_spec = self._update_pod_spec_for_k8s_ingress(pod_spec)
         pod_spec = self._update_pod_spec_for_licence(pod_spec)
         pod_spec = self._update_pod_spec_for_clustering(pod_spec)
+        pod_spec = self._update_pod_spec_for_sso(pod_spec)
 
         self.unit.status = MaintenanceStatus('Setting pod spec')
         self.model.pod.set_spec(pod_spec)
