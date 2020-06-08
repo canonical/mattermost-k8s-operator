@@ -15,6 +15,7 @@ from charm import (
 from ops import testing
 
 CONFIG_IMAGE_NO_CREDS = {
+    'clustering': False,
     'mattermost_image_path': 'example.com/mattermost:latest',
     'mattermost_image_username': '',
     'mattermost_image_password': '',
@@ -22,6 +23,7 @@ CONFIG_IMAGE_NO_CREDS = {
 }
 
 CONFIG_IMAGE_NO_IMAGE = {
+    'clustering': False,
     'mattermost_image_path': '',
     'mattermost_image_username': '',
     'mattermost_image_password': '',
@@ -29,6 +31,7 @@ CONFIG_IMAGE_NO_IMAGE = {
 }
 
 CONFIG_IMAGE_NO_PASSWORD = {
+    'clustering': False,
     'mattermost_image_path': 'example.com/mattermost:latest',
     'mattermost_image_username': 'production',
     'mattermost_image_password': '',
@@ -36,6 +39,7 @@ CONFIG_IMAGE_NO_PASSWORD = {
 }
 
 CONFIG_NO_S3_SETTINGS_S3_ENABLED = {
+    'clustering': False,
     'mattermost_image_path': 'example.com/mattermost:latest',
     'mattermost_image_username': '',
     'mattermost_image_password': '',
@@ -48,6 +52,7 @@ CONFIG_NO_S3_SETTINGS_S3_ENABLED = {
 }
 
 CONFIG_NO_S3_SETTINGS_S3_DISABLED_NO_DEFAULTS = {
+    'clustering': False,
     'mattermost_image_path': 'example.com/mattermost:latest',
     'mattermost_image_username': '',
     'mattermost_image_password': '',

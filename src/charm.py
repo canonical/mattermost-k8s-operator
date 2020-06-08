@@ -5,6 +5,7 @@ sys.path.append('lib')  # noqa: E402
 
 import copy
 import json
+import os
 
 from ipaddress import ip_network
 
@@ -196,6 +197,9 @@ class MattermostK8sCharm(CharmBase):
 
         missing.extend([setting for setting in REQUIRED_SETTINGS if not config[setting]])
 
+        if config['clustering'] and not config['licence']:
+            missing.append('licence')
+
         if config['mattermost_image_username'] and not config['mattermost_image_password']:
             missing.append('mattermost_image_password')
 
@@ -270,6 +274,8 @@ class MattermostK8sCharm(CharmBase):
         if annotations:
             ingress['annotations'] = annotations
 
+        # Due to https://github.com/canonical/operator/issues/293 we
+        # can't use pod.set_spec's k8s_resources argument.
         resources = pod_spec.get('kubernetesResources', {})
         resources['ingressResources'] = [ingress]
         pod_spec['kubernetesResources'] = resources
@@ -330,6 +336,20 @@ class MattermostK8sCharm(CharmBase):
 
         return pod_spec
 
+    def _update_pod_spec_for_clustering(self, pod_spec):
+        config = self.model.config
+        if not config['clustering']:
+            return pod_spec
+        pod_spec = copy.deepcopy(pod_spec)
+
+        pod_spec['containers'][0]['envConfig'].update({
+            "MM_CLUSTERSETTINGS_ENABLE": "true",
+            "MM_CLUSTERSETTINGS_CLUSTERNAME": '{}-{}'.format(self.app.name, os.environ['JUJU_MODEL_UUID']),
+            "MM_CLUSTERSETTINGS_USEIPADDRESS": "true",
+        })
+
+        return pod_spec
+
     def configure_pod(self, event):
         if not state_get('db_uri'):
             self.unit.status = WaitingStatus('Waiting for database relation')
@@ -347,12 +367,9 @@ class MattermostK8sCharm(CharmBase):
 
         self.unit.status = MaintenanceStatus('Assembling pod spec')
         pod_spec = self._make_pod_spec()
-
-        # Due to https://github.com/canonical/operator/issues/293 we
-        # can't use pod.set_spec's k8s_resources argument.
         pod_spec = self._update_pod_spec_for_k8s_ingress(pod_spec)
-
         pod_spec = self._update_pod_spec_for_licence(pod_spec)
+        pod_spec = self._update_pod_spec_for_clustering(pod_spec)
 
         self.unit.status = MaintenanceStatus('Setting pod spec')
         self.model.pod.set_spec(pod_spec)
