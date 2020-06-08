@@ -3,6 +3,7 @@
 import sys
 sys.path.append('lib')  # noqa: E402
 
+import copy
 import json
 
 from ipaddress import ip_network
@@ -30,6 +31,7 @@ from interface import pgsql
 # Until https://github.com/canonical/operator/issues/317 is
 # resolved, we'll directly manage charm state ourselves.
 from charmstate import state_get, state_set
+from utils import extend_list_merging_dicts_matched_by_key
 
 import logging
 logger = logging.getLogger()
@@ -37,6 +39,7 @@ logger = logging.getLogger()
 
 CONTAINER_PORT = 8065  # Mattermost's default port, and what we expect the image to use
 DATABASE_NAME = 'mattermost'
+LICENCE_SECRET_KEY_NAME = 'licence'
 REQUIRED_S3_SETTINGS = ['s3_bucket', 's3_region', 's3_access_key_id', 's3_secret_access_key']
 REQUIRED_SETTINGS = ['mattermost_image_path']
 
@@ -150,7 +153,7 @@ class MattermostK8sCharm(CharmBase):
         pod_config.update(self._make_s3_pod_config())
 
         return {
-            'version': 2,       # otherwise resources are ignored
+            'version': 3,       # otherwise resources are ignored
             'containers': [{
                 'name': self.app.name,
                 'imageDetails': mattermost_image_details,
@@ -158,7 +161,7 @@ class MattermostK8sCharm(CharmBase):
                     'containerPort': CONTAINER_PORT,
                     'protocol': 'TCP',
                 }],
-                'config': pod_config,
+                'envConfig': pod_config,
             }]
         }
 
@@ -219,55 +222,113 @@ class MattermostK8sCharm(CharmBase):
             'MM_FILESETTINGS_AMAZONS3TRACE': 'true' if config['debug'] else 'false',
         }
 
-    def _make_k8s_resources(self):
+    def _update_pod_spec_for_k8s_ingress(self, pod_spec):
         site_url = self.model.config['site_url']
         if not site_url:
-            return None
+            return pod_spec
+
         parsed = urlparse(site_url)
         annotations = {}
 
-        if parsed.scheme.startswith('http'):
-            ingress = {
-                "name": self.app.name,
-                "spec": {
-                    "rules": [{
-                        "host": parsed.hostname,
-                        "http": {
-                            "paths": [{
-                                "path": "/",
-                                "backend": {
-                                    "serviceName": self.app.name,
-                                    "servicePort": CONTAINER_PORT,
-                                }
-                            }]
-                        }
-                    }]
-                }
-            }
-            if parsed.scheme == 'https':
-                ingress['spec']['tls'] = [
-                    {
-                        'hosts': [parsed.hostname],
+        if not parsed.scheme.startswith('http'):
+            return pod_spec
+
+        pod_spec = copy.deepcopy(pod_spec)
+        ingress = {
+            "name": self.app.name,
+            "spec": {
+                "rules": [{
+                    "host": parsed.hostname,
+                    "http": {
+                        "paths": [{
+                            "path": "/",
+                            "backend": {
+                                "serviceName": self.app.name,
+                                "servicePort": CONTAINER_PORT,
+                            }
+                        }]
                     }
-                ]
-                tls_secret_name = self.model.config['tls_secret_name']
-                if tls_secret_name:
-                    ingress['spec']['tls'][0]['secretName'] = tls_secret_name
-            else:
-                annotations['nginx.ingress.kubernetes.io/ssl-redirect'] = 'false'
-
-            ingress_whitelist_source_range = self.model.config['ingress_whitelist_source_range']
-            if ingress_whitelist_source_range:
-                annotations['nginx.ingress.kubernetes.io/whitelist-source-range'] = ingress_whitelist_source_range
-
-            if annotations:
-                ingress['annotations'] = annotations
-
-            return {
-                "kubernetesResources": {
-                    "ingressResources": [ingress],
-                }
+                }]
             }
+        }
+        if parsed.scheme == 'https':
+            ingress['spec']['tls'] = [
+                {
+                    'hosts': [parsed.hostname],
+                }
+            ]
+            tls_secret_name = self.model.config['tls_secret_name']
+            if tls_secret_name:
+                ingress['spec']['tls'][0]['secretName'] = tls_secret_name
+        else:
+            annotations['nginx.ingress.kubernetes.io/ssl-redirect'] = 'false'
+
+        ingress_whitelist_source_range = self.model.config['ingress_whitelist_source_range']
+        if ingress_whitelist_source_range:
+            annotations['nginx.ingress.kubernetes.io/whitelist-source-range'] = ingress_whitelist_source_range
+
+        if annotations:
+            ingress['annotations'] = annotations
+
+        resources = pod_spec.get('kubernetesResources', {})
+        resources['ingressResources'] = [ingress]
+        pod_spec['kubernetesResources'] = resources
+
+        return pod_spec
+
+    def _get_licence_secret_name(self):
+        return '{}-licence'.format(self.app.name)
+
+    def _make_licence_volume_configs(self):
+        config = self.model.config
+        if not config['licence']:
+            return []
+        return [{
+            'name': 'licence',
+            'mountPath': '/secrets',
+            'secret': {
+                'name': self._get_licence_secret_name(),
+                'files': [{
+                    'key': LICENCE_SECRET_KEY_NAME,
+                    'path': 'licence.txt',
+                    'mode': 0o444,
+                }],
+            },
+        }]
+
+    def _make_licence_k8s_secrets(self):
+        config = self.model.config
+        if not config['licence']:
+            return []
+        return [{
+            'name': self._get_licence_secret_name(),
+            'type': 'Opaque',
+            'stringData': {
+                LICENCE_SECRET_KEY_NAME: config['licence'],
+            },
+        }]
+
+    def _update_pod_spec_for_licence(self, pod_spec):
+        config = self.model.config
+        if not config['licence']:
+            return pod_spec
+        pod_spec = copy.deepcopy(pod_spec)
+
+        secrets = pod_spec['kubernetesResources'].get('secrets', [])
+        secrets = extend_list_merging_dicts_matched_by_key(
+            secrets, self._make_licence_k8s_secrets(), key='name')
+        pod_spec['kubernetesResources']['secrets'] = secrets
+
+        volume_config = pod_spec['containers'][0].get('volumeConfig', [])
+        volume_config = extend_list_merging_dicts_matched_by_key(
+            volume_config, self._make_licence_volume_configs(), key='name')
+        pod_spec['containers'][0]['volumeConfig'] = volume_config
+
+        pod_spec['containers'][0]['envConfig'].update(
+            {'MM_SERVICESETTINGS_LICENSEFILELOCATION': '/secrets/licence.txt'},
+        )
+
+        return pod_spec
 
     def configure_pod(self, event):
         if not state_get('db_uri'):
@@ -284,15 +345,16 @@ class MattermostK8sCharm(CharmBase):
             self.unit.status = BlockedStatus(problems)
             return
 
-        self.unit.status = MaintenanceStatus('Configuring pod')
+        self.unit.status = MaintenanceStatus('Assembling pod spec')
         pod_spec = self._make_pod_spec()
 
         # Due to https://github.com/canonical/operator/issues/293 we
         # can't use pod.set_spec's k8s_resources argument.
-        k8s_resources = self._make_k8s_resources()
-        if k8s_resources:
-            pod_spec.update(k8s_resources)
+        pod_spec = self._update_pod_spec_for_k8s_ingress(pod_spec)
 
+        pod_spec = self._update_pod_spec_for_licence(pod_spec)
+
+        self.unit.status = MaintenanceStatus('Setting pod spec')
         self.model.pod.set_spec(pod_spec)
         self.unit.status = ActiveStatus()
 
