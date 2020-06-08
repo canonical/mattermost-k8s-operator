@@ -8,8 +8,8 @@ import json
 import os
 
 from ipaddress import ip_network
-
 from urllib.parse import urlparse
+from zlib import crc32
 
 from ops.charm import (
     CharmBase,
@@ -296,7 +296,8 @@ class MattermostK8sCharm(CharmBase):
         return pod_spec
 
     def _get_licence_secret_name(self):
-        return '{}-licence'.format(self.app.name)
+        crc = '{:08x}'.format(crc32(self.model.config['licence'].encode('utf-8')))
+        return '{}-licence-{}'.format(self.app.name, crc)
 
     def _make_licence_volume_configs(self):
         config = self.model.config
