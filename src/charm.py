@@ -43,6 +43,7 @@ DATABASE_NAME = 'mattermost'
 LICENCE_SECRET_KEY_NAME = 'licence'
 REQUIRED_S3_SETTINGS = ['s3_bucket', 's3_region', 's3_access_key_id', 's3_secret_access_key']
 REQUIRED_SETTINGS = ['mattermost_image_path']
+REQUIRED_SSO_SETTINGS = ['licence', 'site_url']
 SAML_IDP_CRT = 'saml-idp.crt'
 
 
@@ -215,8 +216,8 @@ class MattermostK8sCharm(CharmBase):
         if config['s3_enabled']:
             missing.extend([setting for setting in REQUIRED_S3_SETTINGS if not config[setting]])
 
-        if config['sso'] and not config['licence']:
-            missing.append('licence')
+        if config['sso']:
+            missing.extend([setting for setting in REQUIRED_SSO_SETTINGS if not config[setting]])
 
         return sorted(list(set(missing)))
 
@@ -364,9 +365,10 @@ class MattermostK8sCharm(CharmBase):
 
     def _update_pod_spec_for_sso(self, pod_spec):
         config = self.model.config
-        if not config['sso']:
+        if not config['sso'] or [setting for setting in REQUIRED_SSO_SETTINGS if not config[setting]]:
             return pod_spec
         pod_spec = copy.deepcopy(pod_spec)
+        site_hostname = urlparse(config['site_url']).hostname
 
         pod_spec['containers'][0]['envConfig'].update({
             'MM_SAMLSETTINGS_ENABLE': 'true',
@@ -375,7 +377,7 @@ class MattermostK8sCharm(CharmBase):
             'MM_SAMLSETTINGS_ENCRYPT': 'false',  # per POC
             'MM_SAMLSETTINGS_IDPDESCRIPTORURL': 'https://login.ubuntu.com',
             'MM_SAMLSETTINGS_IDPMETADATAURL': 'https://login.ubuntu.com/+saml/metadata',
-            'MM_SAMLSETTINGS_ASSERTIONCONSUMERSERVICEURL': 'https://chat.canonical.com/login/sso/saml',
+            'MM_SAMLSETTINGS_ASSERTIONCONSUMERSERVICEURL': 'https://{}/login/sso/saml'.format(site_hostname),
             'MM_SAMLSETTINGS_LOGINBUTTONTEXT': 'Ubuntu SSO',
             'MM_SAMLSETTINGS_EMAILATTRIBUTE': 'email',
             'MM_SAMLSETTINGS_USERNAMEATTRIBUTE': 'username',
