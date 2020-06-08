@@ -371,6 +371,9 @@ class MattermostK8sCharm(CharmBase):
         site_hostname = urlparse(config['site_url']).hostname
 
         pod_spec['containers'][0]['envConfig'].update({
+            'MM_EMAILSETTINGS_ENABLESIGNINWITHEMAIL': 'false',
+            'MM_EMAILSETTINGS_ENABLESIGNINWITHUSERNAME': 'false',
+            'MM_EMAILSETTINGS_ENABLESIGNUPWITHEMAIL': 'false',
             'MM_SAMLSETTINGS_ENABLE': 'true',
             'MM_SAMLSETTINGS_IDPURL': 'https://login.ubuntu.com/saml/',
             'MM_SAMLSETTINGS_VERIFY': 'true',
