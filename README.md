@@ -74,7 +74,7 @@ This charm supports configuring [Ubuntu SSO](https://login.ubuntu.com)
 as the authentication method.  This requires the following:
 
  * a Mattermost Enterprise Edition licence to be obtained and activated
- * a SAML config for the Mattermost installtion to be added to `login.ubuntu.com`
+ * a SAML config for the Mattermost installation to be added to `login.ubuntu.com`
  * the SAML config will need to have a new certificate generated (refer to "Canonical RT#107985" when requesting this)
     * this is because the default certificate available via the [SAML metadata URL](https://login.ubuntu.com/+saml/metadata) has expired
  * the new certificate to be installed in the Mattermost database (see below)
