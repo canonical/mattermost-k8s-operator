@@ -88,3 +88,8 @@ and use the following query to install the certificate:
         VALUES ('saml-idp.crt', (extract(epoch from now()) * 1000)::bigint ,(extract(epoch from now()) * 1000)::bigint, $$-----BEGIN CERTIFICATE-----
     [...]
     -----END CERTIFICATE-----$$);
+
+## Push Notifications
+
+For full information on selecting a push notification server, please
+[consult the Mattermost documentation](https://docs.mattermost.com/administration/config-settings.html#push-notification-server).
