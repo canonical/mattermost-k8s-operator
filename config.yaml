@@ -142,6 +142,11 @@ options:
 
           This requires configuration on the S3 side, as well as a suitable Mattermost licence.
         default: false
+    smtp_host:
+        type: string
+        description: |
+          The hostname or IP address of the outgoing SMTP relay host.
+        default: ''
     sso:
         type: boolean
         description: |
