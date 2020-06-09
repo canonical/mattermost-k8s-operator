@@ -395,6 +395,21 @@ class MattermostK8sCharm(CharmBase):
 
         return pod_spec
 
+    def _update_pod_spec_for_push(self, pod_spec):
+        config = self.model.config
+        if not config['push_notification_server']:
+            return pod_spec
+        pod_spec = copy.deepcopy(pod_spec)
+        contents = 'full' if config['push_notifications_include_message_snippet'] else 'id_loaded'
+
+        pod_spec['containers'][0]['envConfig'].update({
+            'MM_EMAILSETTINGS_SENDPUSHNOTIFICATIONS': 'true',
+            'MM_EMAILSETTINGS_PUSHNOTIFICATIONCONTENTS': contents,
+            'MM_EMAILSETTINGS_PUSHNOTIFICATIONSERVER': config['push_notification_server'],
+        })
+
+        return pod_spec
+
     def configure_pod(self, event):
         if not state_get('db_uri'):
             self.unit.status = WaitingStatus('Waiting for database relation')
@@ -412,9 +427,10 @@ class MattermostK8sCharm(CharmBase):
 
         self.unit.status = MaintenanceStatus('Assembling pod spec')
         pod_spec = self._make_pod_spec()
+        pod_spec = self._update_pod_spec_for_clustering(pod_spec)
         pod_spec = self._update_pod_spec_for_k8s_ingress(pod_spec)
         pod_spec = self._update_pod_spec_for_licence(pod_spec)
-        pod_spec = self._update_pod_spec_for_clustering(pod_spec)
+        pod_spec = self._update_pod_spec_for_push(pod_spec)
         pod_spec = self._update_pod_spec_for_sso(pod_spec)
 
         self.unit.status = MaintenanceStatus('Setting pod spec')

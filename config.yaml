@@ -63,6 +63,22 @@ options:
           "example.com" matches both "example.com" and "sub.example.com"
           while ".example.com" only matches the latter.
         default: ''
+    push_notification_server:
+      type: string
+      description: |
+        The push notification server to use.
+      default: ''
+    push_notifications_include_message_snippet:
+      type: boolean
+      description: |
+        If enabled, push notification payloads include the sender, the
+        channel, and a snippet of the message itself, which may
+        include confidential information.
+
+        If disabled, push notification payloads include the sender,
+        the channel, and an ID to let the client retrieve the message
+        directly from Mattermost.
+      default: false
     site_url:
         type: string
         description: |
