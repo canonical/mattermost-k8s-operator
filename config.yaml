@@ -154,3 +154,8 @@ options:
 
           This will not work unless the administrators of login.ubuntu.com have created a suitable SAML config first.
         default: false
+    use_canonical_defaults:
+        type: boolean
+        description: |
+          If set, apply miscellaneous Mattermost settings as used by Canonical.
+        default: false
