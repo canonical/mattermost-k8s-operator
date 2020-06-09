@@ -410,6 +410,19 @@ class MattermostK8sCharm(CharmBase):
 
         return pod_spec
 
+    def _update_pod_spec_for_smtp(self, pod_spec):
+        config = self.model.config
+        if not config['smtp_host']:
+            return pod_spec
+        pod_spec = copy.deepcopy(pod_spec)
+
+        pod_spec['containers'][0]['envConfig'].update({
+            'MM_EMAILSETTINGS_SMTPPORT': 25,
+            'MM_EMAILSETTINGS_SMTPSERVER': config['smtp_host'],
+        })
+
+        return pod_spec
+
     def configure_pod(self, event):
         if not state_get('db_uri'):
             self.unit.status = WaitingStatus('Waiting for database relation')
@@ -432,6 +445,7 @@ class MattermostK8sCharm(CharmBase):
         pod_spec = self._update_pod_spec_for_licence(pod_spec)
         pod_spec = self._update_pod_spec_for_push(pod_spec)
         pod_spec = self._update_pod_spec_for_sso(pod_spec)
+        pod_spec = self._update_pod_spec_for_smtp(pod_spec)
 
         self.unit.status = MaintenanceStatus('Setting pod spec')
         self.model.pod.set_spec(pod_spec)
