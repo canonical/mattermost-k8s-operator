@@ -41,6 +41,8 @@ CONFIG_IMAGE_NO_PASSWORD = {
     'sso': False,
 }
 
+CONFIG_LICENCE_SECRET = {"licence": "RANDOMSTRING"}
+
 CONFIG_NO_S3_SETTINGS_S3_ENABLED = {
     'clustering': False,
     'mattermost_image_path': 'example.com/mattermost:latest',
@@ -119,3 +121,8 @@ class TestMattermostK8sCharm(unittest.TestCase):
         """Any CIDRs that has host bits set must be rejected, even if others are OK."""
         expected = 'range_mixed: invalid network(s): 10.242.0.0/8'
         self.assertEqual(check_ranges(RANGE_MIXED, 'range_mixed'), expected)
+
+    def test_get_licence_secret_name(self):
+        """Test the licence secret name is correctly constructed"""
+        self.harness.charm.model.config = copy.deepcopy(CONFIG_LICENCE_SECRET)
+        self.assertEqual(self.harness.charm._get_licence_secret_name(), "mattermost-licence-b5bbb1bf")
