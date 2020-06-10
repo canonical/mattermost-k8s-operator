@@ -64,6 +64,20 @@ CONFIG_NO_S3_SETTINGS_S3_DISABLED_NO_DEFAULTS = {
     'sso': False,
 }
 
+CONFIG_PUSH_NOTIFICATION_SERVER_UNSET = {
+    'push_notification_server': '',
+}
+
+CONFIG_PUSH_NOTIFICATION_NO_MESSAGE_SNIPPET = {
+    'push_notification_server': 'https://push.mattermost.com/',
+    'push_notifications_include_message_snippet': False,
+}
+
+CONFIG_PUSH_NOTIFICATION_MESSAGE_SNIPPET = {
+    'push_notification_server': 'https://push.mattermost.com/',
+    'push_notifications_include_message_snippet': True,
+}
+
 RANGE_BAD = '10.242.0.0/8,91.189.92.242/25'
 RANGE_GOOD = '10.0.0.0/8,91.189.92.128/25'
 RANGE_MIXED = '10.242.0.0/8,91.189.92.128/25'
@@ -104,6 +118,51 @@ class TestMattermostK8sCharm(unittest.TestCase):
         self.harness.charm.model.config = copy.deepcopy(CONFIG_NO_S3_SETTINGS_S3_DISABLED_NO_DEFAULTS)
         expected = []
         self.assertEqual(sorted(self.harness.charm._missing_charm_settings()), expected)
+
+    def test_push_notification_server_unset(self):
+        """If push_notification_server is set to an empty string (default) don't update spec"""
+        self.harness.charm.model.config = copy.deepcopy(CONFIG_PUSH_NOTIFICATION_SERVER_UNSET)
+        expected = {}
+        pod_spec = {}
+        self.assertEqual(self.harness.charm._update_pod_spec_for_push(pod_spec), expected)
+
+    def test_push_notification_no_message_snippet(self):
+        """Push notification configured, but without message snippets"""
+        self.harness.charm.model.config = copy.deepcopy(CONFIG_PUSH_NOTIFICATION_NO_MESSAGE_SNIPPET)
+        expected = {
+            'containers': [{
+                'envConfig': {
+                    'MM_EMAILSETTINGS_SENDPUSHNOTIFICATIONS': 'true',
+                    'MM_EMAILSETTINGS_PUSHNOTIFICATIONCONTENTS': 'id_loaded',
+                    'MM_EMAILSETTINGS_PUSHNOTIFICATIONSERVER': 'https://push.mattermost.com/',
+                }
+            }],
+        }
+        pod_spec = {
+            'containers': [{
+                'envConfig': {},
+            }],
+        }
+        self.assertEqual(self.harness.charm._update_pod_spec_for_push(pod_spec), expected)
+
+    def test_push_notification_message_snippet(self):
+        """Push notifications configured, including message snippets"""
+        self.harness.charm.model.config = copy.deepcopy(CONFIG_PUSH_NOTIFICATION_MESSAGE_SNIPPET)
+        expected = {
+            'containers': [{
+                'envConfig': {
+                    'MM_EMAILSETTINGS_SENDPUSHNOTIFICATIONS': 'true',
+                    'MM_EMAILSETTINGS_PUSHNOTIFICATIONCONTENTS': 'full',
+                    'MM_EMAILSETTINGS_PUSHNOTIFICATIONSERVER': 'https://push.mattermost.com/',
+                }
+            }],
+        }
+        pod_spec = {
+            'containers': [{
+                'envConfig': {},
+            }],
+        }
+        self.assertEqual(self.harness.charm._update_pod_spec_for_push(pod_spec), expected)
 
     def test_check_ranges_bad(self):
         """Host bits must not be set."""
