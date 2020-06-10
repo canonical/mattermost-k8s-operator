@@ -190,6 +190,9 @@ class MattermostK8sCharm(CharmBase):
             'MM_LOGSETTINGS_ENABLEFILE': 'false',
         }
 
+        if config['primary_team']:
+            pod_config['MM_TEAMSETTINGS_EXPERIMENTALPRIMARYTEAM'] = config['primary_team']
+
         if config['site_url']:
             pod_config['MM_SERVICESETTINGS_SITEURL'] = config['site_url']
 
@@ -368,7 +371,6 @@ class MattermostK8sCharm(CharmBase):
             # We'll use one large team.  Create and invite are
             # disabled in the System Scheme, found in the Permissions
             # section of the System Console.
-            'MM_TEAMSETTINGS_EXPERIMENTALPRIMARYTEAM': 'canonical',
             'MM_TEAMSETTINGS_MAXUSERSPERTEAM': '1000',
         })
 
