@@ -10,6 +10,15 @@ options:
         type: boolean
         description: Set the Mattermost log level to DEBUG, otherwise INFO.
         default: false
+    image_proxy_enabled:
+        type: boolean
+        description: |
+          The image proxy is used by the Mattermost apps to prevent them from connecting directly to remote servers.
+
+          This anonymizes their connections and prevents them from accessing insecure content.
+
+          Currently only the "local" image proxy type is supported.
+        default: false
     ingress_whitelist_source_range:
         type: string
         description: |

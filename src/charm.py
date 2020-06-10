@@ -184,6 +184,9 @@ class MattermostK8sCharm(CharmBase):
             'MATTERMOST_HTTPD_LISTEN_PORT': CONTAINER_PORT,
             'MM_CONFIG': db_uri,
             'MM_SQLSETTINGS_DATASOURCE': db_uri,
+            # image proxy
+            'MM_IMAGEPROXYSETTINGS_ENABLE': 'true' if config['image_proxy_enabled'] else 'false',
+            'MM_IMAGEPROXYSETTINGS_IMAGEPROXYTYPE': 'local',
             # logging
             'MM_LOGSETTINGS_CONSOLELEVEL': 'DEBUG' if config['debug'] else 'INFO',
             'MM_LOGSETTINGS_ENABLECONSOLE': 'true',
