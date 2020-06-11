@@ -93,3 +93,35 @@ and use the following query to install the certificate:
 
 For full information on selecting a push notification server, please
 [consult the Mattermost documentation](https://docs.mattermost.com/administration/config-settings.html#push-notification-server).
+
+## Allowing All Users to Create Personal Access Tokens
+
+Setting the "Enable Personal Access Tokens" option in the System
+Console's "Integrations" panel (or via the `use_canonical_defaults`
+charm setting) does not give all users the ability to use them.
+
+To give access to all new users, add this database trigger:
+
+    BEGIN;
+    CREATE OR REPLACE FUNCTION grant_system_user_access_token_role() RETURNS TRIGGER AS $$
+      BEGIN
+        IF position('system_user_access_token' in NEW.roles) = 0 THEN
+          NEW.roles = NEW.roles || ' system_user_access_token';
+        END IF;
+        RETURN NEW;
+      END;
+    $$
+    LANGUAGE PLPGSQL;
+
+    DROP TRIGGER IF EXISTS before_insert_system_user_grant_system_user_access_token ON users;
+    CREATE TRIGGER before_insert_system_user_grant_system_user_access_token
+        BEFORE INSERT ON users
+        FOR EACH ROW WHEN ( NEW.roles = 'system_user' )
+        EXECUTE FUNCTION grant_system_user_access_token_role();
+    COMMIT;
+
+And to update all existing users, run this query:
+
+    UPDATE users
+        SET roles = 'system_user system_user_access_token'
+        WHERE roles = 'system_user';
