@@ -193,6 +193,9 @@ class MattermostK8sCharm(CharmBase):
             'MM_LOGSETTINGS_ENABLEFILE': 'false',
         }
 
+        if config['primary_team']:
+            pod_config['MM_TEAMSETTINGS_EXPERIMENTALPRIMARYTEAM'] = config['primary_team']
+
         if config['site_url']:
             pod_config['MM_SERVICESETTINGS_SITEURL'] = config['site_url']
 
@@ -353,6 +356,29 @@ class MattermostK8sCharm(CharmBase):
 
         return pod_spec
 
+    def _update_pod_spec_for_canonical_defaults(self, pod_spec):
+        config = self.model.config
+        if not config['use_canonical_defaults']:
+            return pod_spec
+        pod_spec = copy.deepcopy(pod_spec)
+
+        pod_spec['containers'][0]['envConfig'].update({
+            # If this is off, users can't turn it on themselves.
+            'MM_SERVICESETTINGS_CLOSEUNUSEDDIRECTMESSAGES': 'true',
+            # This allows Matterhorn to use emoji and react to messages.
+            'MM_SERVICESETTINGS_ENABLECUSTOMEMOJI': 'true',
+            # If this is off, users can't turn it on themselves.
+            'MM_SERVICESETTINGS_ENABLELINKPREVIEWS': 'true',
+            # Matterhorn recommends the use of Personal Access Tokens.
+            'MM_SERVICESETTINGS_ENABLEUSERACCESSTOKENS': 'true',
+            # We'll use one large team.  Create and invite are
+            # disabled in the System Scheme, found in the Permissions
+            # section of the System Console.
+            'MM_TEAMSETTINGS_MAXUSERSPERTEAM': '1000',
+        })
+
+        return pod_spec
+
     def _update_pod_spec_for_clustering(self, pod_spec):
         config = self.model.config
         if not config['clustering']:
@@ -443,6 +469,7 @@ class MattermostK8sCharm(CharmBase):
 
         self.unit.status = MaintenanceStatus('Assembling pod spec')
         pod_spec = self._make_pod_spec()
+        pod_spec = self._update_pod_spec_for_canonical_defaults(pod_spec)
         pod_spec = self._update_pod_spec_for_clustering(pod_spec)
         pod_spec = self._update_pod_spec_for_k8s_ingress(pod_spec)
         pod_spec = self._update_pod_spec_for_licence(pod_spec)
