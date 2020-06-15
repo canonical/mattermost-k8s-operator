@@ -43,6 +43,8 @@ CONFIG_IMAGE_NO_PASSWORD = {
 
 CONFIG_LICENCE_SECRET = {"licence": "RANDOMSTRING"}
 
+CONFIG_NO_LICENCE_SECRET = {"licence": ""}
+
 CONFIG_NO_S3_SETTINGS_S3_ENABLED = {
     'clustering': False,
     'mattermost_image_path': 'example.com/mattermost:latest',
@@ -185,3 +187,36 @@ class TestMattermostK8sCharm(unittest.TestCase):
         """Test the licence secret name is correctly constructed"""
         self.harness.charm.model.config = copy.deepcopy(CONFIG_LICENCE_SECRET)
         self.assertEqual(self.harness.charm._get_licence_secret_name(), "mattermost-licence-b5bbb1bf")
+
+    def test_make_licence_k8s_secrets(self):
+        """Test making licence k8s secrets"""
+        self.harness.charm.model.config = copy.deepcopy(CONFIG_NO_LICENCE_SECRET)
+        self.assertEqual(self.harness.charm._make_licence_k8s_secrets(), [])
+        self.harness.charm.model.config = copy.deepcopy(CONFIG_LICENCE_SECRET)
+        expected = [{
+            'name': 'mattermost-licence-b5bbb1bf',
+            'type': 'Opaque',
+            'stringData': {
+                'licence': 'RANDOMSTRING',
+            },
+        }]
+        self.assertEqual(self.harness.charm._make_licence_k8s_secrets(), expected)
+
+    def test_make_licence_volume_configs(self):
+        """Test making licence volume configs"""
+        self.harness.charm.model.config = copy.deepcopy(CONFIG_NO_LICENCE_SECRET)
+        self.assertEqual(self.harness.charm._make_licence_volume_configs(), [])
+        self.harness.charm.model.config = copy.deepcopy(CONFIG_LICENCE_SECRET)
+        expected = [{
+            'name': 'licence',
+            'mountPath': '/secrets',
+            'secret': {
+                'name': 'mattermost-licence-b5bbb1bf',
+                'files': [{
+                    'key': 'licence',
+                    'path': 'licence.txt',
+                    'mode': 0o444,
+                }],
+            },
+        }]
+        self.assertEqual(self.harness.charm._make_licence_volume_configs(), expected)
