@@ -1,5 +1,3 @@
-#!/Usr/bin/python3
-
 from copy import deepcopy
 
 
