@@ -135,6 +135,7 @@ class TestMattermostK8sCharmHooksDisabled(unittest.TestCase):
         self.harness.update_config(CONFIG_PUSH_NOTIFICATION_NO_MESSAGE_SNIPPET)
         expected = {
             'containers': [{
+                'name': 'mattermost',
                 'envConfig': {
                     'MM_EMAILSETTINGS_SENDPUSHNOTIFICATIONS': 'true',
                     'MM_EMAILSETTINGS_PUSHNOTIFICATIONCONTENTS': 'id_loaded',
@@ -144,6 +145,7 @@ class TestMattermostK8sCharmHooksDisabled(unittest.TestCase):
         }
         pod_spec = {
             'containers': [{
+                'name': 'mattermost',
                 'envConfig': {},
             }],
         }
@@ -154,6 +156,7 @@ class TestMattermostK8sCharmHooksDisabled(unittest.TestCase):
         self.harness.update_config(CONFIG_PUSH_NOTIFICATION_MESSAGE_SNIPPET)
         expected = {
             'containers': [{
+                'name': 'mattermost',
                 'envConfig': {
                     'MM_EMAILSETTINGS_SENDPUSHNOTIFICATIONS': 'true',
                     'MM_EMAILSETTINGS_PUSHNOTIFICATIONCONTENTS': 'full',
@@ -163,6 +166,7 @@ class TestMattermostK8sCharmHooksDisabled(unittest.TestCase):
         }
         pod_spec = {
             'containers': [{
+                'name': 'mattermost',
                 'envConfig': {},
             }],
         }

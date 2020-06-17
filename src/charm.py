@@ -69,6 +69,18 @@ def check_ranges(ranges, name):
             return '{}: invalid network(s): {}'.format(name, ', '.join(invalid_networks))
 
 
+def get_container(pod_spec, container_name):
+    for container in pod_spec['containers']:
+        if container['name'] == container_name:
+            return container
+
+
+def get_env_config(pod_spec, container_name):
+    container = get_container(pod_spec, container_name)
+    if container:
+        return container['envConfig']
+
+
 class MattermostK8sCharm(CharmBase):
 
     on = MattermostCharmEvents()
@@ -350,7 +362,7 @@ class MattermostK8sCharm(CharmBase):
             volume_config, self._make_licence_volume_configs(), key='name')
         pod_spec['containers'][0]['volumeConfig'] = volume_config
 
-        pod_spec['containers'][0]['envConfig'].update(
+        get_env_config(pod_spec, self.app.name).update(
             {'MM_SERVICESETTINGS_LICENSEFILELOCATION': '/secrets/licence.txt'},
         )
 
@@ -362,7 +374,7 @@ class MattermostK8sCharm(CharmBase):
             return pod_spec
         pod_spec = copy.deepcopy(pod_spec)
 
-        pod_spec['containers'][0]['envConfig'].update({
+        get_env_config(pod_spec, self.app.name).update({
             # If this is off, users can't turn it on themselves.
             'MM_SERVICESETTINGS_CLOSEUNUSEDDIRECTMESSAGES': 'true',
             # This allows Matterhorn to use emoji and react to messages.
@@ -385,7 +397,7 @@ class MattermostK8sCharm(CharmBase):
             return pod_spec
         pod_spec = copy.deepcopy(pod_spec)
 
-        pod_spec['containers'][0]['envConfig'].update({
+        get_env_config(pod_spec, self.app.name).update({
             "MM_CLUSTERSETTINGS_ENABLE": "true",
             "MM_CLUSTERSETTINGS_CLUSTERNAME": '{}-{}'.format(self.app.name, os.environ['JUJU_MODEL_UUID']),
             "MM_CLUSTERSETTINGS_USEIPADDRESS": "true",
@@ -400,7 +412,7 @@ class MattermostK8sCharm(CharmBase):
         pod_spec = copy.deepcopy(pod_spec)
         site_hostname = urlparse(config['site_url']).hostname
 
-        pod_spec['containers'][0]['envConfig'].update({
+        get_env_config(pod_spec, self.app.name).update({
             'MM_EMAILSETTINGS_ENABLESIGNINWITHEMAIL': 'false',
             'MM_EMAILSETTINGS_ENABLESIGNINWITHUSERNAME': 'false',
             'MM_EMAILSETTINGS_ENABLESIGNUPWITHEMAIL': 'false',
@@ -431,7 +443,7 @@ class MattermostK8sCharm(CharmBase):
         pod_spec = copy.deepcopy(pod_spec)
         contents = 'full' if config['push_notifications_include_message_snippet'] else 'id_loaded'
 
-        pod_spec['containers'][0]['envConfig'].update({
+        get_env_config(pod_spec, self.app.name).update({
             'MM_EMAILSETTINGS_SENDPUSHNOTIFICATIONS': 'true',
             'MM_EMAILSETTINGS_PUSHNOTIFICATIONCONTENTS': contents,
             'MM_EMAILSETTINGS_PUSHNOTIFICATIONSERVER': config['push_notification_server'],
@@ -445,7 +457,7 @@ class MattermostK8sCharm(CharmBase):
             return pod_spec
         pod_spec = copy.deepcopy(pod_spec)
 
-        pod_spec['containers'][0]['envConfig'].update({
+        get_env_config(pod_spec, self.app.name).update({
             'MM_EMAILSETTINGS_SMTPPORT': 25,
             'MM_EMAILSETTINGS_SMTPSERVER': config['smtp_host'],
         })
