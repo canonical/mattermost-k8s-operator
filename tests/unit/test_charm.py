@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import copy
 import unittest
 import sys
 
@@ -87,52 +86,53 @@ RANGE_GOOD = '10.0.0.0/8,91.189.92.128/25'
 RANGE_MIXED = '10.242.0.0/8,91.189.92.128/25'
 
 
-class TestMattermostK8sCharm(unittest.TestCase):
+class TestMattermostK8sCharmHooksDisabled(unittest.TestCase):
 
     def setUp(self):
         self.harness = testing.Harness(MattermostK8sCharm)
         self.harness.begin()
+        self.harness.disable_hooks()
 
     def test_missing_charm_settings_image_no_creds(self):
         """Credentials are optional."""
-        self.harness.charm.model.config = copy.deepcopy(CONFIG_IMAGE_NO_CREDS)
+        self.harness.update_config(CONFIG_IMAGE_NO_CREDS)
         expected = []
         self.assertEqual(sorted(self.harness.charm._missing_charm_settings()), expected)
 
     def test_missing_charm_settings_image_no_image(self):
         """Image path is required."""
-        self.harness.charm.model.config = copy.deepcopy(CONFIG_IMAGE_NO_IMAGE)
+        self.harness.update_config(CONFIG_IMAGE_NO_IMAGE)
         expected = sorted(['mattermost_image_path'])
         self.assertEqual(sorted(self.harness.charm._missing_charm_settings()), expected)
 
     def test_missing_charm_settings_image_no_password(self):
         """Password is required when username is set."""
-        self.harness.charm.model.config = copy.deepcopy(CONFIG_IMAGE_NO_PASSWORD)
+        self.harness.update_config(CONFIG_IMAGE_NO_PASSWORD)
         expected = sorted(['mattermost_image_password'])
         self.assertEqual(sorted(self.harness.charm._missing_charm_settings()), expected)
 
     def test_missing_charm_settings_no_s3_settings_s3_enabled(self):
         """If S3 is enabled, we need lots of settings to be set."""
-        self.harness.charm.model.config = copy.deepcopy(CONFIG_NO_S3_SETTINGS_S3_ENABLED)
+        self.harness.update_config(CONFIG_NO_S3_SETTINGS_S3_ENABLED)
         expected = sorted(['s3_bucket', 's3_region', 's3_access_key_id', 's3_secret_access_key'])
         self.assertEqual(sorted(self.harness.charm._missing_charm_settings()), expected)
 
     def test_missing_charm_settings_no_s3_settings_s3_disabled_no_defaults(self):
         """If S3 is not enabled, we don't care about any of the other S3 settings."""
-        self.harness.charm.model.config = copy.deepcopy(CONFIG_NO_S3_SETTINGS_S3_DISABLED_NO_DEFAULTS)
+        self.harness.update_config(CONFIG_NO_S3_SETTINGS_S3_DISABLED_NO_DEFAULTS)
         expected = []
         self.assertEqual(sorted(self.harness.charm._missing_charm_settings()), expected)
 
     def test_push_notification_server_unset(self):
         """If push_notification_server is set to an empty string (default) don't update spec"""
-        self.harness.charm.model.config = copy.deepcopy(CONFIG_PUSH_NOTIFICATION_SERVER_UNSET)
+        self.harness.update_config(CONFIG_PUSH_NOTIFICATION_SERVER_UNSET)
         expected = {}
         pod_spec = {}
         self.assertEqual(self.harness.charm._update_pod_spec_for_push(pod_spec), expected)
 
     def test_push_notification_no_message_snippet(self):
         """Push notification configured, but without message snippets"""
-        self.harness.charm.model.config = copy.deepcopy(CONFIG_PUSH_NOTIFICATION_NO_MESSAGE_SNIPPET)
+        self.harness.update_config(CONFIG_PUSH_NOTIFICATION_NO_MESSAGE_SNIPPET)
         expected = {
             'containers': [{
                 'envConfig': {
@@ -151,7 +151,7 @@ class TestMattermostK8sCharm(unittest.TestCase):
 
     def test_push_notification_message_snippet(self):
         """Push notifications configured, including message snippets"""
-        self.harness.charm.model.config = copy.deepcopy(CONFIG_PUSH_NOTIFICATION_MESSAGE_SNIPPET)
+        self.harness.update_config(CONFIG_PUSH_NOTIFICATION_MESSAGE_SNIPPET)
         expected = {
             'containers': [{
                 'envConfig': {
@@ -185,14 +185,14 @@ class TestMattermostK8sCharm(unittest.TestCase):
 
     def test_get_licence_secret_name(self):
         """Test the licence secret name is correctly constructed"""
-        self.harness.charm.model.config = copy.deepcopy(CONFIG_LICENCE_SECRET)
+        self.harness.update_config(CONFIG_LICENCE_SECRET)
         self.assertEqual(self.harness.charm._get_licence_secret_name(), "mattermost-licence-b5bbb1bf")
 
     def test_make_licence_k8s_secrets(self):
         """Test making licence k8s secrets"""
-        self.harness.charm.model.config = copy.deepcopy(CONFIG_NO_LICENCE_SECRET)
+        self.harness.update_config(CONFIG_NO_LICENCE_SECRET)
         self.assertEqual(self.harness.charm._make_licence_k8s_secrets(), [])
-        self.harness.charm.model.config = copy.deepcopy(CONFIG_LICENCE_SECRET)
+        self.harness.update_config(CONFIG_LICENCE_SECRET)
         expected = [{
             'name': 'mattermost-licence-b5bbb1bf',
             'type': 'Opaque',
@@ -204,9 +204,9 @@ class TestMattermostK8sCharm(unittest.TestCase):
 
     def test_make_licence_volume_configs(self):
         """Test making licence volume configs"""
-        self.harness.charm.model.config = copy.deepcopy(CONFIG_NO_LICENCE_SECRET)
+        self.harness.update_config(CONFIG_NO_LICENCE_SECRET)
         self.assertEqual(self.harness.charm._make_licence_volume_configs(), [])
-        self.harness.charm.model.config = copy.deepcopy(CONFIG_LICENCE_SECRET)
+        self.harness.update_config(CONFIG_LICENCE_SECRET)
         expected = [{
             'name': 'licence',
             'mountPath': '/secrets',
