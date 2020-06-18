@@ -263,12 +263,14 @@ class MattermostK8sCharm(CharmBase):
             return pod_spec
 
         parsed = urlparse(site_url)
-        annotations = {}
 
         if not parsed.scheme.startswith('http'):
             return pod_spec
 
         pod_spec = copy.deepcopy(pod_spec)
+        annotations = {
+            'nginx.ingress.kubernetes.io/proxy-body-size': '{}m'.format(config['max_file_size'])
+        }
         ingress = {
             "name": self.app.name,
             "spec": {
