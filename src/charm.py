@@ -357,10 +357,11 @@ class MattermostK8sCharm(CharmBase):
             secrets, self._make_licence_k8s_secrets(), key='name')
         pod_spec['kubernetesResources']['secrets'] = secrets
 
-        volume_config = get_container(pod_spec, self.app.name).get('volumeConfig', [])
+        container = get_container(pod_spec, self.app.name)
+        volume_config = container.get('volumeConfig', [])
         volume_config = extend_list_merging_dicts_matched_by_key(
             volume_config, self._make_licence_volume_configs(), key='name')
-        get_container(pod_spec, self.app.name)['volumeConfig'] = volume_config
+        container['volumeConfig'] = volume_config
 
         get_env_config(pod_spec, self.app.name).update(
             {'MM_SERVICESETTINGS_LICENSEFILELOCATION': '/secrets/licence.txt'},
