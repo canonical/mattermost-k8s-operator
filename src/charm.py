@@ -269,7 +269,7 @@ class MattermostK8sCharm(CharmBase):
 
         pod_spec = copy.deepcopy(pod_spec)
         annotations = {
-            'nginx.ingress.kubernetes.io/proxy-body-size': '{}m'.format(config['max_file_size'])
+            'nginx.ingress.kubernetes.io/proxy-body-size': '{}m'.format(self.model.config['max_file_size'])
         }
         ingress = {
             "name": self.app.name,
