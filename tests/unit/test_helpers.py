@@ -82,5 +82,6 @@ class TestMattermostCharmHelpers(unittest.TestCase):
 
     def test_get_env_config_container_no_envconfig(self):
         """Container with no envConfig raises KeyError."""
+        # Not necessarily a good design, but if it's changed this will remind us to update the test suite.
         with self.assertRaises(KeyError):
             get_env_config(POD_SPEC_NO_ENVCONFIG, 'one')
