@@ -6,10 +6,7 @@ import sys
 sys.path.append('lib')  # noqa: E402
 sys.path.append('src')  # noqa: E402
 
-from charm import (
-    MattermostK8sCharm,
-    check_ranges,
-)
+from charm import MattermostK8sCharm
 
 from ops import testing
 
@@ -81,10 +78,6 @@ CONFIG_PUSH_NOTIFICATION_MESSAGE_SNIPPET = {
     'push_notifications_include_message_snippet': True,
 }
 
-RANGE_BAD = '10.242.0.0/8,91.189.92.242/25'
-RANGE_GOOD = '10.0.0.0/8,91.189.92.128/25'
-RANGE_MIXED = '10.242.0.0/8,91.189.92.128/25'
-
 
 class TestMattermostK8sCharmHooksDisabled(unittest.TestCase):
 
@@ -135,6 +128,7 @@ class TestMattermostK8sCharmHooksDisabled(unittest.TestCase):
         self.harness.update_config(CONFIG_PUSH_NOTIFICATION_NO_MESSAGE_SNIPPET)
         expected = {
             'containers': [{
+                'name': 'mattermost',
                 'envConfig': {
                     'MM_EMAILSETTINGS_SENDPUSHNOTIFICATIONS': 'true',
                     'MM_EMAILSETTINGS_PUSHNOTIFICATIONCONTENTS': 'id_loaded',
@@ -144,6 +138,7 @@ class TestMattermostK8sCharmHooksDisabled(unittest.TestCase):
         }
         pod_spec = {
             'containers': [{
+                'name': 'mattermost',
                 'envConfig': {},
             }],
         }
@@ -154,6 +149,7 @@ class TestMattermostK8sCharmHooksDisabled(unittest.TestCase):
         self.harness.update_config(CONFIG_PUSH_NOTIFICATION_MESSAGE_SNIPPET)
         expected = {
             'containers': [{
+                'name': 'mattermost',
                 'envConfig': {
                     'MM_EMAILSETTINGS_SENDPUSHNOTIFICATIONS': 'true',
                     'MM_EMAILSETTINGS_PUSHNOTIFICATIONCONTENTS': 'full',
@@ -163,25 +159,11 @@ class TestMattermostK8sCharmHooksDisabled(unittest.TestCase):
         }
         pod_spec = {
             'containers': [{
+                'name': 'mattermost',
                 'envConfig': {},
             }],
         }
         self.assertEqual(self.harness.charm._update_pod_spec_for_push(pod_spec), expected)
-
-    def test_check_ranges_bad(self):
-        """Host bits must not be set."""
-        expected = 'range_bad: invalid network(s): 10.242.0.0/8, 91.189.92.242/25'
-        self.assertEqual(check_ranges(RANGE_BAD, 'range_bad'), expected)
-
-    def test_check_ranges_good(self):
-        """CIDRs with the host bits unset are network addresses."""
-        expected = None
-        self.assertEqual(check_ranges(RANGE_GOOD, 'range_good'), expected)
-
-    def test_check_ranges_mixed(self):
-        """Any CIDRs that has host bits set must be rejected, even if others are OK."""
-        expected = 'range_mixed: invalid network(s): 10.242.0.0/8'
-        self.assertEqual(check_ranges(RANGE_MIXED, 'range_mixed'), expected)
 
     def test_get_licence_secret_name(self):
         """Test the licence secret name is correctly constructed"""
