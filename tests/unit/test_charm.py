@@ -9,6 +9,8 @@ sys.path.append('src')  # noqa: E402
 from charm import (
     MattermostK8sCharm,
     check_ranges,
+    get_container,
+    get_env_config,
 )
 
 from ops import testing
@@ -79,6 +81,35 @@ CONFIG_PUSH_NOTIFICATION_NO_MESSAGE_SNIPPET = {
 CONFIG_PUSH_NOTIFICATION_MESSAGE_SNIPPET = {
     'push_notification_server': 'https://push.mattermost.com/',
     'push_notifications_include_message_snippet': True,
+}
+
+POD_SPEC_MULTIPLE_CONTAINERS = {
+    'containers': [
+        {
+            'name': 'one',
+            'envConfig': {
+                'THIS_CONTAINER': 'one',
+            },
+        },
+        {
+            'name': 'two',
+            'envConfig': {
+                'THIS_CONTAINER': 'two',
+            },
+        },
+        {
+            'name': 'three',
+            'envConfig': {
+                'THIS_CONTAINER': 'three',
+            },
+        },
+    ]
+}
+
+POD_SPEC_NO_ENVCONFIG = {
+    'containers': [{
+        'name': 'one',
+    }]
 }
 
 RANGE_BAD = '10.242.0.0/8,91.189.92.242/25'
@@ -224,3 +255,26 @@ class TestMattermostK8sCharmHooksDisabled(unittest.TestCase):
             },
         }]
         self.assertEqual(self.harness.charm._make_licence_volume_configs(), expected)
+
+    def test_get_container(self):
+        """The container with matching name is returned."""
+        expected = {'name': 'two', 'envConfig':{'THIS_CONTAINER': 'two'}}
+        self.assertEqual(get_container(POD_SPEC_MULTIPLE_CONTAINERS, 'two'), expected)
+
+    def test_get_container_nonexistent(self):
+        """No matching container returns None."""
+        self.assertEqual(get_container(POD_SPEC_MULTIPLE_CONTAINERS, 'eleventy-ten'), None)
+
+    def test_get_env_config(self):
+        """The envConfig of the container with the matching name is returned."""
+        expected = {'THIS_CONTAINER': 'two'}
+        self.assertEqual(get_env_config(POD_SPEC_MULTIPLE_CONTAINERS, 'two'), expected)
+
+    def test_get_env_config_nonexistent_container(self):
+        """No matching container returns None."""
+        self.assertEqual(get_env_config(POD_SPEC_MULTIPLE_CONTAINERS, 'eleventy-ten'), None)
+
+    def test_get_env_config_container_no_envconfig(self):
+        """Container with no envConfig raises KeyError."""
+        with self.assertRaises(KeyError):
+            get_env_config(POD_SPEC_NO_ENVCONFIG, 'one')
