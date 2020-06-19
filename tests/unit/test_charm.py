@@ -4,7 +4,10 @@ sys.path.append('src')  # noqa: E402
 
 import unittest
 
-from charm import MattermostK8sCharm
+from charm import (
+    MattermostK8sCharm,
+    METRICS_PORT,
+)
 
 from ops import testing
 
@@ -200,3 +203,37 @@ class TestMattermostK8sCharmHooksDisabled(unittest.TestCase):
             },
         }]
         self.assertEqual(self.harness.charm._make_licence_volume_configs(), expected)
+
+    def test_update_pod_spec_for_performance_monitoring(self):
+        """Pre-existing annotations are not clobbered."""
+        self.harness.update_config({
+            'performance_monitoring_enabled': True,
+        })
+        pod_spec = {
+            'containers': [{
+                'name': 'mattermost',
+                'envConfig': {},
+            }],
+            'service': {
+                'annotations': {
+                    'example.com/foo': 'bar',
+                },
+            },
+        }
+        expected = {
+            'containers': [{
+                'name': 'mattermost',
+                'envConfig': {
+                    'MM_METRICSSETTINGS_ENABLE': 'true',
+                    'MM_METRICSSETTINGS_LISTENADDRESS': ':{}'.format(METRICS_PORT),
+                },
+            }],
+            'service': {
+                'annotations': {
+                    'example.com/foo': 'bar',
+                    'prometheus.io/port': str(METRICS_PORT),
+                    'prometheus.io/scrape': 'true',
+                },
+            },
+        }
+        self.assertEqual(self.harness.charm._update_pod_spec_for_performance_monitoring(pod_spec), expected)

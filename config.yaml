@@ -72,6 +72,15 @@ options:
           "example.com" matches both "example.com" and "sub.example.com"
           while ".example.com" only matches the latter.
         default: ''
+    performance_monitoring_enabled:
+        type: boolean
+        description: |
+          When set, Prometheus metrics are exposed via HTTP on port 8067 at the path "/metrics".
+
+          For more information, see https://docs.mattermost.com/deployment/metrics.html
+
+          This feature requires a Mattermost Enterprise Edition licence.
+        default: false
     primary_team:
         type: string
         description: |

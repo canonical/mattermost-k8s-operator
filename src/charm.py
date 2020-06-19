@@ -39,6 +39,7 @@ logger = logging.getLogger()
 
 
 CONTAINER_PORT = 8065  # Mattermost's default port, and what we expect the image to use
+METRICS_PORT = 8067    # default port, enforced via envConfig to prevent operator error
 DATABASE_NAME = 'mattermost'
 LICENCE_SECRET_KEY_NAME = 'licence'
 REQUIRED_S3_SETTINGS = ['s3_bucket', 's3_region', 's3_access_key_id', 's3_secret_access_key']
@@ -439,6 +440,30 @@ class MattermostK8sCharm(CharmBase):
 
         return pod_spec
 
+    def _update_pod_spec_for_performance_monitoring(self, pod_spec):
+        config = self.model.config
+        if not config['performance_monitoring_enabled']:
+            return pod_spec
+        pod_spec = copy.deepcopy(pod_spec)
+
+        get_env_config(pod_spec, self.app.name).update({
+            'MM_METRICSSETTINGS_ENABLE': 'true' if config['performance_monitoring_enabled'] else 'false',
+            'MM_METRICSSETTINGS_LISTENADDRESS': ':{}'.format(METRICS_PORT),
+        })
+
+        service = pod_spec.get('service', {})
+        annotations = service.get('annotations', {})
+        annotations.update({
+            # This is the prefix Canonical uses for Prometheus.
+            # Upstream's position is that there is no default.
+            'prometheus.io/port': str(METRICS_PORT),  # annotation values are strings
+            'prometheus.io/scrape': 'true',
+        })
+        service['annotations'] = annotations
+        pod_spec['service'] = service
+
+        return pod_spec
+
     def _update_pod_spec_for_push(self, pod_spec):
         config = self.model.config
         if not config['push_notification_server']:
@@ -488,6 +513,7 @@ class MattermostK8sCharm(CharmBase):
         pod_spec = self._update_pod_spec_for_clustering(pod_spec)
         pod_spec = self._update_pod_spec_for_k8s_ingress(pod_spec)
         pod_spec = self._update_pod_spec_for_licence(pod_spec)
+        pod_spec = self._update_pod_spec_for_performance_monitoring(pod_spec)
         pod_spec = self._update_pod_spec_for_push(pod_spec)
         pod_spec = self._update_pod_spec_for_sso(pod_spec)
         pod_spec = self._update_pod_spec_for_smtp(pod_spec)
