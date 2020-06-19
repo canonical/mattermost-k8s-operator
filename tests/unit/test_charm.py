@@ -205,7 +205,9 @@ class TestMattermostK8sCharmHooksDisabled(unittest.TestCase):
         self.assertEqual(self.harness.charm._make_licence_volume_configs(), expected)
 
     def test_update_pod_spec_for_performance_monitoring(self):
-        """Pre-existing annotations are not clobbered."""
+        """envConfig is updated, and pre-existing annotations are not clobbered."""
+        # We can't set annotations yet because of LP:1884177.
+        # When we can, this test will need updating.
         self.harness.update_config({
             'performance_monitoring_enabled': True,
         })
@@ -214,11 +216,6 @@ class TestMattermostK8sCharmHooksDisabled(unittest.TestCase):
                 'name': 'mattermost',
                 'envConfig': {},
             }],
-            'service': {
-                'annotations': {
-                    'example.com/foo': 'bar',
-                },
-            },
         }
         expected = {
             'containers': [{
@@ -228,12 +225,5 @@ class TestMattermostK8sCharmHooksDisabled(unittest.TestCase):
                     'MM_METRICSSETTINGS_LISTENADDRESS': ':{}'.format(METRICS_PORT),
                 },
             }],
-            'service': {
-                'annotations': {
-                    'example.com/foo': 'bar',
-                    'prometheus.io/port': str(METRICS_PORT),
-                    'prometheus.io/scrape': 'true',
-                },
-            },
         }
         self.assertEqual(self.harness.charm._update_pod_spec_for_performance_monitoring(pod_spec), expected)

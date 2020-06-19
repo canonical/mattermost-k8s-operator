@@ -451,16 +451,19 @@ class MattermostK8sCharm(CharmBase):
             'MM_METRICSSETTINGS_LISTENADDRESS': ':{}'.format(METRICS_PORT),
         })
 
-        service = pod_spec.get('service', {})
-        annotations = service.get('annotations', {})
-        annotations.update({
-            # This is the prefix Canonical uses for Prometheus.
-            # Upstream's position is that there is no default.
-            'prometheus.io/port': str(METRICS_PORT),  # annotation values are strings
-            'prometheus.io/scrape': 'true',
-        })
-        service['annotations'] = annotations
-        pod_spec['service'] = service
+        # Ordinarily pods are selected for scraping by the in-cluster
+        # Prometheus based on their annotations.  Unfortunately Juju
+        # doesn't support pod annotations yet (LP:1884177).  When it
+        # does, here are the annotations we'll need to add:
+
+        # [ fetch or create annotations dict ]
+        # annotations.update({
+        #     # This is the prefix Canonical uses for Prometheus.
+        #     # Upstream's position is that there is no default.
+        #     'prometheus.io/port': str(METRICS_PORT),  # annotation values are strings
+        #     'prometheus.io/scrape': 'true',
+        # })
+        # [ store annotations in pod_spec ]
 
         return pod_spec
 
