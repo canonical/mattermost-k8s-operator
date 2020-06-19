@@ -1,9 +1,7 @@
-#!/usr/bin/env python3
+import sys
+sys.path.append('src')  # noqa: E402
 
 import unittest
-import sys
-
-sys.path.append('src')  # noqa: E402
 
 from charm import (
     check_ranges,
