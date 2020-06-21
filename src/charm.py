@@ -232,8 +232,14 @@ class MattermostK8sCharm(CharmBase):
         if config['mattermost_image_username'] and not config['mattermost_image_password']:
             missing.append('mattermost_image_password')
 
+        if config['performance_monitoring_enabled'] and not config['licence']:
+            missing.append('licence')
+
         if config['s3_enabled']:
             missing.extend([setting for setting in REQUIRED_S3_SETTINGS if not config[setting]])
+
+        if config['s3_server_side_encryption'] and not config['licence']:
+            missing.append('licence')
 
         if config['sso']:
             missing.extend([setting for setting in REQUIRED_SSO_SETTINGS if not config[setting]])

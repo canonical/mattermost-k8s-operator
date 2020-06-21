@@ -16,7 +16,9 @@ CONFIG_IMAGE_NO_CREDS = {
     'mattermost_image_path': 'example.com/mattermost:latest',
     'mattermost_image_username': '',
     'mattermost_image_password': '',
+    'performance_monitoring_enabled': False,
     's3_enabled': False,
+    's3_server_side_encryption': False,
     'sso': False,
 }
 
@@ -25,7 +27,9 @@ CONFIG_IMAGE_NO_IMAGE = {
     'mattermost_image_path': '',
     'mattermost_image_username': '',
     'mattermost_image_password': '',
+    'performance_monitoring_enabled': False,
     's3_enabled': False,
+    's3_server_side_encryption': False,
     'sso': False,
 }
 
@@ -34,7 +38,9 @@ CONFIG_IMAGE_NO_PASSWORD = {
     'mattermost_image_path': 'example.com/mattermost:latest',
     'mattermost_image_username': 'production',
     'mattermost_image_password': '',
+    'performance_monitoring_enabled': False,
     's3_enabled': False,
+    's3_server_side_encryption': False,
     'sso': False,
 }
 
@@ -47,12 +53,14 @@ CONFIG_NO_S3_SETTINGS_S3_ENABLED = {
     'mattermost_image_path': 'example.com/mattermost:latest',
     'mattermost_image_username': '',
     'mattermost_image_password': '',
+    'performance_monitoring_enabled': False,
     's3_enabled': True,
     's3_endpoint': 's3.amazonaws.com',
     's3_bucket': '',
     's3_region': '',
     's3_access_key_id': '',
     's3_secret_access_key': '',
+    's3_server_side_encryption': False,
     'sso': False,
 }
 
@@ -61,7 +69,9 @@ CONFIG_NO_S3_SETTINGS_S3_DISABLED_NO_DEFAULTS = {
     'mattermost_image_path': 'example.com/mattermost:latest',
     'mattermost_image_username': '',
     'mattermost_image_password': '',
+    'performance_monitoring_enabled': False,
     's3_enabled': False,
+    's3_server_side_encryption': False,
     'sso': False,
 }
 
