@@ -2,6 +2,7 @@ import sys
 sys.path.append('lib')  # noqa: E402
 sys.path.append('src')  # noqa: E402
 
+import mock
 import unittest
 
 from charm import (
@@ -50,9 +51,11 @@ CONFIG_NO_LICENCE_SECRET = {"licence": ""}
 
 CONFIG_NO_S3_SETTINGS_S3_ENABLED = {
     'clustering': False,
+    'debug': False,
     'mattermost_image_path': 'example.com/mattermost:latest',
     'mattermost_image_username': '',
     'mattermost_image_password': '',
+    'max_file_size': 5,
     'performance_monitoring_enabled': False,
     's3_enabled': True,
     's3_endpoint': 's3.amazonaws.com',
@@ -89,6 +92,19 @@ CONFIG_PUSH_NOTIFICATION_MESSAGE_SNIPPET = {
     'push_notifications_include_message_snippet': True,
 }
 
+CONFIG_LICENCE_REQUIRED_MIXED_INGRESS = {
+    'clustering': True,
+    'ingress_whitelist_source_range': '10.242.0.0/8,91.189.92.128/25',
+    'licence': '',
+    'mattermost_image_path': 'example.com/mattermost:latest',
+    'mattermost_image_username': '',
+    'mattermost_image_password': '',
+    'performance_monitoring_enabled': False,
+    's3_enabled': False,
+    's3_server_side_encryption': False,
+    'sso': False,
+}
+
 
 class TestMattermostK8sCharmHooksDisabled(unittest.TestCase):
 
@@ -96,6 +112,30 @@ class TestMattermostK8sCharmHooksDisabled(unittest.TestCase):
         self.harness = testing.Harness(MattermostK8sCharm)
         self.harness.begin()
         self.harness.disable_hooks()
+
+    def test_check_for_config_problems(self):
+        """Config problems as a string."""
+        self.harness.update_config(CONFIG_LICENCE_REQUIRED_MIXED_INGRESS)
+        expected = ('required setting(s) empty: licence; '
+                    'ingress_whitelist_source_range: invalid network(s): 10.242.0.0/8')
+        self.assertEqual(self.harness.charm._check_for_config_problems(), expected)
+
+    def test_make_s3_pod_config(self):
+        """Make s3 pod config."""
+        self.harness.update_config(CONFIG_NO_S3_SETTINGS_S3_ENABLED)
+        expected = {
+            'MM_FILESETTINGS_DRIVERNAME': 'amazons3',
+            'MM_FILESETTINGS_MAXFILESIZE': '5242880',
+            'MM_FILESETTINGS_AMAZONS3SSL': 'true',
+            'MM_FILESETTINGS_AMAZONS3ENDPOINT': 's3.amazonaws.com',
+            'MM_FILESETTINGS_AMAZONS3BUCKET': '',
+            'MM_FILESETTINGS_AMAZONS3REGION': '',
+            'MM_FILESETTINGS_AMAZONS3ACCESSKEYID': '',
+            'MM_FILESETTINGS_AMAZONS3SECRETACCESSKEY': '',
+            'MM_FILESETTINGS_AMAZONS3SSE': 'false',
+            'MM_FILESETTINGS_AMAZONS3TRACE': 'false',
+        }
+        self.assertEqual(self.harness.charm._make_s3_pod_config(), expected)
 
     def test_missing_charm_settings_image_no_creds(self):
         """Credentials are optional."""
@@ -237,3 +277,52 @@ class TestMattermostK8sCharmHooksDisabled(unittest.TestCase):
             }],
         }
         self.assertEqual(self.harness.charm._update_pod_spec_for_performance_monitoring(pod_spec), expected)
+
+    @mock.patch.dict('os.environ', {"JUJU_MODEL_UUID": "fakeuuid"})
+    def test_update_pod_spec_for_clustering(self, ):
+        """Test clustering config."""
+        self.harness.update_config({'clustering': False})
+        self.assertEqual(self.harness.charm._update_pod_spec_for_clustering({}), {})
+        self.harness.update_config({'clustering': True})
+        pod_spec = {
+            'containers': [{
+                'name': 'mattermost',
+                'envConfig': {},
+            }],
+        }
+        expected = {
+            'containers': [{
+                'name': 'mattermost',
+                'envConfig': {
+                    'MM_CLUSTERSETTINGS_ENABLE': 'true',
+                    'MM_CLUSTERSETTINGS_CLUSTERNAME': 'mattermost-fakeuuid',
+                    'MM_CLUSTERSETTINGS_USEIPADDRESS': 'true',
+                },
+            }],
+        }
+        self.assertEqual(self.harness.charm._update_pod_spec_for_clustering(pod_spec), expected)
+
+    def test_update_pod_spec_for_canonical_defaults(self):
+        """Test canonical defaults."""
+        self.harness.update_config({'use_canonical_defaults': False})
+        self.assertEqual(self.harness.charm._update_pod_spec_for_canonical_defaults({}), {})
+        self.harness.update_config({'use_canonical_defaults': True})
+        pod_spec = {
+            'containers': [{
+                'name': 'mattermost',
+                'envConfig': {},
+            }],
+        }
+        expected = {
+            'containers': [{
+                'name': 'mattermost',
+                'envConfig': {
+                    'MM_SERVICESETTINGS_CLOSEUNUSEDDIRECTMESSAGES': 'true',
+                    'MM_SERVICESETTINGS_ENABLECUSTOMEMOJI': 'true',
+                    'MM_SERVICESETTINGS_ENABLELINKPREVIEWS': 'true',
+                    'MM_SERVICESETTINGS_ENABLEUSERACCESSTOKENS': 'true',
+                    'MM_TEAMSETTINGS_MAXUSERSPERTEAM': '1000',
+                },
+            }],
+        }
+        self.assertEqual(self.harness.charm._update_pod_spec_for_canonical_defaults(pod_spec), expected)
