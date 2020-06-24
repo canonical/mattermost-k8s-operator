@@ -255,6 +255,7 @@ class TestMattermostK8sCharmHooksDisabled(unittest.TestCase):
         self.assertEqual(self.harness.charm._make_licence_volume_configs(), expected)
 
     def test_update_pod_spec_for_k8s_ingress(self):
+        """Test making the k8s ingress, and that ingress name is different to app name"""
         self.harness.update_config({
             'ingress_whitelist_source_range': '',
             'max_file_size': 5,
