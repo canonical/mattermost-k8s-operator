@@ -89,8 +89,6 @@ class MattermostK8sCharm(CharmBase):
     def __init__(self, *args):
         super().__init__(*args)
 
-        # get our mattermost_image from juju
-        # ie: juju deploy . --resource mattermost_image=mattermost:latest )
         self.framework.observe(self.on.start, self.configure_pod)
         self.framework.observe(self.on.config_changed, self.configure_pod)
         self.framework.observe(self.on.leader_elected, self.configure_pod)
