@@ -254,6 +254,47 @@ class TestMattermostK8sCharmHooksDisabled(unittest.TestCase):
         }]
         self.assertEqual(self.harness.charm._make_licence_volume_configs(), expected)
 
+    def test_update_pod_spec_for_k8s_ingress(self):
+        self.harness.update_config({
+            'ingress_whitelist_source_range': '',
+            'max_file_size': 5,
+            'site_url': 'https://chat.example.com',
+            'tls_secret_name': 'chat-example-com-tls',
+        })
+        # Specifically testing that the ingress name is not the same as the
+        # app name due to LP#1884674.
+        ingress_name = 'mattermost-ingress'
+        self.assertNotEqual(ingress_name, self.harness.charm.app.name)
+        expected = {
+            'kubernetesResources': {
+                'ingressResources': [{
+                    'name': ingress_name,
+                    'spec': {
+                        'rules': [{
+                            'host': 'chat.example.com',
+                            'http': {
+                                'paths': [{
+                                    'path': '/',
+                                    'backend': {
+                                        'serviceName': 'mattermost',
+                                        'servicePort': 8065,
+                                    }
+                                }]
+                            }
+                        }],
+                        'tls': [{
+                            'hosts': ['chat.example.com'],
+                            'secretName': 'chat-example-com-tls',
+                        }]
+                    },
+                    'annotations': {
+                        'nginx.ingress.kubernetes.io/proxy-body-size': '5m',
+                    }
+                }]
+            }
+        }
+        self.assertEqual(self.harness.charm._update_pod_spec_for_k8s_ingress({}), expected)
+
     def test_update_pod_spec_for_performance_monitoring(self):
         """envConfig is updated, and pre-existing annotations are not clobbered."""
         # We can't set annotations yet because of LP:1884177.

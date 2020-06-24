@@ -279,7 +279,7 @@ class MattermostK8sCharm(CharmBase):
             'nginx.ingress.kubernetes.io/proxy-body-size': '{}m'.format(self.model.config['max_file_size'])
         }
         ingress = {
-            "name": self.app.name,
+            "name": "{}-ingress".format(self.app.name),
             "spec": {
                 "rules": [{
                     "host": parsed.hostname,
