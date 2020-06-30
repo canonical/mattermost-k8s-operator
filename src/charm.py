@@ -58,16 +58,15 @@ class MattermostCharmEvents(CharmEvents):
 
 
 def check_ranges(ranges, name):
-    if ranges:
-        networks = ranges.split(',')
-        invalid_networks = []
-        for network in networks:
-            try:
-                ip_network(network)
-            except ValueError:
-                invalid_networks.append(network)
-        if invalid_networks:
-            return '{}: invalid network(s): {}'.format(name, ', '.join(invalid_networks))
+    networks = ranges.split(',')
+    invalid_networks = []
+    for network in networks:
+        try:
+            ip_network(network)
+        except ValueError:
+            invalid_networks.append(network)
+    if invalid_networks:
+        return '{}: invalid network(s): {}'.format(name, ', '.join(invalid_networks))
 
 
 def get_container(pod_spec, container_name):
