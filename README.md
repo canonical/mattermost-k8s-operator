@@ -1,6 +1,6 @@
 # Mattermost charm
 
-A juju charm deploying Mattermost, using a custom-built built image,
+A juju charm deploying Mattermost, using [a custom-built built image](https://code.launchpad.net/~mattermost-charmers/charm-k8s-mattermost/+git/mattermost-k8s-image-builder),
 configurable to use a postgresql backend.
 
 ## Overview
