@@ -172,7 +172,8 @@ class TestMattermostK8sCharmHooksDisabled(unittest.TestCase):
         self.harness.update_config(CONFIG_PUSH_NOTIFICATION_SERVER_UNSET)
         expected = {}
         pod_spec = {}
-        self.assertEqual(self.harness.charm._update_pod_spec_for_push(pod_spec), expected)
+        self.harness.charm._update_pod_spec_for_push(pod_spec)
+        self.assertEqual(pod_spec, expected)
 
     def test_push_notification_no_message_snippet(self):
         """Push notification configured, but without message snippets"""
@@ -193,7 +194,8 @@ class TestMattermostK8sCharmHooksDisabled(unittest.TestCase):
                 'envConfig': {},
             }],
         }
-        self.assertEqual(self.harness.charm._update_pod_spec_for_push(pod_spec), expected)
+        self.harness.charm._update_pod_spec_for_push(pod_spec)
+        self.assertEqual(pod_spec, expected)
 
     def test_push_notification_message_snippet(self):
         """Push notifications configured, including message snippets"""
@@ -214,7 +216,8 @@ class TestMattermostK8sCharmHooksDisabled(unittest.TestCase):
                 'envConfig': {},
             }],
         }
-        self.assertEqual(self.harness.charm._update_pod_spec_for_push(pod_spec), expected)
+        self.harness.charm._update_pod_spec_for_push(pod_spec)
+        self.assertEqual(pod_spec, expected)
 
     def test_get_licence_secret_name(self):
         """Test the licence secret name is correctly constructed"""
@@ -295,7 +298,9 @@ class TestMattermostK8sCharmHooksDisabled(unittest.TestCase):
                 }]
             }
         }
-        self.assertEqual(self.harness.charm._update_pod_spec_for_k8s_ingress({}), expected)
+        pod_spec = {}
+        self.harness.charm._update_pod_spec_for_k8s_ingress(pod_spec)
+        self.assertEqual(pod_spec, expected)
 
     def test_update_pod_spec_for_performance_monitoring(self):
         """envConfig is updated, and pre-existing annotations are not clobbered."""
@@ -319,13 +324,16 @@ class TestMattermostK8sCharmHooksDisabled(unittest.TestCase):
                 },
             }],
         }
-        self.assertEqual(self.harness.charm._update_pod_spec_for_performance_monitoring(pod_spec), expected)
+        self.harness.charm._update_pod_spec_for_performance_monitoring(pod_spec)
+        self.assertEqual(pod_spec, expected)
 
     @mock.patch.dict('os.environ', {"JUJU_MODEL_UUID": "fakeuuid"})
     def test_update_pod_spec_for_clustering(self, ):
         """Test clustering config."""
         self.harness.update_config({'clustering': False})
-        self.assertEqual(self.harness.charm._update_pod_spec_for_clustering({}), {})
+        pod_spec = {}
+        self.harness.charm._update_pod_spec_for_clustering(pod_spec)
+        self.assertEqual(pod_spec, {})
         self.harness.update_config({'clustering': True})
         pod_spec = {
             'containers': [{
@@ -343,12 +351,15 @@ class TestMattermostK8sCharmHooksDisabled(unittest.TestCase):
                 },
             }],
         }
-        self.assertEqual(self.harness.charm._update_pod_spec_for_clustering(pod_spec), expected)
+        self.harness.charm._update_pod_spec_for_clustering(pod_spec)
+        self.assertEqual(pod_spec, expected)
 
     def test_update_pod_spec_for_canonical_defaults(self):
         """Test canonical defaults."""
         self.harness.update_config({'use_canonical_defaults': False})
-        self.assertEqual(self.harness.charm._update_pod_spec_for_canonical_defaults({}), {})
+        pod_spec = {}
+        self.harness.charm._update_pod_spec_for_canonical_defaults(pod_spec)
+        self.assertEqual(pod_spec, {})
         self.harness.update_config({'use_canonical_defaults': True})
         pod_spec = {
             'containers': [{
@@ -368,4 +379,5 @@ class TestMattermostK8sCharmHooksDisabled(unittest.TestCase):
                 },
             }],
         }
-        self.assertEqual(self.harness.charm._update_pod_spec_for_canonical_defaults(pod_spec), expected)
+        self.harness.charm._update_pod_spec_for_canonical_defaults(pod_spec)
+        self.assertEqual(pod_spec, expected)

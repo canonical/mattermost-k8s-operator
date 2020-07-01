@@ -3,7 +3,6 @@
 import sys
 sys.path.append('lib')  # noqa: E402
 
-import copy
 import json
 import os
 
@@ -264,14 +263,13 @@ class MattermostK8sCharm(CharmBase):
     def _update_pod_spec_for_k8s_ingress(self, pod_spec):
         site_url = self.model.config['site_url']
         if not site_url:
-            return pod_spec
+            return
 
         parsed = urlparse(site_url)
 
         if not parsed.scheme.startswith('http'):
-            return pod_spec
+            return
 
-        pod_spec = copy.deepcopy(pod_spec)
         annotations = {
             'nginx.ingress.kubernetes.io/proxy-body-size': '{}m'.format(self.model.config['max_file_size'])
         }
@@ -317,8 +315,6 @@ class MattermostK8sCharm(CharmBase):
         resources['ingressResources'] = [ingress]
         pod_spec['kubernetesResources'] = resources
 
-        return pod_spec
-
     def _get_licence_secret_name(self):
         crc = '{:08x}'.format(crc32(self.model.config['licence'].encode('utf-8')))
         return '{}-licence-{}'.format(self.app.name, crc)
@@ -355,8 +351,7 @@ class MattermostK8sCharm(CharmBase):
     def _update_pod_spec_for_licence(self, pod_spec):
         config = self.model.config
         if not config['licence']:
-            return pod_spec
-        pod_spec = copy.deepcopy(pod_spec)
+            return
 
         secrets = pod_spec['kubernetesResources'].get('secrets', [])
         secrets = extend_list_merging_dicts_matched_by_key(
@@ -373,13 +368,10 @@ class MattermostK8sCharm(CharmBase):
             {'MM_SERVICESETTINGS_LICENSEFILELOCATION': '/secrets/licence.txt'},
         )
 
-        return pod_spec
-
     def _update_pod_spec_for_canonical_defaults(self, pod_spec):
         config = self.model.config
         if not config['use_canonical_defaults']:
-            return pod_spec
-        pod_spec = copy.deepcopy(pod_spec)
+            return
 
         get_env_config(pod_spec, self.app.name).update({
             # If this is off, users can't turn it on themselves.
@@ -396,13 +388,10 @@ class MattermostK8sCharm(CharmBase):
             'MM_TEAMSETTINGS_MAXUSERSPERTEAM': '1000',
         })
 
-        return pod_spec
-
     def _update_pod_spec_for_clustering(self, pod_spec):
         config = self.model.config
         if not config['clustering']:
-            return pod_spec
-        pod_spec = copy.deepcopy(pod_spec)
+            return
 
         get_env_config(pod_spec, self.app.name).update({
             "MM_CLUSTERSETTINGS_ENABLE": "true",
@@ -410,13 +399,10 @@ class MattermostK8sCharm(CharmBase):
             "MM_CLUSTERSETTINGS_USEIPADDRESS": "true",
         })
 
-        return pod_spec
-
     def _update_pod_spec_for_sso(self, pod_spec):
         config = self.model.config
         if not config['sso'] or [setting for setting in REQUIRED_SSO_SETTINGS if not config[setting]]:
-            return pod_spec
-        pod_spec = copy.deepcopy(pod_spec)
+            return
         site_hostname = urlparse(config['site_url']).hostname
 
         get_env_config(pod_spec, self.app.name).update({
@@ -441,13 +427,10 @@ class MattermostK8sCharm(CharmBase):
             'MM_EXPERIMENTALSETTINGS_USENEWSAMLLIBRARY': 'true',
         })
 
-        return pod_spec
-
     def _update_pod_spec_for_performance_monitoring(self, pod_spec):
         config = self.model.config
         if not config['performance_monitoring_enabled']:
-            return pod_spec
-        pod_spec = copy.deepcopy(pod_spec)
+            return
 
         get_env_config(pod_spec, self.app.name).update({
             'MM_METRICSSETTINGS_ENABLE': 'true' if config['performance_monitoring_enabled'] else 'false',
@@ -468,13 +451,10 @@ class MattermostK8sCharm(CharmBase):
         # })
         # [ store annotations in pod_spec ]
 
-        return pod_spec
-
     def _update_pod_spec_for_push(self, pod_spec):
         config = self.model.config
         if not config['push_notification_server']:
-            return pod_spec
-        pod_spec = copy.deepcopy(pod_spec)
+            return
         contents = 'full' if config['push_notifications_include_message_snippet'] else 'id_loaded'
 
         get_env_config(pod_spec, self.app.name).update({
@@ -483,20 +463,15 @@ class MattermostK8sCharm(CharmBase):
             'MM_EMAILSETTINGS_PUSHNOTIFICATIONSERVER': config['push_notification_server'],
         })
 
-        return pod_spec
-
     def _update_pod_spec_for_smtp(self, pod_spec):
         config = self.model.config
         if not config['smtp_host']:
-            return pod_spec
-        pod_spec = copy.deepcopy(pod_spec)
+            return
 
         get_env_config(pod_spec, self.app.name).update({
             'MM_EMAILSETTINGS_SMTPPORT': 25,
             'MM_EMAILSETTINGS_SMTPSERVER': config['smtp_host'],
         })
-
-        return pod_spec
 
     def configure_pod(self, event):
         if not state_get('db_uri'):
@@ -515,14 +490,14 @@ class MattermostK8sCharm(CharmBase):
 
         self.unit.status = MaintenanceStatus('Assembling pod spec')
         pod_spec = self._make_pod_spec()
-        pod_spec = self._update_pod_spec_for_canonical_defaults(pod_spec)
-        pod_spec = self._update_pod_spec_for_clustering(pod_spec)
-        pod_spec = self._update_pod_spec_for_k8s_ingress(pod_spec)
-        pod_spec = self._update_pod_spec_for_licence(pod_spec)
-        pod_spec = self._update_pod_spec_for_performance_monitoring(pod_spec)
-        pod_spec = self._update_pod_spec_for_push(pod_spec)
-        pod_spec = self._update_pod_spec_for_sso(pod_spec)
-        pod_spec = self._update_pod_spec_for_smtp(pod_spec)
+        self._update_pod_spec_for_canonical_defaults(pod_spec)
+        self._update_pod_spec_for_clustering(pod_spec)
+        self._update_pod_spec_for_k8s_ingress(pod_spec)
+        self._update_pod_spec_for_licence(pod_spec)
+        self._update_pod_spec_for_performance_monitoring(pod_spec)
+        self._update_pod_spec_for_push(pod_spec)
+        self._update_pod_spec_for_sso(pod_spec)
+        self._update_pod_spec_for_smtp(pod_spec)
 
         self.unit.status = MaintenanceStatus('Setting pod spec')
         self.model.pod.set_spec(pod_spec)
