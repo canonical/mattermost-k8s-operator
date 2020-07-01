@@ -57,6 +57,8 @@ class MattermostCharmEvents(CharmEvents):
 
 
 def check_ranges(ranges, name):
+    """If ranges, a string comprising a comma-separated list of CIDRs, has
+    one or more invalid elements, return a string describing the problem."""
     networks = ranges.split(',')
     invalid_networks = []
     for network in networks:
@@ -69,12 +71,17 @@ def check_ranges(ranges, name):
 
 
 def get_container(pod_spec, container_name):
+    """Find and return the first container in pod_spec whose name is
+    container_name, otherwise return None."""
     for container in pod_spec['containers']:
         if container['name'] == container_name:
             return container
 
 
 def get_env_config(pod_spec, container_name):
+    """Return the envConfig of the container in pod_spec whose name is
+    container_name, otherwise return None.  If the container exists
+    but has no envConfig, raise KeyError."""
     container = get_container(pod_spec, container_name)
     if container:
         return container['envConfig']
@@ -100,6 +107,7 @@ class MattermostK8sCharm(CharmBase):
         self.framework.observe(self.on.db_master_available, self.configure_pod)
 
     def _on_database_relation_joined(self, event: pgsql.DatabaseRelationJoinedEvent):
+        """Handle db-relation-joined."""
         if self.model.unit.is_leader():
             # Provide requirements to the PostgreSQL server.
             event.database = DATABASE_NAME  # Request database named mydbname
@@ -111,6 +119,7 @@ class MattermostK8sCharm(CharmBase):
             return
 
     def _on_master_changed(self, event: pgsql.MasterChangedEvent):
+        """Handle changes in the primary database unit."""
         if event.database != DATABASE_NAME:
             # Leader has not yet set requirements. Wait until next
             # event, or risk connecting to an incorrect database.
@@ -127,6 +136,7 @@ class MattermostK8sCharm(CharmBase):
         self.on.db_master_available.emit()
 
     def _on_standby_changed(self, event: pgsql.StandbyChangedEvent):
+        """Handle changes in the secondary database unit(s)."""
         if event.database != DATABASE_NAME:
             # Leader has not yet set requirements. Wait until next
             # event, or risk connecting to an incorrect database.
@@ -139,6 +149,8 @@ class MattermostK8sCharm(CharmBase):
         # TODO(pjdc): Emit event when we add support for read replicas.
 
     def _check_for_config_problems(self):
+        """Check for some simple configuration problems and return a
+        string describing them, otherwise return an empty string."""
         problems = []
 
         missing = self._missing_charm_settings()
@@ -152,6 +164,7 @@ class MattermostK8sCharm(CharmBase):
         return '; '.join(filter(None, problems))
 
     def _make_pod_spec(self):
+        """Return a pod spec with some core configuration."""
         config = self.model.config
         mattermost_image_details = {
             'imagePath': config['mattermost_image_path'],
@@ -186,6 +199,7 @@ class MattermostK8sCharm(CharmBase):
         }
 
     def _make_pod_config(self):
+        """Return an envConfig with some core configuration."""
         config = self.model.config
         # https://github.com/mattermost/mattermost-server/pull/14666
         db_uri = state_get('db_uri').replace('postgresql://', 'postgres://')
@@ -217,6 +231,8 @@ class MattermostK8sCharm(CharmBase):
         return pod_config
 
     def _missing_charm_settings(self):
+        """Check configuration setting dependencies and return a list of
+        missing settings; otherwise return an empty list."""
         config = self.model.config
         missing = []
 
@@ -243,6 +259,7 @@ class MattermostK8sCharm(CharmBase):
         return sorted(list(set(missing)))
 
     def _make_s3_pod_config(self):
+        """Return an envConfig of S3 settings, if any."""
         config = self.model.config
         if not config['s3_enabled']:
             return {}
@@ -261,6 +278,7 @@ class MattermostK8sCharm(CharmBase):
         }
 
     def _update_pod_spec_for_k8s_ingress(self, pod_spec):
+        """Add resources to pod_spec configuring site ingress, if needed."""
         site_url = self.model.config['site_url']
         if not site_url:
             return
@@ -316,10 +334,15 @@ class MattermostK8sCharm(CharmBase):
         pod_spec['kubernetesResources'] = resources
 
     def _get_licence_secret_name(self):
+        """Compute a content-dependent name for the licence secret.
+        The name is varied so that licence updates cause the pods to
+        be respawned.  Mattermost reads the licence file on startup
+        and updates the copy in the database, if necessary."""
         crc = '{:08x}'.format(crc32(self.model.config['licence'].encode('utf-8')))
         return '{}-licence-{}'.format(self.app.name, crc)
 
     def _make_licence_volume_configs(self):
+        """Return volume config for the licence secret."""
         config = self.model.config
         if not config['licence']:
             return []
@@ -337,6 +360,7 @@ class MattermostK8sCharm(CharmBase):
         }]
 
     def _make_licence_k8s_secrets(self):
+        """Return secret for the licence."""
         config = self.model.config
         if not config['licence']:
             return []
@@ -349,6 +373,7 @@ class MattermostK8sCharm(CharmBase):
         }]
 
     def _update_pod_spec_for_licence(self, pod_spec):
+        """Update pod_spec to make the licence, if configured, available to Mattermost."""
         config = self.model.config
         if not config['licence']:
             return
@@ -369,6 +394,8 @@ class MattermostK8sCharm(CharmBase):
         )
 
     def _update_pod_spec_for_canonical_defaults(self, pod_spec):
+        """Update pod_spec with various Mattermost settings particular to
+        Canonical's deployment that may also less generally useful."""
         config = self.model.config
         if not config['use_canonical_defaults']:
             return
@@ -389,6 +416,9 @@ class MattermostK8sCharm(CharmBase):
         })
 
     def _update_pod_spec_for_clustering(self, pod_spec):
+        """Update pod_spec with clustering settings.  Vary the cluster
+        name on the application name so that blue/green deployments in
+        the same model won't talk to each other."""
         config = self.model.config
         if not config['clustering']:
             return
@@ -400,6 +430,9 @@ class MattermostK8sCharm(CharmBase):
         })
 
     def _update_pod_spec_for_sso(self, pod_spec):
+        """Update pod_spec with settings to use login.ubuntu.com via
+        SAML for single sign-on.  SAML_IDP_CRT must be generated and
+        installed manually by a human (see README.md)."""
         config = self.model.config
         if not config['sso'] or [setting for setting in REQUIRED_SSO_SETTINGS if not config[setting]]:
             return
@@ -428,6 +461,7 @@ class MattermostK8sCharm(CharmBase):
         })
 
     def _update_pod_spec_for_performance_monitoring(self, pod_spec):
+        """Update pod_spec with settings for the Prometheus exporter."""
         config = self.model.config
         if not config['performance_monitoring_enabled']:
             return
@@ -452,6 +486,8 @@ class MattermostK8sCharm(CharmBase):
         # [ store annotations in pod_spec ]
 
     def _update_pod_spec_for_push(self, pod_spec):
+        """Update pod_spec with settings for push notifications via
+        Mattermost HPNS (hosted push notification service)."""
         config = self.model.config
         if not config['push_notification_server']:
             return
@@ -464,6 +500,7 @@ class MattermostK8sCharm(CharmBase):
         })
 
     def _update_pod_spec_for_smtp(self, pod_spec):
+        """Update pod_spec with settings for an outgoing SMTP relay."""
         config = self.model.config
         if not config['smtp_host']:
             return
@@ -474,6 +511,7 @@ class MattermostK8sCharm(CharmBase):
         })
 
     def configure_pod(self, event):
+        """Assemble the pod spec and apply it, if possible."""
         if not state_get('db_uri'):
             self.unit.status = WaitingStatus('Waiting for database relation')
             event.defer()
