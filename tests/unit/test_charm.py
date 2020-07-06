@@ -1,7 +1,3 @@
-import sys
-sys.path.append('lib')  # noqa: E402
-sys.path.append('src')  # noqa: E402
-
 import mock
 import unittest
 
