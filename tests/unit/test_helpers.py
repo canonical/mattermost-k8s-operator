@@ -1,6 +1,3 @@
-import sys
-sys.path.append('src')  # noqa: E402
-
 import unittest
 
 from charm import (
