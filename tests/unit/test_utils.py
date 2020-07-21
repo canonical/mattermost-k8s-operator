@@ -21,14 +21,15 @@ class TestExtendListMergingDictsByKey(unittest.TestCase):
     def test_merge_same_key(self):
         """Now this is what we came here for!"""
         self.assertEqual(
-            extend_list_merging_dicts_matched_by_key([{1: 1, 3: 4}], [{1: 1, 2: 3}], key=1),
-            [{1: 1, 2: 3, 3: 4}])
+            extend_list_merging_dicts_matched_by_key([{1: 1, 3: 4}], [{1: 1, 2: 3}], key=1), [{1: 1, 2: 3, 3: 4}]
+        )
 
     def test_merge_same_key_different_key(self):
         """A little of this, a little of that."""
         self.assertEqual(
             extend_list_merging_dicts_matched_by_key([{1: 1, 3: 4}], [{1: 1, 2: 3}, {1: 2, 5: 6}, {1: 3, 7: 8}], key=1),
-            [{1: 2, 5: 6}, {1: 3, 7: 8}, {1: 1, 2: 3, 3: 4}])
+            [{1: 2, 5: 6}, {1: 3, 7: 8}, {1: 1, 2: 3, 3: 4}],
+        )
 
     def test_merge_same_key_different_key_deepcopy(self):
         """Merge targets are deep-copied beforehand."""

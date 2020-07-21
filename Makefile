@@ -1,4 +1,8 @@
-lint:
+blacken:
+	@echo "Normalising python layout with black."
+	@tox -e black
+
+lint: blacken
 	@echo "Running flake8"
 	@tox -e lint
 

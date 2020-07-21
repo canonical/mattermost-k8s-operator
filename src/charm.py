@@ -31,11 +31,14 @@ from charmstate import state_get, state_set
 from utils import extend_list_merging_dicts_matched_by_key
 
 import logging
+
 logger = logging.getLogger()
 
 
-CONTAINER_PORT = 8065  # Mattermost's default port, and what we expect the image to use
-METRICS_PORT = 8067    # default port, enforced via envConfig to prevent operator error
+# Mattermost's default port, and what we expect the image to use
+CONTAINER_PORT = 8065
+# Default port, enforced via envConfig to prevent operator error
+METRICS_PORT = 8067
 DATABASE_NAME = 'mattermost'
 LICENCE_SECRET_KEY_NAME = 'licence'
 REQUIRED_S3_SETTINGS = ['s3_bucket', 's3_region', 's3_access_key_id', 's3_secret_access_key']
@@ -50,6 +53,7 @@ class MattermostDBMasterAvailableEvent(EventBase):
 
 class MattermostCharmEvents(CharmEvents):
     """Custom charm events."""
+
     db_master_available = EventSource(MattermostDBMasterAvailableEvent)
 
 
@@ -122,10 +126,12 @@ class MattermostK8sCharm(CharmBase):
             # event, or risk connecting to an incorrect database.
             return
 
-        state_set({
-            'db_conn_str': None if event.master is None else event.master.conn_str,
-            'db_uri': None if event.master is None else event.master.uri,
-        })
+        state_set(
+            {
+                'db_conn_str': None if event.master is None else event.master.conn_str,
+                'db_uri': None if event.master is None else event.master.uri,
+            }
+        )
 
         if event.master is None:
             return
@@ -139,9 +145,7 @@ class MattermostK8sCharm(CharmBase):
             # event, or risk connecting to an incorrect database.
             return
 
-        state_set({
-            'db_ro_uris': json.dumps([c.uri for c in event.standbys]),
-        })
+        state_set({'db_ro_uris': json.dumps([c.uri for c in event.standbys])})
 
         # TODO(pjdc): Emit event when we add support for read replicas.
 
@@ -167,32 +171,25 @@ class MattermostK8sCharm(CharmBase):
             'imagePath': config['mattermost_image_path'],
         }
         if config['mattermost_image_username']:
-            mattermost_image_details.update({
-                'username': config['mattermost_image_username'],
-                'password': config['mattermost_image_password'],
-            })
+            mattermost_image_details.update(
+                {'username': config['mattermost_image_username'], 'password': config['mattermost_image_password']}
+            )
         pod_config = self._make_pod_config()
         pod_config.update(self._make_s3_pod_config())
 
         return {
-            'version': 3,       # otherwise resources are ignored
-            'containers': [{
-                'name': self.app.name,
-                'imageDetails': mattermost_image_details,
-                'ports': [{
-                    'containerPort': CONTAINER_PORT,
-                    'protocol': 'TCP',
-                }],
-                'envConfig': pod_config,
-                'kubernetes': {
-                    'readinessProbe': {
-                        'httpGet': {
-                            'path': '/api/v4/system/ping',
-                            'port': CONTAINER_PORT,
-                        }
+            'version': 3,  # otherwise resources are ignored
+            'containers': [
+                {
+                    'name': self.app.name,
+                    'imageDetails': mattermost_image_details,
+                    'ports': [{'containerPort': CONTAINER_PORT, 'protocol': 'TCP'}],
+                    'envConfig': pod_config,
+                    'kubernetes': {
+                        'readinessProbe': {'httpGet': {'path': '/api/v4/system/ping', 'port': CONTAINER_PORT}},
                     },
-                },
-            }],
+                }
+            ],
         }
 
     def _make_pod_config(self):
@@ -285,32 +282,24 @@ class MattermostK8sCharm(CharmBase):
         if not parsed.scheme.startswith('http'):
             return
 
-        annotations = {
-            'nginx.ingress.kubernetes.io/proxy-body-size': '{}m'.format(self.model.config['max_file_size'])
-        }
+        annotations = {'nginx.ingress.kubernetes.io/proxy-body-size': '{}m'.format(self.model.config['max_file_size'])}
         ingress = {
             "name": "{}-ingress".format(self.app.name),
             "spec": {
-                "rules": [{
-                    "host": parsed.hostname,
-                    "http": {
-                        "paths": [{
-                            "path": "/",
-                            "backend": {
-                                "serviceName": self.app.name,
-                                "servicePort": CONTAINER_PORT,
-                            }
-                        }]
+                "rules": [
+                    {
+                        "host": parsed.hostname,
+                        "http": {
+                            "paths": [
+                                {"path": "/", "backend": {"serviceName": self.app.name, "servicePort": CONTAINER_PORT}}
+                            ]
+                        },
                     }
-                }]
-            }
+                ]
+            },
         }
         if parsed.scheme == 'https':
-            ingress['spec']['tls'] = [
-                {
-                    'hosts': [parsed.hostname],
-                }
-            ]
+            ingress['spec']['tls'] = [{'hosts': [parsed.hostname]}]
             tls_secret_name = self.model.config['tls_secret_name']
             if tls_secret_name:
                 ingress['spec']['tls'][0]['secretName'] = tls_secret_name
@@ -343,31 +332,29 @@ class MattermostK8sCharm(CharmBase):
         config = self.model.config
         if not config['licence']:
             return []
-        return [{
-            'name': 'licence',
-            'mountPath': '/secrets',
-            'secret': {
-                'name': self._get_licence_secret_name(),
-                'files': [{
-                    'key': LICENCE_SECRET_KEY_NAME,
-                    'path': 'licence.txt',
-                    'mode': 0o444,
-                }],
-            },
-        }]
+        return [
+            {
+                'name': 'licence',
+                'mountPath': '/secrets',
+                'secret': {
+                    'name': self._get_licence_secret_name(),
+                    'files': [{'key': LICENCE_SECRET_KEY_NAME, 'path': 'licence.txt', 'mode': 0o444}],
+                },
+            }
+        ]
 
     def _make_licence_k8s_secrets(self):
         """Return secret for the licence."""
         config = self.model.config
         if not config['licence']:
             return []
-        return [{
-            'name': self._get_licence_secret_name(),
-            'type': 'Opaque',
-            'stringData': {
-                LICENCE_SECRET_KEY_NAME: config['licence'],
-            },
-        }]
+        return [
+            {
+                'name': self._get_licence_secret_name(),
+                'type': 'Opaque',
+                'stringData': {LICENCE_SECRET_KEY_NAME: config['licence']},
+            }
+        ]
 
     def _update_pod_spec_for_licence(self, pod_spec):
         """Update pod_spec to make the licence, if configured, available to Mattermost."""
@@ -376,14 +363,14 @@ class MattermostK8sCharm(CharmBase):
             return
 
         secrets = pod_spec['kubernetesResources'].get('secrets', [])
-        secrets = extend_list_merging_dicts_matched_by_key(
-            secrets, self._make_licence_k8s_secrets(), key='name')
+        secrets = extend_list_merging_dicts_matched_by_key(secrets, self._make_licence_k8s_secrets(), key='name')
         pod_spec['kubernetesResources']['secrets'] = secrets
 
         container = get_container(pod_spec, self.app.name)
         volume_config = container.get('volumeConfig', [])
         volume_config = extend_list_merging_dicts_matched_by_key(
-            volume_config, self._make_licence_volume_configs(), key='name')
+            volume_config, self._make_licence_volume_configs(), key='name'
+        )
         container['volumeConfig'] = volume_config
 
         get_env_config(pod_spec, self.app.name).update(
@@ -397,20 +384,22 @@ class MattermostK8sCharm(CharmBase):
         if not config['use_canonical_defaults']:
             return
 
-        get_env_config(pod_spec, self.app.name).update({
-            # If this is off, users can't turn it on themselves.
-            'MM_SERVICESETTINGS_CLOSEUNUSEDDIRECTMESSAGES': 'true',
-            # This allows Matterhorn to use emoji and react to messages.
-            'MM_SERVICESETTINGS_ENABLECUSTOMEMOJI': 'true',
-            # If this is off, users can't turn it on themselves.
-            'MM_SERVICESETTINGS_ENABLELINKPREVIEWS': 'true',
-            # Matterhorn recommends the use of Personal Access Tokens.
-            'MM_SERVICESETTINGS_ENABLEUSERACCESSTOKENS': 'true',
-            # We'll use one large team.  Create and invite are
-            # disabled in the System Scheme, found in the Permissions
-            # section of the System Console.
-            'MM_TEAMSETTINGS_MAXUSERSPERTEAM': '1000',
-        })
+        get_env_config(pod_spec, self.app.name).update(
+            {
+                # If this is off, users can't turn it on themselves.
+                'MM_SERVICESETTINGS_CLOSEUNUSEDDIRECTMESSAGES': 'true',
+                # This allows Matterhorn to use emoji and react to messages.
+                'MM_SERVICESETTINGS_ENABLECUSTOMEMOJI': 'true',
+                # If this is off, users can't turn it on themselves.
+                'MM_SERVICESETTINGS_ENABLELINKPREVIEWS': 'true',
+                # Matterhorn recommends the use of Personal Access Tokens.
+                'MM_SERVICESETTINGS_ENABLEUSERACCESSTOKENS': 'true',
+                # We'll use one large team.  Create and invite are
+                # disabled in the System Scheme, found in the Permissions
+                # section of the System Console.
+                'MM_TEAMSETTINGS_MAXUSERSPERTEAM': '1000',
+            }
+        )
 
     def _update_pod_spec_for_clustering(self, pod_spec):
         """Update pod_spec with clustering settings.  Vary the cluster
@@ -420,11 +409,13 @@ class MattermostK8sCharm(CharmBase):
         if not config['clustering']:
             return
 
-        get_env_config(pod_spec, self.app.name).update({
-            "MM_CLUSTERSETTINGS_ENABLE": "true",
-            "MM_CLUSTERSETTINGS_CLUSTERNAME": '{}-{}'.format(self.app.name, os.environ['JUJU_MODEL_UUID']),
-            "MM_CLUSTERSETTINGS_USEIPADDRESS": "true",
-        })
+        get_env_config(pod_spec, self.app.name).update(
+            {
+                "MM_CLUSTERSETTINGS_ENABLE": "true",
+                "MM_CLUSTERSETTINGS_CLUSTERNAME": '{}-{}'.format(self.app.name, os.environ['JUJU_MODEL_UUID']),
+                "MM_CLUSTERSETTINGS_USEIPADDRESS": "true",
+            }
+        )
 
     def _update_pod_spec_for_sso(self, pod_spec):
         """Update pod_spec with settings to use login.ubuntu.com via
@@ -435,27 +426,29 @@ class MattermostK8sCharm(CharmBase):
             return
         site_hostname = urlparse(config['site_url']).hostname
 
-        get_env_config(pod_spec, self.app.name).update({
-            'MM_EMAILSETTINGS_ENABLESIGNINWITHEMAIL': 'false',
-            'MM_EMAILSETTINGS_ENABLESIGNINWITHUSERNAME': 'false',
-            'MM_EMAILSETTINGS_ENABLESIGNUPWITHEMAIL': 'false',
-            'MM_SAMLSETTINGS_ENABLE': 'true',
-            'MM_SAMLSETTINGS_IDPURL': 'https://login.ubuntu.com/saml/',
-            'MM_SAMLSETTINGS_VERIFY': 'true',
-            'MM_SAMLSETTINGS_ENCRYPT': 'false',  # per POC
-            'MM_SAMLSETTINGS_IDPDESCRIPTORURL': 'https://login.ubuntu.com',
-            'MM_SAMLSETTINGS_IDPMETADATAURL': 'https://login.ubuntu.com/+saml/metadata',
-            'MM_SAMLSETTINGS_ASSERTIONCONSUMERSERVICEURL': 'https://{}/login/sso/saml'.format(site_hostname),
-            'MM_SAMLSETTINGS_LOGINBUTTONTEXT': 'Ubuntu SSO',
-            'MM_SAMLSETTINGS_EMAILATTRIBUTE': 'email',
-            'MM_SAMLSETTINGS_USERNAMEATTRIBUTE': 'username',
-            'MM_SAMLSETTINGS_IDATTRIBUTE': 'openid',
-            'MM_SAMLSETTINGS_FIRSTNAMEATTRIBUTE': 'fullname',
-            'MM_SAMLSETTINGS_LASTNAMEATTRIBUTE': '',
-            'MM_SAMLSETTINGS_IDPCERTIFICATEFILE': SAML_IDP_CRT,
-            # Otherwise we have to install xmlsec1 and Mattermost forks on every login(!).
-            'MM_EXPERIMENTALSETTINGS_USENEWSAMLLIBRARY': 'true',
-        })
+        get_env_config(pod_spec, self.app.name).update(
+            {
+                'MM_EMAILSETTINGS_ENABLESIGNINWITHEMAIL': 'false',
+                'MM_EMAILSETTINGS_ENABLESIGNINWITHUSERNAME': 'false',
+                'MM_EMAILSETTINGS_ENABLESIGNUPWITHEMAIL': 'false',
+                'MM_SAMLSETTINGS_ENABLE': 'true',
+                'MM_SAMLSETTINGS_IDPURL': 'https://login.ubuntu.com/saml/',
+                'MM_SAMLSETTINGS_VERIFY': 'true',
+                'MM_SAMLSETTINGS_ENCRYPT': 'false',  # per POC
+                'MM_SAMLSETTINGS_IDPDESCRIPTORURL': 'https://login.ubuntu.com',
+                'MM_SAMLSETTINGS_IDPMETADATAURL': 'https://login.ubuntu.com/+saml/metadata',
+                'MM_SAMLSETTINGS_ASSERTIONCONSUMERSERVICEURL': 'https://{}/login/sso/saml'.format(site_hostname),
+                'MM_SAMLSETTINGS_LOGINBUTTONTEXT': 'Ubuntu SSO',
+                'MM_SAMLSETTINGS_EMAILATTRIBUTE': 'email',
+                'MM_SAMLSETTINGS_USERNAMEATTRIBUTE': 'username',
+                'MM_SAMLSETTINGS_IDATTRIBUTE': 'openid',
+                'MM_SAMLSETTINGS_FIRSTNAMEATTRIBUTE': 'fullname',
+                'MM_SAMLSETTINGS_LASTNAMEATTRIBUTE': '',
+                'MM_SAMLSETTINGS_IDPCERTIFICATEFILE': SAML_IDP_CRT,
+                # Otherwise we have to install xmlsec1 and Mattermost forks on every login(!).
+                'MM_EXPERIMENTALSETTINGS_USENEWSAMLLIBRARY': 'true',
+            }
+        )
 
     def _update_pod_spec_for_performance_monitoring(self, pod_spec):
         """Update pod_spec with settings for the Prometheus exporter."""
@@ -463,10 +456,12 @@ class MattermostK8sCharm(CharmBase):
         if not config['performance_monitoring_enabled']:
             return
 
-        get_env_config(pod_spec, self.app.name).update({
-            'MM_METRICSSETTINGS_ENABLE': 'true' if config['performance_monitoring_enabled'] else 'false',
-            'MM_METRICSSETTINGS_LISTENADDRESS': ':{}'.format(METRICS_PORT),
-        })
+        get_env_config(pod_spec, self.app.name).update(
+            {
+                'MM_METRICSSETTINGS_ENABLE': 'true' if config['performance_monitoring_enabled'] else 'false',
+                'MM_METRICSSETTINGS_LISTENADDRESS': ':{}'.format(METRICS_PORT),
+            }
+        )
 
         # Ordinarily pods are selected for scraping by the in-cluster
         # Prometheus based on their annotations.  Unfortunately Juju
@@ -490,11 +485,13 @@ class MattermostK8sCharm(CharmBase):
             return
         contents = 'full' if config['push_notifications_include_message_snippet'] else 'id_loaded'
 
-        get_env_config(pod_spec, self.app.name).update({
-            'MM_EMAILSETTINGS_SENDPUSHNOTIFICATIONS': 'true',
-            'MM_EMAILSETTINGS_PUSHNOTIFICATIONCONTENTS': contents,
-            'MM_EMAILSETTINGS_PUSHNOTIFICATIONSERVER': config['push_notification_server'],
-        })
+        get_env_config(pod_spec, self.app.name).update(
+            {
+                'MM_EMAILSETTINGS_SENDPUSHNOTIFICATIONS': 'true',
+                'MM_EMAILSETTINGS_PUSHNOTIFICATIONCONTENTS': contents,
+                'MM_EMAILSETTINGS_PUSHNOTIFICATIONSERVER': config['push_notification_server'],
+            }
+        )
 
     def _update_pod_spec_for_smtp(self, pod_spec):
         """Update pod_spec with settings for an outgoing SMTP relay."""
@@ -502,10 +499,9 @@ class MattermostK8sCharm(CharmBase):
         if not config['smtp_host']:
             return
 
-        get_env_config(pod_spec, self.app.name).update({
-            'MM_EMAILSETTINGS_SMTPPORT': 25,
-            'MM_EMAILSETTINGS_SMTPSERVER': config['smtp_host'],
-        })
+        get_env_config(pod_spec, self.app.name).update(
+            {'MM_EMAILSETTINGS_SMTPPORT': 25, 'MM_EMAILSETTINGS_SMTPSERVER': config['smtp_host']}
+        )
 
     def configure_pod(self, event):
         """Assemble the pod spec and apply it, if possible."""
