@@ -8,32 +8,13 @@ from charm import (
 
 POD_SPEC_MULTIPLE_CONTAINERS = {
     'containers': [
-        {
-            'name': 'one',
-            'envConfig': {
-                'THIS_CONTAINER': 'one',
-            },
-        },
-        {
-            'name': 'two',
-            'envConfig': {
-                'THIS_CONTAINER': 'two',
-            },
-        },
-        {
-            'name': 'three',
-            'envConfig': {
-                'THIS_CONTAINER': 'three',
-            },
-        },
+        {'name': 'one', 'envConfig': {'THIS_CONTAINER': 'one'}},
+        {'name': 'two', 'envConfig': {'THIS_CONTAINER': 'two'}},
+        {'name': 'three', 'envConfig': {'THIS_CONTAINER': 'three'}},
     ]
 }
 
-POD_SPEC_NO_ENVCONFIG = {
-    'containers': [{
-        'name': 'one',
-    }]
-}
+POD_SPEC_NO_ENVCONFIG = {'containers': [{'name': 'one'}]}
 
 RANGE_BAD = '10.242.0.0/8,91.189.92.242/25'
 RANGE_GOOD = '10.0.0.0/8,91.189.92.128/25'
@@ -41,7 +22,6 @@ RANGE_MIXED = '10.242.0.0/8,91.189.92.128/25'
 
 
 class TestMattermostCharmHelpers(unittest.TestCase):
-
     def test_check_ranges_bad(self):
         """Host bits must not be set."""
         expected = 'range_bad: invalid network(s): 10.242.0.0/8, 91.189.92.242/25'
