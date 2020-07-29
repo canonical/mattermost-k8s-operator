@@ -1,5 +1,8 @@
 # Based on interface-pgsql/pgsql/pgsql.py
 
+# Copyright 2020 Canonical Ltd.
+# Licensed under the GPLv3, see LICENCE file for details.
+
 import subprocess
 import yaml
 
