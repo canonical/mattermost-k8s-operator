@@ -1,3 +1,5 @@
+# Copyright 2020 Canonical Ltd.
+# Licensed under the GPLv3, see LICENCE file for details.
 import mock
 import unittest
 
