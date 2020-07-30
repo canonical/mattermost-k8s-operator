@@ -47,7 +47,8 @@ class TestMattermostCharmHelpers(unittest.TestCase):
 
     def test_get_container_nonexistent(self):
         """No matching container returns None."""
-        self.assertEqual(get_container(POD_SPEC_MULTIPLE_CONTAINERS, 'eleventy-ten'), None)
+        with self.assertRaises(ValueError):
+            self.assertEqual(get_container(POD_SPEC_MULTIPLE_CONTAINERS, 'eleventy-ten'), None)
 
     def test_get_env_config(self):
         """The envConfig of the container with the matching name is returned."""
@@ -56,10 +57,10 @@ class TestMattermostCharmHelpers(unittest.TestCase):
 
     def test_get_env_config_nonexistent_container(self):
         """No matching container returns None."""
-        self.assertEqual(get_env_config(POD_SPEC_MULTIPLE_CONTAINERS, 'eleventy-ten'), None)
+        with self.assertRaises(ValueError):
+            self.assertEqual(get_env_config(POD_SPEC_MULTIPLE_CONTAINERS, 'eleventy-ten'), None)
 
     def test_get_env_config_container_no_envconfig(self):
         """Container with no envConfig raises KeyError."""
-        # Not necessarily a good design, but if it's changed this will remind us to update the test suite.
-        with self.assertRaises(KeyError):
+        with self.assertRaises(ValueError):
             get_env_config(POD_SPEC_NO_ENVCONFIG, 'one')

@@ -80,6 +80,7 @@ def get_container(pod_spec, container_name):
     for container in pod_spec['containers']:
         if container['name'] == container_name:
             return container
+    raise ValueError("Unable to find container named '{}' in pod spec".format(container_name))
 
 
 def get_env_config(pod_spec, container_name):
@@ -87,8 +88,10 @@ def get_env_config(pod_spec, container_name):
     container_name, otherwise return None.  If the container exists
     but has no envConfig, raise KeyError."""
     container = get_container(pod_spec, container_name)
-    if container:
+    if container and 'envConfig' in container:
         return container['envConfig']
+    else:
+        raise ValueError("Unable to find envConfig for container named '{}'".format(container_name))
 
 
 class MattermostK8sCharm(CharmBase):
