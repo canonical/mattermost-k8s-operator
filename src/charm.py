@@ -88,7 +88,7 @@ def get_env_config(pod_spec, container_name):
     container_name, otherwise return None.  If the container exists
     but has no envConfig, raise KeyError."""
     container = get_container(pod_spec, container_name)
-    if container and 'envConfig' in container:
+    if 'envConfig' in container:
         return container['envConfig']
     else:
         raise ValueError("Unable to find envConfig for container named '{}'".format(container_name))
