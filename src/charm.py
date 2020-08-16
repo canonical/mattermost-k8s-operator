@@ -17,6 +17,7 @@ from ops.charm import (
 from ops.framework import (
     EventBase,
     EventSource,
+    StoredState,
 )
 from ops.main import main
 from ops.model import (
@@ -28,9 +29,7 @@ from ops.model import (
 
 from interface import pgsql
 
-# Until https://github.com/canonical/operator/issues/317 is
-# resolved, we'll directly manage charm state ourselves.
-from charmstate import state_get, state_set
+from charmstate import state_delete, state_get
 from utils import extend_list_merging_dicts_matched_by_key
 
 import logging
@@ -96,10 +95,13 @@ def get_env_config(pod_spec, container_name):
 
 class MattermostK8sCharm(CharmBase):
 
+    state = StoredState()
     on = MattermostCharmEvents()
 
     def __init__(self, *args):
         super().__init__(*args)
+
+        self.framework.observe(self.on.upgrade_charm, self.migrate_to_native_state)
 
         self.framework.observe(self.on.start, self.configure_pod)
         self.framework.observe(self.on.config_changed, self.configure_pod)
@@ -107,11 +109,38 @@ class MattermostK8sCharm(CharmBase):
         self.framework.observe(self.on.upgrade_charm, self.configure_pod)
 
         # database
+        self.state.set_default(db_conn_str=None, db_uri=None, db_ro_uris=[])
         self.db = pgsql.PostgreSQLClient(self, 'db')
         self.framework.observe(self.db.on.database_relation_joined, self._on_database_relation_joined)
         self.framework.observe(self.db.on.master_changed, self._on_master_changed)
         self.framework.observe(self.db.on.standby_changed, self._on_standby_changed)
         self.framework.observe(self.on.db_master_available, self.configure_pod)
+
+    def migrate_to_native_state(self, event):
+        """Migrate charm state from pre-0.7 charmstate.py to native StoredState.
+        Assumes the framework was initialized with use_juju_for_storage=True."""
+
+        self.unit.status = MaintenanceStatus('Migrating charm state')
+
+        db_conn_str = state_get('db_conn_str')
+        if db_conn_str:
+            logging.info('Migrating db_conn_str to native StoredState.')
+            self.state.db_conn_str = db_conn_str
+            state_delete('db_conn_str')
+
+        db_uri = state_get('db_uri')
+        if db_uri:
+            logging.info('Migrating db_uri to native StoredState.')
+            self.state.db_uri = db_uri
+            state_delete('db_uri')
+
+        db_ro_uris = state_get('db_ro_uris')
+        if db_ro_uris:
+            logging.info('Migrating db_ro_uris to native StoredState.')
+            self.state.db_ro_uris = json.loads(db_ro_uris)
+            state_delete('db_ro_uris')
+
+        self.unit.status = ActiveStatus()
 
     def _on_database_relation_joined(self, event: pgsql.DatabaseRelationJoinedEvent):
         """Handle db-relation-joined."""
@@ -132,12 +161,8 @@ class MattermostK8sCharm(CharmBase):
             # event, or risk connecting to an incorrect database.
             return
 
-        state_set(
-            {
-                'db_conn_str': None if event.master is None else event.master.conn_str,
-                'db_uri': None if event.master is None else event.master.uri,
-            }
-        )
+        self.state.db_conn_str = None if event.master is None else event.master.conn_str
+        self.state.db_uri = None if event.master is None else event.master.uri
 
         if event.master is None:
             return
@@ -151,7 +176,7 @@ class MattermostK8sCharm(CharmBase):
             # event, or risk connecting to an incorrect database.
             return
 
-        state_set({'db_ro_uris': json.dumps([c.uri for c in event.standbys])})
+        self.state.db_ro_uris = [c.uri for c in event.standbys]
 
         # TODO(pjdc): Emit event when we add support for read replicas.
 
@@ -202,7 +227,7 @@ class MattermostK8sCharm(CharmBase):
         """Return an envConfig with some core configuration."""
         config = self.model.config
         # https://github.com/mattermost/mattermost-server/pull/14666
-        db_uri = state_get('db_uri').replace('postgresql://', 'postgres://')
+        db_uri = self.state.db_uri.replace('postgresql://', 'postgres://')
         pod_config = {
             'MATTERMOST_HTTPD_LISTEN_PORT': CONTAINER_PORT,
             'MM_CONFIG': db_uri,
@@ -511,7 +536,7 @@ class MattermostK8sCharm(CharmBase):
 
     def configure_pod(self, event):
         """Assemble the pod spec and apply it, if possible."""
-        if not state_get('db_uri'):
+        if not self.state.db_uri:
             self.unit.status = WaitingStatus('Waiting for database relation')
             event.defer()
             return
@@ -542,4 +567,4 @@ class MattermostK8sCharm(CharmBase):
 
 
 if __name__ == '__main__':
-    main(MattermostK8sCharm)
+    main(MattermostK8sCharm, use_juju_for_storage=True)
