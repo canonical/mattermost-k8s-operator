@@ -3,7 +3,6 @@
 # Copyright 2020 Canonical Ltd.
 # Licensed under the GPLv3, see LICENCE file for details.
 
-import json
 import os
 
 from ipaddress import ip_network
@@ -29,7 +28,6 @@ from ops.model import (
 
 from interface import pgsql
 
-from charmstate import state_delete, state_get
 from utils import extend_list_merging_dicts_matched_by_key
 
 import logging
@@ -101,8 +99,6 @@ class MattermostK8sCharm(CharmBase):
     def __init__(self, *args):
         super().__init__(*args)
 
-        self.framework.observe(self.on.upgrade_charm, self.migrate_to_native_state)
-
         self.framework.observe(self.on.start, self.configure_pod)
         self.framework.observe(self.on.config_changed, self.configure_pod)
         self.framework.observe(self.on.leader_elected, self.configure_pod)
@@ -115,32 +111,6 @@ class MattermostK8sCharm(CharmBase):
         self.framework.observe(self.db.on.master_changed, self._on_master_changed)
         self.framework.observe(self.db.on.standby_changed, self._on_standby_changed)
         self.framework.observe(self.on.db_master_available, self.configure_pod)
-
-    def migrate_to_native_state(self, event):
-        """Migrate charm state from pre-0.7 charmstate.py to native StoredState.
-        Assumes the framework was initialized with use_juju_for_storage=True."""
-
-        self.unit.status = MaintenanceStatus('Migrating charm state')
-
-        db_conn_str = state_get('db_conn_str')
-        if db_conn_str:
-            logging.info('Migrating db_conn_str to native StoredState.')
-            self.state.db_conn_str = db_conn_str
-            state_delete('db_conn_str')
-
-        db_uri = state_get('db_uri')
-        if db_uri:
-            logging.info('Migrating db_uri to native StoredState.')
-            self.state.db_uri = db_uri
-            state_delete('db_uri')
-
-        db_ro_uris = state_get('db_ro_uris')
-        if db_ro_uris:
-            logging.info('Migrating db_ro_uris to native StoredState.')
-            self.state.db_ro_uris = json.loads(db_ro_uris)
-            state_delete('db_ro_uris')
-
-        self.unit.status = ActiveStatus()
 
     def _on_database_relation_joined(self, event: pgsql.DatabaseRelationJoinedEvent):
         """Handle db-relation-joined."""
