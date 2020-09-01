@@ -190,4 +190,4 @@ options:
         type: boolean
         description: |
           If set, use the built-in Mattermost SAML library. Otherwise, use xmlsec1 to verify logins.
-        default: true
+        default: false

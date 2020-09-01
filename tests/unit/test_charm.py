@@ -297,9 +297,7 @@ class TestMattermostK8sCharmHooksDisabled(unittest.TestCase):
         """envConfig is updated, and pre-existing annotations are not clobbered."""
         # We can't set annotations yet because of LP:1884177.
         # When we can, this test will need updating.
-        self.harness.update_config(
-            {'performance_monitoring_enabled': True,}
-        )
+        self.harness.update_config({'performance_monitoring_enabled': True})
         pod_spec = {
             'containers': [{'name': 'mattermost', 'envConfig': {}}],
         }
@@ -318,7 +316,7 @@ class TestMattermostK8sCharmHooksDisabled(unittest.TestCase):
         self.assertEqual(pod_spec, expected)
 
     @mock.patch.dict('os.environ', {"JUJU_MODEL_UUID": "fakeuuid"})
-    def test_update_pod_spec_for_clustering(self,):
+    def test_update_pod_spec_for_clustering(self):
         """Test clustering config."""
         self.harness.update_config({'clustering': False})
         pod_spec = {}
