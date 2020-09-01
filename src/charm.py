@@ -427,7 +427,8 @@ class MattermostK8sCharm(CharmBase):
             return
         site_hostname = urlparse(config['site_url']).hostname
 
-        get_env_config(pod_spec, self.app.name).update(
+        env_config = get_env_config(pod_spec, self.app.name)
+        env_config.update(
             {
                 'MM_EMAILSETTINGS_ENABLESIGNINWITHEMAIL': 'false',
                 'MM_EMAILSETTINGS_ENABLESIGNINWITHUSERNAME': 'false',
@@ -446,10 +447,16 @@ class MattermostK8sCharm(CharmBase):
                 'MM_SAMLSETTINGS_FIRSTNAMEATTRIBUTE': 'fullname',
                 'MM_SAMLSETTINGS_LASTNAMEATTRIBUTE': '',
                 'MM_SAMLSETTINGS_IDPCERTIFICATEFILE': SAML_IDP_CRT,
-                # Otherwise we have to install xmlsec1 and Mattermost forks on every login(!).
-                'MM_EXPERIMENTALSETTINGS_USENEWSAMLLIBRARY': 'true',
             }
         )
+
+        if config['use_experimental_saml_library']:
+            env_config.update(
+                {
+                    # Otherwise we have to install xmlsec1 and Mattermost forks on every login(!).
+                    'MM_EXPERIMENTALSETTINGS_USENEWSAMLLIBRARY': 'true',
+                }
+            )
 
     def _update_pod_spec_for_performance_monitoring(self, pod_spec):
         """Update pod_spec with settings for the Prometheus exporter."""

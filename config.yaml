@@ -186,3 +186,8 @@ options:
         description: |
           If set, apply miscellaneous Mattermost settings as used by Canonical.
         default: false
+    use_experimental_saml_library:
+        type: boolean
+        description: |
+          If set, use the built-in Mattermost SAML library. Otherwise, use xmlsec1 to verify logins.
+        default: true
