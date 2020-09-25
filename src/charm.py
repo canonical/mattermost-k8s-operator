@@ -311,8 +311,7 @@ class MattermostK8sCharm(CharmBase):
         if ingress_whitelist_source_range:
             annotations['nginx.ingress.kubernetes.io/whitelist-source-range'] = ingress_whitelist_source_range
 
-        if annotations:
-            ingress['annotations'] = annotations
+        ingress['annotations'] = annotations
 
         # Due to https://github.com/canonical/operator/issues/293 we
         # can't use pod.set_spec's k8s_resources argument.
