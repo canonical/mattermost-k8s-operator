@@ -9,6 +9,7 @@ from ipaddress import ip_network
 from urllib.parse import urlparse
 from zlib import crc32
 
+import ops.lib
 from ops.charm import (
     CharmBase,
     CharmEvents,
@@ -26,11 +27,12 @@ from ops.model import (
     WaitingStatus,
 )
 
-from interface import pgsql
-
 from utils import extend_list_merging_dicts_matched_by_key
 
 import logging
+
+
+pgsql = ops.lib.use("pgsql", 1, "postgresql-charmers@lists.launchpad.net")
 
 logger = logging.getLogger()
 
