@@ -292,6 +292,43 @@ class TestMattermostK8sCharmHooksDisabled(unittest.TestCase):
         pod_spec = {}
         self.harness.charm._update_pod_spec_for_k8s_ingress(pod_spec)
         self.assertEqual(pod_spec, expected)
+        # And now test with an ingress_whitelist_source_range, and an http
+        # rather than https site_url to test a few more ingress conditions.
+        self.harness.update_config(
+            {'ingress_whitelist_source_range': '10.10.10.10/24', 'site_url': 'http://chat.example.com'}
+        )
+        expected = {
+            'kubernetesResources': {
+                'ingressResources': [
+                    {
+                        'name': ingress_name,
+                        'spec': {
+                            'rules': [
+                                {
+                                    'host': 'chat.example.com',
+                                    'http': {
+                                        'paths': [
+                                            {
+                                                'path': '/',
+                                                'backend': {'serviceName': 'mattermost', 'servicePort': 8065},
+                                            }
+                                        ]
+                                    },
+                                }
+                            ],
+                        },
+                        'annotations': {
+                            'nginx.ingress.kubernetes.io/proxy-body-size': '5m',
+                            'nginx.ingress.kubernetes.io/ssl-redirect': 'false',
+                            'nginx.ingress.kubernetes.io/whitelist-source-range': '10.10.10.10/24',
+                        },
+                    }
+                ]
+            }
+        }
+        pod_spec = {}
+        self.harness.charm._update_pod_spec_for_k8s_ingress(pod_spec)
+        self.assertEqual(pod_spec, expected)
 
     def test_update_pod_spec_for_performance_monitoring(self):
         """envConfig is updated, and pre-existing annotations are not clobbered."""
