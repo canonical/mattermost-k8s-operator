@@ -159,7 +159,7 @@ class MattermostK8sCharm(CharmBase):
 
         missing = self._missing_charm_settings()
         if missing:
-            problems.append('required setting(s) empty: {}'.format(', '.join(sorted(missing))))
+            problems.append('required setting(s) empty: {}'.format(', '.join(missing)))
 
         ranges = self.model.config['ingress_whitelist_source_range']
         if ranges:
