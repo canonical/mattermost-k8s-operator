@@ -231,29 +231,28 @@ class MattermostK8sCharm(CharmBase):
         """Check configuration setting dependencies and return a list of
         missing settings; otherwise return an empty list."""
         config = self.model.config
-        missing = []
 
-        missing.extend([setting for setting in REQUIRED_SETTINGS if not config[setting]])
+        missing = {setting for setting in REQUIRED_SETTINGS if not config[setting]}
 
         if config['clustering'] and not config['licence']:
-            missing.append('licence')
+            missing.add('licence')
 
         if config['mattermost_image_username'] and not config['mattermost_image_password']:
-            missing.append('mattermost_image_password')
+            missing.add('mattermost_image_password')
 
         if config['performance_monitoring_enabled'] and not config['licence']:
-            missing.append('licence')
+            missing.add('licence')
 
         if config['s3_enabled']:
-            missing.extend([setting for setting in REQUIRED_S3_SETTINGS if not config[setting]])
+            missing.update({setting for setting in REQUIRED_S3_SETTINGS if not config[setting]})
 
         if config['s3_server_side_encryption'] and not config['licence']:
-            missing.append('licence')
+            missing.add('licence')
 
         if config['sso']:
-            missing.extend([setting for setting in REQUIRED_SSO_SETTINGS if not config[setting]])
+            missing.update({setting for setting in REQUIRED_SSO_SETTINGS if not config[setting]})
 
-        return sorted(list(set(missing)))
+        return sorted(missing)
 
     def _make_s3_pod_config(self):
         """Return an envConfig of S3 settings, if any."""
