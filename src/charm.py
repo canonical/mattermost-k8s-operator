@@ -62,7 +62,7 @@ class MattermostCharmEvents(CharmEvents):
 def check_ranges(ranges, name):
     """If ranges has one or more invalid elements, return a string describing the problem.
 
-    Any CIDR is a valid element, and ranges, a string, must be a comma-separated list of CIDRs.
+    ranges is a string containing a comma-separated list of CIDRs, a CIDR being the only kind of valid element.
     """
     networks = ranges.split(',')
     invalid_networks = []
