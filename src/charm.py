@@ -60,8 +60,10 @@ class MattermostCharmEvents(CharmEvents):
 
 
 def check_ranges(ranges, name):
-    """If ranges, a string comprising a comma-separated list of CIDRs, has
-    one or more invalid elements, return a string describing the problem."""
+    """If ranges has one or more invalid elements, return a string describing the problem.
+
+    ranges is a string containing a comma-separated list of CIDRs, a CIDR being the only kind of valid element.
+    """
     networks = ranges.split(',')
     invalid_networks = []
     for network in networks:
@@ -74,8 +76,7 @@ def check_ranges(ranges, name):
 
 
 def get_container(pod_spec, container_name):
-    """Find and return the first container in pod_spec whose name is
-    container_name, otherwise return None."""
+    """Find and return the first container in pod_spec whose name is container_name, otherwise return None."""
     for container in pod_spec['containers']:
         if container['name'] == container_name:
             return container
@@ -83,9 +84,10 @@ def get_container(pod_spec, container_name):
 
 
 def get_env_config(pod_spec, container_name):
-    """Return the envConfig of the container in pod_spec whose name is
-    container_name, otherwise return None.  If the container exists
-    but has no envConfig, raise KeyError."""
+    """Return the envConfig of the container in pod_spec whose name is container_name, otherwise return None.
+
+    If the container exists but has no envConfig, raise KeyError.
+    """
     container = get_container(pod_spec, container_name)
     if 'envConfig' in container:
         return container['envConfig']
@@ -153,13 +155,12 @@ class MattermostK8sCharm(CharmBase):
         # TODO(pjdc): Emit event when we add support for read replicas.
 
     def _check_for_config_problems(self):
-        """Check for some simple configuration problems and return a
-        string describing them, otherwise return an empty string."""
+        """Check for simple configuration problems and return a string describing them, otherwise an empty string."""
         problems = []
 
         missing = self._missing_charm_settings()
         if missing:
-            problems.append('required setting(s) empty: {}'.format(', '.join(sorted(missing))))
+            problems.append('required setting(s) empty: {}'.format(', '.join(missing)))
 
         ranges = self.model.config['ingress_whitelist_source_range']
         if ranges:
@@ -228,32 +229,30 @@ class MattermostK8sCharm(CharmBase):
         return pod_config
 
     def _missing_charm_settings(self):
-        """Check configuration setting dependencies and return a list of
-        missing settings; otherwise return an empty list."""
+        """Return a list of settings required to satisfy configuration dependencies, or else an empty list."""
         config = self.model.config
-        missing = []
 
-        missing.extend([setting for setting in REQUIRED_SETTINGS if not config[setting]])
+        missing = {setting for setting in REQUIRED_SETTINGS if not config[setting]}
 
         if config['clustering'] and not config['licence']:
-            missing.append('licence')
+            missing.add('licence')
 
         if config['mattermost_image_username'] and not config['mattermost_image_password']:
-            missing.append('mattermost_image_password')
+            missing.add('mattermost_image_password')
 
         if config['performance_monitoring_enabled'] and not config['licence']:
-            missing.append('licence')
+            missing.add('licence')
 
         if config['s3_enabled']:
-            missing.extend([setting for setting in REQUIRED_S3_SETTINGS if not config[setting]])
+            missing.update({setting for setting in REQUIRED_S3_SETTINGS if not config[setting]})
 
         if config['s3_server_side_encryption'] and not config['licence']:
-            missing.append('licence')
+            missing.add('licence')
 
         if config['sso']:
-            missing.extend([setting for setting in REQUIRED_SSO_SETTINGS if not config[setting]])
+            missing.update({setting for setting in REQUIRED_SSO_SETTINGS if not config[setting]})
 
-        return sorted(list(set(missing)))
+        return sorted(missing)
 
     def _make_s3_pod_config(self):
         """Return an envConfig of S3 settings, if any."""
@@ -323,9 +322,11 @@ class MattermostK8sCharm(CharmBase):
 
     def _get_licence_secret_name(self):
         """Compute a content-dependent name for the licence secret.
+
         The name is varied so that licence updates cause the pods to
         be respawned.  Mattermost reads the licence file on startup
-        and updates the copy in the database, if necessary."""
+        and updates the copy in the database, if necessary.
+        """
         crc = '{:08x}'.format(crc32(self.model.config['licence'].encode('utf-8')))
         return '{}-licence-{}'.format(self.app.name, crc)
 
@@ -380,8 +381,10 @@ class MattermostK8sCharm(CharmBase):
         )
 
     def _update_pod_spec_for_canonical_defaults(self, pod_spec):
-        """Update pod_spec with various Mattermost settings particular to
-        Canonical's deployment that may also less generally useful."""
+        """Update pod_spec with various Mattermost settings particular to Canonical's deployment.
+
+        These settings may be less generally useful, and so they are controlled here as a unit.
+        """
         config = self.model.config
         if not config['use_canonical_defaults']:
             return
@@ -404,9 +407,10 @@ class MattermostK8sCharm(CharmBase):
         )
 
     def _update_pod_spec_for_clustering(self, pod_spec):
-        """Update pod_spec with clustering settings.  Vary the cluster
-        name on the application name so that blue/green deployments in
-        the same model won't talk to each other."""
+        """Update pod_spec with clustering settings, varying the cluster name on the application name.
+
+        This is done so that blue/green deployments in the same model won't talk to each other.
+        """
         config = self.model.config
         if not config['clustering']:
             return
@@ -420,9 +424,10 @@ class MattermostK8sCharm(CharmBase):
         )
 
     def _update_pod_spec_for_sso(self, pod_spec):
-        """Update pod_spec with settings to use login.ubuntu.com via
-        SAML for single sign-on.  SAML_IDP_CRT must be generated and
-        installed manually by a human (see README.md)."""
+        """Update pod_spec with settings to use login.ubuntu.com via SAML for single sign-on.
+
+        SAML_IDP_CRT must be generated and installed manually by a human (see README.md).
+        """
         config = self.model.config
         if not config['sso'] or [setting for setting in REQUIRED_SSO_SETTINGS if not config[setting]]:
             return
@@ -481,8 +486,7 @@ class MattermostK8sCharm(CharmBase):
         # [ store annotations in pod_spec ]
 
     def _update_pod_spec_for_push(self, pod_spec):
-        """Update pod_spec with settings for push notifications via
-        Mattermost HPNS (hosted push notification service)."""
+        """Update pod_spec with settings for Mattermost HPNS (hosted push notification service)."""
         config = self.model.config
         if not config['push_notification_server']:
             return
