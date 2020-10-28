@@ -27,7 +27,6 @@ Notes for deploying a test setup locally using microk8s:
     sudo snap alias microk8s.kubectl kubectl
     sudo snap install charmcraft
     git clone https://git.launchpad.net/charm-k8s-mattermost
-    git clone https://git.launchpad.net/~mattermost-charmers/charm-k8s-mattermost/+git/image-build mattermost-image-build
     make -C charm-k8s-mattermost mattermost.charm
 
     microk8s.reset  # Warning! Clean slate!
@@ -35,13 +34,9 @@ Notes for deploying a test setup locally using microk8s:
     microk8s.status --wait-ready
     microk8s.config | juju add-k8s myk8s --client
 
-    # Build your Mattermost image
-    docker build -t localhost:32000/mattermost ./mattermost-image-build
-    docker push localhost:32000/mattermost
-    
     juju bootstrap myk8s
     juju add-model mattermost-test
-    juju deploy ./charm-k8s-mattermost/mattermost.charm --config mattermost_image_path=localhost:32000/mattermost:latest mattermost
+    juju deploy ./charm-k8s-mattermost/mattermost.charm mattermost
     juju wait
     juju status
 
@@ -69,6 +64,20 @@ know what the source addresses or address range is for the next step.
 
 (In the case of postgresql, `--via` is needed so that the charm can
 configure `pga_hba.conf` to let the k8s pods connect to the database.)
+
+## Using a Custom Image
+
+    git clone https://git.launchpad.net/~mattermost-charmers/charm-k8s-mattermost/+git/image-build mattermost-image-build
+    docker build -t localhost:32000/mattermost ./mattermost-image-build
+    docker push localhost:32000/mattermost
+
+Then, to use your new image, either replace the `deploy` step above with
+
+    juju deploy ./charm-k8s-mattermost/mattermost.charm --config mattermost_image_path=localhost:32000/mattermost:latest mattermost
+
+or, if you've already deployed mattermost:
+
+    juju config mattermost mattermost_image_path=localhost:32000/mattermost:latest
 
 ## Authentication
 

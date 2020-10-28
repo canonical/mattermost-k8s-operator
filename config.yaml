@@ -40,7 +40,7 @@ options:
           The location of the image to use, e.g. "registry.example.com/mattermost:v1".
 
           This setting is required.
-        default: ''
+        default: mattermostcharmers/mattermost:edge
     mattermost_image_username:
         type: string
         description: |
