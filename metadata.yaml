@@ -1,5 +1,6 @@
 name: mattermost
 summary: Mattermost charm
+docs: https://discourse.charmhub.io/t/mattermost-documentation-overview/3758
 maintainers:
   - launchpad.net/~canonical-is-sre
 description: |
