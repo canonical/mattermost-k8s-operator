@@ -1,7 +1,7 @@
 # Mattermost charm
 
 A juju charm deploying Mattermost, using [a custom-built built image](https://code.launchpad.net/~mattermost-charmers/charm-k8s-mattermost/+git/mattermost-k8s-image-builder),
-configurable to use a postgresql backend.
+configurable to use a PostgreSQL backend.
 
 ## Overview
 
@@ -13,13 +13,19 @@ account.  Further accounts must be created using this admin account, or by
 setting up an external authentication source, such as SAML.
 
 
-## Details
+## Usage
 
-See config option descriptions in config.yaml.
+To get started deploying the charm in a test environment within a Juju
+Kubernetes model:
 
-## Getting Started
+    juju deploy cs:~postgresql-charmers/postgresql-k8s postgresql
+    juju deploy cs:~mattermost-charmers/mattermost --config juju-external-hostname=foo.internal
+    juju add-relation mattermost postgresql:db
+    juju expose mattermost
 
-Notes for deploying a test setup locally using microk8s:
+## Local Development
+
+Notes for deploying a test setup locally using MicroK8s:
 
     sudo snap install juju --classic
     sudo snap install juju-wait --classic
@@ -43,8 +49,8 @@ Notes for deploying a test setup locally using microk8s:
 The charm will not function without a database, so you will need to
 deploy `cs:postgresql` somewhere.
 
-If postgresql is deployed in the same model you plan to use for
-mattermost, simply use `juju relate mattermost postgresql:db`.  (This
+If PostgreSQL is deployed in the same model you plan to use for
+Mattermost, simply use `juju relate mattermost postgresql:db`.  (This
 deployment style is recommended for testing purposes only.)
 
 Cross-model relations are also supported.  Create a suitable model on
@@ -62,7 +68,7 @@ know what the source addresses or address range is for the next step.
     juju find-offers  # note down offer URL; example used below:
     juju relate mattermost admin/database.postgresql --via 10.9.8.0/24
 
-(In the case of postgresql, `--via` is needed so that the charm can
+(In the case of PostgreSQL, `--via` is needed so that the charm can
 configure `pga_hba.conf` to let the k8s pods connect to the database.)
 
 ## Using a Custom Image
@@ -75,7 +81,7 @@ Then, to use your new image, either replace the `deploy` step above with
 
     juju deploy ./charm-k8s-mattermost/mattermost.charm --config mattermost_image_path=localhost:32000/mattermost:latest mattermost
 
-or, if you've already deployed mattermost:
+or, if you've already deployed Mattermost:
 
     juju config mattermost mattermost_image_path=localhost:32000/mattermost:latest
 
