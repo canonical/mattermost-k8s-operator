@@ -1,10 +1,9 @@
 name: mattermost
-summary: Mattermost charm
+summary: Mattermost is a flexible, open source messaging platform that enables secure team collaboration.
 docs: https://discourse.charmhub.io/t/mattermost-documentation-overview/3758
 maintainers:
   - launchpad.net/~canonical-is-sre
 description: |
-  A charm which deploys Mattermost on kubernetes.
   Mattermost is a flexible, open source messaging platform that enables
   secure team collaboration.
   https://mattermost.com
