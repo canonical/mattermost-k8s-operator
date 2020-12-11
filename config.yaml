@@ -39,8 +39,10 @@ options:
         description: |
           The location of the image to use, e.g. "registry.example.com/mattermost:v1".
 
+          Switching to a newer image version will initiate an upgrade of Mattermost.
+
           This setting is required.
-        default: mattermostcharmers/mattermost:edge
+        default: mattermostcharmers/mattermost:5.29.0
     mattermost_image_username:
         type: string
         description: |
