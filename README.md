@@ -17,7 +17,7 @@ Mattermost than the one currently deployed.
 For details on using Kubernetes with Juju [see here](https://juju.is/docs/kubernetes), and for
 details on using Juju with MicroK8s for easy local testing [see here](https://juju.is/docs/microk8s-cloud).
 
-To get started deploying the charm in a test environment within a Juju
+To deploy the charm and relate it to [the PostgreSQL K8s charm](https://charmhub.io/postgresql-k8s) within a Juju
 Kubernetes model:
 
     juju deploy cs:~postgresql-charmers/postgresql-k8s postgresql
