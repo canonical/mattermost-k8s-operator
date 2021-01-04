@@ -1,0 +1,9 @@
+grant-admin-role:
+  description: >
+    Grant the "system_admin" role to a user. The user will need to log out and
+    log back in to Mattermost to fully receive their permissions upgrade.
+  params:
+    user:
+      type: string
+      description: The user to grant "system_admin" role to.
+  required: [user]
