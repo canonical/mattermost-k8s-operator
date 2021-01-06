@@ -4,6 +4,7 @@
 # Licensed under the GPLv3, see LICENCE file for details.
 
 import os
+import subprocess
 
 from ipaddress import ip_network
 from urllib.parse import urlparse
@@ -107,6 +108,9 @@ class MattermostK8sCharm(CharmBase):
         self.framework.observe(self.on.config_changed, self.configure_pod)
         self.framework.observe(self.on.leader_elected, self.configure_pod)
         self.framework.observe(self.on.upgrade_charm, self.configure_pod)
+
+        # actions
+        self.framework.observe(self.on.grant_admin_role_action, self._on_grant_admin_role_action)
 
         # database
         self.state.set_default(db_conn_str=None, db_uri=None, db_ro_uris=[])
@@ -540,6 +544,20 @@ class MattermostK8sCharm(CharmBase):
         self.unit.status = MaintenanceStatus('Setting pod spec')
         self.model.pod.set_spec(pod_spec)
         self.unit.status = ActiveStatus()
+
+    def _on_grant_admin_role_action(self, event):
+        """Handle the grant-admin-role action."""
+        user = event.params["user"]
+        cmd = ["/mattermost/bin/mattermost", "roles", "system_admin", user]
+        granted = subprocess.run(cmd, capture_output=True)
+        if granted.returncode != 0:
+            event.fail("Failed to run '{}'. Output was:\n{}".format(" ".join(cmd), granted.stderr.decode("utf-8")))
+        else:
+            msg = (
+                "Ran grant-admin-role for user '{}'. They will need to log out and log back in "
+                "to Mattermost to fully receive their permissions upgrade.".format(user)
+            )
+            event.set_results({"info": msg})
 
 
 if __name__ == '__main__':
