@@ -3,3 +3,8 @@
 *.charm
 Dockerfile
 Makefile
+.coverage
+.gitignore
+requirements.txt
+tox.ini
+tests/
