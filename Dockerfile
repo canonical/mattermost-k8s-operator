@@ -7,14 +7,14 @@ ARG edition=enterprise
 ARG image_flavour=default
 ARG mattermost_gid=2000
 ARG mattermost_uid=2000
-ARG mattermost_version=5.27.0
+ARG mattermost_version=5.31.0
 ARG mattermost_webapp=mattermost-webapp.tar.gz
 
 LABEL org.label-schema.version=${mattermost_version}
 LABEL com.canonical.image-flavour=${image_flavour}
 LABEL com.canonical.mattermost-edition=${edition}
 
-# python3-yaml needed to run juju actions.
+# python3-yaml needed to run juju actions, xmlsec1 needed if UseNewSAMLLibrary is set to false (the default)
 RUN apt-get -qy update && \
     apt-get -qy dist-upgrade && \
     apt-get -qy install curl python3-yaml xmlsec1 && \
