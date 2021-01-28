@@ -56,7 +56,7 @@ RUN if [ "$image_flavour" = canonical ]; then \
 RUN if [ "$image_flavour" = canonical ]; then \
 	cd /mattermost/plugins && \
 	set -o pipefail && \
-	curl -L https://github.com/moussetc/mattermost-plugin-giphy/releases/download/v1.3.0/com.github.moussetc.mattermost.plugin.giphy-1.3.0.tar.gz | tar -xvz ; \
+	curl -L https://github.com/moussetc/mattermost-plugin-giphy/releases/download/v2.0.0/com.github.moussetc.mattermost.plugin.giphy-2.0.0.tar.gz | tar -xvz ; \
     fi
 
 # Download and enable third-party plugin
