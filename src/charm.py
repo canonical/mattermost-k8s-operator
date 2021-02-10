@@ -448,6 +448,7 @@ class MattermostK8sCharm(CharmBase):
                 'MM_SAMLSETTINGS_VERIFY': 'true',
                 'MM_SAMLSETTINGS_ENCRYPT': 'false',  # per POC
                 'MM_SAMLSETTINGS_IDPDESCRIPTORURL': 'https://login.ubuntu.com',
+                'MM_SAMLSETTINGS_SERVICEPROVIDERIDENTIFIER': 'https://login.ubuntu.com',
                 'MM_SAMLSETTINGS_IDPMETADATAURL': 'https://login.ubuntu.com/+saml/metadata',
                 'MM_SAMLSETTINGS_ASSERTIONCONSUMERSERVICEURL': 'https://{}/login/sso/saml'.format(site_hostname),
                 'MM_SAMLSETTINGS_LOGINBUTTONTEXT': 'Ubuntu SSO',
