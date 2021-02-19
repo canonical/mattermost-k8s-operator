@@ -7,7 +7,7 @@ ARG edition=enterprise
 ARG image_flavour=default
 ARG mattermost_gid=2000
 ARG mattermost_uid=2000
-ARG mattermost_version=5.31.0
+ARG mattermost_version=5.32.1
 ARG mattermost_webapp=mattermost-webapp.tar.gz
 
 LABEL org.label-schema.version=${mattermost_version}
@@ -39,17 +39,17 @@ RUN mkdir -p /mattermost/data /mattermost/plugins /mattermost/client/plugins && 
 
 # Enable prepackaged plugin
 RUN if [ "$image_flavour" = canonical ]; then \
-        tar -C /mattermost/plugins -xvzf /mattermost/prepackaged_plugins/mattermost-plugin-autolink-v1.1.2-linux-amd64.tar.gz ; \
+        tar -C /mattermost/plugins -xvzf /mattermost/prepackaged_plugins/mattermost-plugin-autolink-v1.2.1-linux-amd64.tar.gz ; \
     fi
 
 # Enable prepackaged plugin
 RUN if [ "$image_flavour" = canonical ]; then \
-        tar -C /mattermost/plugins -xvzf /mattermost/prepackaged_plugins/mattermost-plugin-github-v0.14.0-linux-amd64.tar.gz ; \
+        tar -C /mattermost/plugins -xvzf /mattermost/prepackaged_plugins/mattermost-plugin-github-v2.0.0-linux-amd64.tar.gz ; \
     fi
 
 # Enable prepackaged plugin
 RUN if [ "$image_flavour" = canonical ]; then \
-        tar -C /mattermost/plugins -xvzf /mattermost/prepackaged_plugins/mattermost-plugin-gitlab-v1.1.0-linux-amd64.tar.gz ; \
+        tar -C /mattermost/plugins -xvzf /mattermost/prepackaged_plugins/mattermost-plugin-gitlab-v1.3.0-linux-amd64.tar.gz ; \
     fi
 
 # Download and enable third-party plugin
