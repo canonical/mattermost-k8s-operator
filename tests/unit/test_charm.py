@@ -121,6 +121,38 @@ class TestMattermostK8sCharmHooksDisabled(unittest.TestCase):
         )
         self.assertEqual(self.harness.charm._check_for_config_problems(), expected)
 
+    def test_make_pod_config(self):
+        """Make pod config."""
+        self.harness.charm.state.db_uri = 'postgresql://10.0.1.101:5432/'
+        expected = {
+            'MATTERMOST_HTTPD_LISTEN_PORT': 8065,
+            'MM_CONFIG': 'postgres://10.0.1.101:5432/',
+            'MM_IMAGEPROXYSETTINGS_ENABLE': 'false',
+            'MM_IMAGEPROXYSETTINGS_IMAGEPROXYTYPE': 'local',
+            'MM_LOGSETTINGS_CONSOLELEVEL': 'INFO',
+            'MM_LOGSETTINGS_ENABLECONSOLE': 'true',
+            'MM_LOGSETTINGS_ENABLEFILE': 'false',
+            'MM_SQLSETTINGS_DATASOURCE': 'postgres://10.0.1.101:5432/',
+        }
+        self.assertEqual(self.harness.charm._make_pod_config(), expected)
+        # Now test with `primary_team` set.
+        self.harness.update_config({"primary_team": "myteam"})
+        expected['MM_TEAMSETTINGS_EXPERIMENTALPRIMARYTEAM'] = "myteam"
+        self.assertEqual(self.harness.charm._make_pod_config(), expected)
+        # Now test with `site_url` set.
+        self.harness.update_config({"site_url": "myteam.mattermost.io"})
+        expected['MM_SERVICESETTINGS_SITEURL'] = "myteam.mattermost.io"
+        self.assertEqual(self.harness.charm._make_pod_config(), expected)
+        # Now test with `outbound_proxy` set.
+        self.harness.update_config({"outbound_proxy": "http://squid.internal:3128"})
+        expected['HTTP_PROXY'] = "http://squid.internal:3128"
+        expected['HTTPS_PROXY'] = "http://squid.internal:3128"
+        self.assertEqual(self.harness.charm._make_pod_config(), expected)
+        # Now test with `outbound_proxy_exceptions` set.
+        self.harness.update_config({"outbound_proxy_exceptions": "charmhub.io"})
+        expected['NO_PROXY'] = "charmhub.io"
+        self.assertEqual(self.harness.charm._make_pod_config(), expected)
+
     def test_make_s3_pod_config(self):
         """Make s3 pod config."""
         self.harness.update_config(CONFIG_NO_S3_SETTINGS_S3_ENABLED)
