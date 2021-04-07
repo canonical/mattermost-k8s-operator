@@ -7,7 +7,7 @@ ARG edition=enterprise
 ARG image_flavour=default
 ARG mattermost_gid=2000
 ARG mattermost_uid=2000
-ARG mattermost_version=5.32.1
+ARG mattermost_version=5.33.3
 ARG mattermost_webapp=mattermost-webapp.tar.gz
 
 LABEL org.label-schema.version=${mattermost_version}
