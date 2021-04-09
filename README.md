@@ -22,7 +22,7 @@ Kubernetes model:
 
     juju deploy cs:~postgresql-charmers/postgresql-k8s postgresql
     juju deploy cs:~mattermost-charmers/mattermost --config juju-external-hostname=foo.internal
-    juju add-relation mattermost postgresql:db
+    juju relate mattermost postgresql:db
     juju expose mattermost
 
 Once the deployment has completed and the "mattermost" workload state in `juju
