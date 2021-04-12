@@ -31,4 +31,4 @@ your Mattermost instance, and you'll be presented with a screen to create an
 initial admin account. Further accounts must be created using this admin account, or by
 setting up an external authentication source, such as SAML.
 
-For further details, [see here](https://charmhub.io/mattermost/docs).
+For further details, [see here](https://charmhub.io/mattermost-charmers-mattermost/docs).
