@@ -8,7 +8,7 @@ lint: blacken
 
 # We actually use the build directory created by charmcraft,
 # but the .charm file makes a much more convenient sentinel.
-unittest: mattermost.charm
+unittest: mattermost-k8s.charm
 	@tox -e unit
 
 test: lint unittest
@@ -17,7 +17,7 @@ clean:
 	@echo "Cleaning files"
 	@git clean -fXd
 
-mattermost.charm: src/*.py requirements.txt
+mattermost-k8s.charm: src/*.py requirements.txt
 	charmcraft build
 
 .PHONY: lint test unittest clean

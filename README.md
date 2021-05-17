@@ -20,12 +20,12 @@ details on using Juju with MicroK8s for easy local testing [see here](https://ju
 To deploy the charm and relate it to [the PostgreSQL K8s charm](https://charmhub.io/postgresql-k8s) within a Juju
 Kubernetes model:
 
-    juju deploy cs:~postgresql-charmers/postgresql-k8s postgresql
-    juju deploy cs:~mattermost-charmers/mattermost --config juju-external-hostname=foo.internal
-    juju relate mattermost postgresql:db
-    juju expose mattermost
+    juju deploy postgresql-k8s
+    juju deploy mattermost-k8s --config juju-external-hostname=foo.internal
+    juju relate mattermost-k8s postgresql-k8s:db
+    juju expose mattermost-k8s
 
-Once the deployment has completed and the "mattermost" workload state in `juju
+Once the deployment has completed and the "mattermost-k8s" workload state in `juju
 status` has changed to "active" you can visit http://${mattermost_ip}:8065 in a browser and log in to
 your Mattermost instance, and you'll be presented with a screen to create an
 initial admin account. Further accounts must be created using this admin account, or by
