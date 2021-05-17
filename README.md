@@ -25,7 +25,7 @@ Kubernetes model:
     juju relate mattermost-k8s postgresql-k8s:db
     juju expose mattermost-k8s
 
-Once the deployment has completed and the "mattermost" workload state in `juju
+Once the deployment has completed and the "mattermost-k8s" workload state in `juju
 status` has changed to "active" you can visit http://${mattermost_ip}:8065 in a browser and log in to
 your Mattermost instance, and you'll be presented with a screen to create an
 initial admin account. Further accounts must be created using this admin account, or by
