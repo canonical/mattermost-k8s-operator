@@ -214,7 +214,7 @@ class TestMattermostK8sCharmHooksDisabled(unittest.TestCase):
         expected = {
             'containers': [
                 {
-                    'name': 'mattermost',
+                    'name': 'mattermost-k8s',
                     'envConfig': {
                         'MM_EMAILSETTINGS_SENDPUSHNOTIFICATIONS': 'true',
                         'MM_EMAILSETTINGS_PUSHNOTIFICATIONCONTENTS': 'id_loaded',
@@ -224,7 +224,7 @@ class TestMattermostK8sCharmHooksDisabled(unittest.TestCase):
             ],
         }
         pod_spec = {
-            'containers': [{'name': 'mattermost', 'envConfig': {}}],
+            'containers': [{'name': 'mattermost-k8s', 'envConfig': {}}],
         }
         self.harness.charm._update_pod_spec_for_push(pod_spec)
         self.assertEqual(pod_spec, expected)
@@ -235,7 +235,7 @@ class TestMattermostK8sCharmHooksDisabled(unittest.TestCase):
         expected = {
             'containers': [
                 {
-                    'name': 'mattermost',
+                    'name': 'mattermost-k8s',
                     'envConfig': {
                         'MM_EMAILSETTINGS_SENDPUSHNOTIFICATIONS': 'true',
                         'MM_EMAILSETTINGS_PUSHNOTIFICATIONCONTENTS': 'full',
@@ -245,7 +245,7 @@ class TestMattermostK8sCharmHooksDisabled(unittest.TestCase):
             ],
         }
         pod_spec = {
-            'containers': [{'name': 'mattermost', 'envConfig': {}}],
+            'containers': [{'name': 'mattermost-k8s', 'envConfig': {}}],
         }
         self.harness.charm._update_pod_spec_for_push(pod_spec)
         self.assertEqual(pod_spec, expected)
@@ -253,7 +253,7 @@ class TestMattermostK8sCharmHooksDisabled(unittest.TestCase):
     def test_get_licence_secret_name(self):
         """Test the licence secret name is correctly constructed"""
         self.harness.update_config(CONFIG_LICENCE_SECRET)
-        self.assertEqual(self.harness.charm._get_licence_secret_name(), "mattermost-licence-b5bbb1bf")
+        self.assertEqual(self.harness.charm._get_licence_secret_name(), "mattermost-k8s-licence-b5bbb1bf")
 
     def test_make_licence_k8s_secrets(self):
         """Test making licence k8s secrets"""
@@ -261,7 +261,7 @@ class TestMattermostK8sCharmHooksDisabled(unittest.TestCase):
         self.assertEqual(self.harness.charm._make_licence_k8s_secrets(), [])
         self.harness.update_config(CONFIG_LICENCE_SECRET)
         expected = [
-            {'name': 'mattermost-licence-b5bbb1bf', 'type': 'Opaque', 'stringData': {'licence': 'RANDOMSTRING'}}
+            {'name': 'mattermost-k8s-licence-b5bbb1bf', 'type': 'Opaque', 'stringData': {'licence': 'RANDOMSTRING'}}
         ]
         self.assertEqual(self.harness.charm._make_licence_k8s_secrets(), expected)
 
@@ -275,7 +275,7 @@ class TestMattermostK8sCharmHooksDisabled(unittest.TestCase):
                 'name': 'licence',
                 'mountPath': '/secrets',
                 'secret': {
-                    'name': 'mattermost-licence-b5bbb1bf',
+                    'name': 'mattermost-k8s-licence-b5bbb1bf',
                     'files': [{'key': 'licence', 'path': 'licence.txt', 'mode': 0o444}],
                 },
             }
@@ -295,7 +295,7 @@ class TestMattermostK8sCharmHooksDisabled(unittest.TestCase):
                 'tls_secret_name': 'chat-example-com-tls',
             }
         )
-        ingress_name = 'mattermost-ingress'
+        ingress_name = 'mattermost-k8s-ingress'
         self.assertNotEqual(ingress_name, self.harness.charm.app.name)
         expected = {
             'kubernetesResources': {
@@ -310,7 +310,7 @@ class TestMattermostK8sCharmHooksDisabled(unittest.TestCase):
                                         'paths': [
                                             {
                                                 'path': '/',
-                                                'backend': {'serviceName': 'mattermost', 'servicePort': 8065},
+                                                'backend': {'serviceName': 'mattermost-k8s', 'servicePort': 8065},
                                             }
                                         ]
                                     },
@@ -344,7 +344,7 @@ class TestMattermostK8sCharmHooksDisabled(unittest.TestCase):
                                         'paths': [
                                             {
                                                 'path': '/',
-                                                'backend': {'serviceName': 'mattermost', 'servicePort': 8065},
+                                                'backend': {'serviceName': 'mattermost-k8s', 'servicePort': 8065},
                                             }
                                         ]
                                     },
@@ -370,12 +370,12 @@ class TestMattermostK8sCharmHooksDisabled(unittest.TestCase):
         # When we can, this test will need updating.
         self.harness.update_config({'performance_monitoring_enabled': True})
         pod_spec = {
-            'containers': [{'name': 'mattermost', 'envConfig': {}}],
+            'containers': [{'name': 'mattermost-k8s', 'envConfig': {}}],
         }
         expected = {
             'containers': [
                 {
-                    'name': 'mattermost',
+                    'name': 'mattermost-k8s',
                     'envConfig': {
                         'MM_METRICSSETTINGS_ENABLE': 'true',
                         'MM_METRICSSETTINGS_LISTENADDRESS': ':{}'.format(METRICS_PORT),
@@ -395,15 +395,15 @@ class TestMattermostK8sCharmHooksDisabled(unittest.TestCase):
         self.assertEqual(pod_spec, {})
         self.harness.update_config({'clustering': True})
         pod_spec = {
-            'containers': [{'name': 'mattermost', 'envConfig': {}}],
+            'containers': [{'name': 'mattermost-k8s', 'envConfig': {}}],
         }
         expected = {
             'containers': [
                 {
-                    'name': 'mattermost',
+                    'name': 'mattermost-k8s',
                     'envConfig': {
                         'MM_CLUSTERSETTINGS_ENABLE': 'true',
-                        'MM_CLUSTERSETTINGS_CLUSTERNAME': 'mattermost-fakeuuid',
+                        'MM_CLUSTERSETTINGS_CLUSTERNAME': 'mattermost-k8s-fakeuuid',
                         'MM_CLUSTERSETTINGS_USEIPADDRESS': 'true',
                     },
                 }
@@ -420,12 +420,12 @@ class TestMattermostK8sCharmHooksDisabled(unittest.TestCase):
         self.assertEqual(pod_spec, {})
         self.harness.update_config({'use_canonical_defaults': True})
         pod_spec = {
-            'containers': [{'name': 'mattermost', 'envConfig': {}}],
+            'containers': [{'name': 'mattermost-k8s', 'envConfig': {}}],
         }
         expected = {
             'containers': [
                 {
-                    'name': 'mattermost',
+                    'name': 'mattermost-k8s',
                     'envConfig': {
                         'MM_SERVICESETTINGS_CLOSEUNUSEDDIRECTMESSAGES': 'true',
                         'MM_SERVICESETTINGS_ENABLECUSTOMEMOJI': 'true',
