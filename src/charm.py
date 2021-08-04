@@ -221,8 +221,7 @@ class MattermostK8sCharm(CharmBase):
         if config['primary_team']:
             pod_config['MM_TEAMSETTINGS_EXPERIMENTALPRIMARYTEAM'] = config['primary_team']
 
-        if config['site_url']:
-            pod_config['MM_SERVICESETTINGS_SITEURL'] = config['site_url']
+        pod_config['MM_SERVICESETTINGS_SITEURL'] = config['site_url'] or 'http://{}'.format(self.app.name)
 
         if config['outbound_proxy']:
             pod_config['HTTP_PROXY'] = config['outbound_proxy']
@@ -279,9 +278,7 @@ class MattermostK8sCharm(CharmBase):
 
     def _update_pod_spec_for_k8s_ingress(self, pod_spec):
         """Add resources to pod_spec configuring site ingress, if needed."""
-        site_url = self.model.config['site_url']
-        if not site_url:
-            return
+        site_url = self.model.config['site_url'] or "http://{}".format(self.app.name)
 
         parsed = urlparse(site_url)
 

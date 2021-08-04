@@ -132,6 +132,7 @@ class TestMattermostK8sCharmHooksDisabled(unittest.TestCase):
             'MM_LOGSETTINGS_CONSOLELEVEL': 'INFO',
             'MM_LOGSETTINGS_ENABLECONSOLE': 'true',
             'MM_LOGSETTINGS_ENABLEFILE': 'false',
+            'MM_SERVICESETTINGS_SITEURL': 'http://mattermost-k8s',
             'MM_SQLSETTINGS_DATASOURCE': 'postgres://10.0.1.101:5432/',
         }
         self.assertEqual(self.harness.charm._make_pod_config(), expected)
