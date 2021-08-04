@@ -512,7 +512,13 @@ class MattermostK8sCharm(CharmBase):
             return
 
         get_env_config(pod_spec, self.app.name).update(
-            {'MM_EMAILSETTINGS_SMTPPORT': 25, 'MM_EMAILSETTINGS_SMTPSERVER': config['smtp_host']}
+            {
+                'MM_EMAILSETTINGS_CONNECTIONSECURITY': config['smtp_connection_security'],
+                'MM_EMAILSETTINGS_SMTPPASSWORD': config['smtp_password'],
+                'MM_EMAILSETTINGS_SMTPPORT': config['smtp_port'],
+                'MM_EMAILSETTINGS_SMTPSERVER': config['smtp_host'],
+                'MM_EMAILSETTINGS_SMTPUSERNAME': config['smtp_user'],
+            }
         )
 
     def configure_pod(self, event):

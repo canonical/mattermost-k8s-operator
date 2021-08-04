@@ -171,10 +171,30 @@ options:
 
           This requires configuration on the S3 side, as well as a suitable Mattermost licence.
         default: false
+    smtp_connection_security:
+        type: string
+        description: |
+          The connection security to use for the outgoing SMTP relay host.
+        default: 'STARTTLS'
     smtp_host:
         type: string
         description: |
           The hostname or IP address of the outgoing SMTP relay host.
+        default: ''
+    smtp_password:
+        type: string
+        description: |
+          The SMTP AUTH password to use for the outgoing SMTP relay host.
+        default: ''
+    smtp_port:
+        type: int
+        description: |
+          The port of the outgoing SMTP relay host.
+        default: 25
+    smtp_user:
+        type: string
+        description: |
+          The SMTP AUTH user to use for the outgoing SMTP relay host.
         default: ''
     sso:
         type: boolean
