@@ -120,6 +120,11 @@ class MattermostK8sCharm(CharmBase):
         self.framework.observe(self.db.on.standby_changed, self._on_standby_changed)
         self.framework.observe(self.on.db_master_available, self.configure_pod)
 
+    @property
+    def _site_url(self):
+        """Return our site URL, defaulting to the deployed juju application name."""
+        return self.config['site_url'] or 'http://{}'.format(self.app.name)
+
     def _on_database_relation_joined(self, event: pgsql.DatabaseRelationJoinedEvent):
         """Handle db-relation-joined."""
         if self.model.unit.is_leader():
@@ -221,7 +226,7 @@ class MattermostK8sCharm(CharmBase):
         if config['primary_team']:
             pod_config['MM_TEAMSETTINGS_EXPERIMENTALPRIMARYTEAM'] = config['primary_team']
 
-        pod_config['MM_SERVICESETTINGS_SITEURL'] = config['site_url'] or 'http://{}'.format(self.app.name)
+        pod_config['MM_SERVICESETTINGS_SITEURL'] = self._site_url
 
         if config['outbound_proxy']:
             pod_config['HTTP_PROXY'] = config['outbound_proxy']
@@ -278,9 +283,7 @@ class MattermostK8sCharm(CharmBase):
 
     def _update_pod_spec_for_k8s_ingress(self, pod_spec):
         """Add resources to pod_spec configuring site ingress, if needed."""
-        site_url = self.model.config['site_url'] or "http://{}".format(self.app.name)
-
-        parsed = urlparse(site_url)
+        parsed = urlparse(self._site_url)
 
         if not parsed.scheme.startswith('http'):
             return
@@ -432,7 +435,7 @@ class MattermostK8sCharm(CharmBase):
         config = self.model.config
         if not config['sso'] or [setting for setting in REQUIRED_SSO_SETTINGS if not config[setting]]:
             return
-        site_hostname = urlparse(config['site_url']).hostname
+        site_hostname = urlparse(self._site_url).hostname
         use_experimental_saml_library = 'true' if config['use_experimental_saml_library'] else 'false'
 
         get_env_config(pod_spec, self.app.name).update(
