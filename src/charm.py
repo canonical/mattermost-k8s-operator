@@ -511,9 +511,17 @@ class MattermostK8sCharm(CharmBase):
         if not config['smtp_host']:
             return
 
+        enable_smtp_auth = 'false'
+        if config['smtp_user'] and config['smtp_password']:
+            enable_smtp_auth = 'true'
+
+        # https://github.com/mattermost/mattermost-server/blob/master/model/config.go#L1532
         get_env_config(pod_spec, self.app.name).update(
             {
                 'MM_EMAILSETTINGS_CONNECTIONSECURITY': config['smtp_connection_security'],
+                'MM_EMAILSETTINGS_ENABLESMTPAUTH': enable_smtp_auth,
+                'MM_EMAILSETTINGS_FEEDBACKEMAIL': config['smtp_from_address'],
+                'MM_EMAILSETTINGS_REPLYTOADDRESS': config['smtp_reply_to_address'],
                 'MM_EMAILSETTINGS_SMTPPASSWORD': config['smtp_password'],
                 'MM_EMAILSETTINGS_SMTPPORT': config['smtp_port'],
                 'MM_EMAILSETTINGS_SMTPSERVER': config['smtp_host'],

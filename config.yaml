@@ -176,6 +176,11 @@ options:
         description: |
           The connection security to use for the outgoing SMTP relay host.
         default: 'STARTTLS'
+    smtp_from_address:
+        type: string
+        description: |
+          The notification from address for outgoing mail.
+        default: 'noreply+chat@mydomain.local'
     smtp_host:
         type: string
         description: |
@@ -191,6 +196,11 @@ options:
         description: |
           The port of the outgoing SMTP relay host.
         default: 25
+    smtp_reply_to_address:
+        type: string
+        description: |
+          The Reply-To address.
+        default: ''
     smtp_user:
         type: string
         description: |
