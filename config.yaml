@@ -111,7 +111,9 @@ options:
     site_url:
         type: string
         description: |
-          The URL by which the site is reached.  This must be set for all of Mattermost's features to work correctly.
+          The URL by which the site is reached, including the scheme, e.g. 'http://mysite.example.com'.
+
+          This must be set for all of Mattermost's features to work correctly, and will default to the name of the deployed application.
 
           For more information, see https://docs.mattermost.com/administration/config-settings.html#site-url
         default: ''

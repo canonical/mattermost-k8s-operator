@@ -132,6 +132,7 @@ class TestMattermostK8sCharmHooksDisabled(unittest.TestCase):
             'MM_LOGSETTINGS_CONSOLELEVEL': 'INFO',
             'MM_LOGSETTINGS_ENABLECONSOLE': 'true',
             'MM_LOGSETTINGS_ENABLEFILE': 'false',
+            'MM_SERVICESETTINGS_SITEURL': 'http://mattermost-k8s',
             'MM_SQLSETTINGS_DATASOURCE': 'postgres://10.0.1.101:5432/',
         }
         self.assertEqual(self.harness.charm._make_pod_config(), expected)
@@ -281,6 +282,12 @@ class TestMattermostK8sCharmHooksDisabled(unittest.TestCase):
             }
         ]
         self.assertEqual(self.harness.charm._make_licence_volume_configs(), expected)
+
+    def test_site_url(self):
+        """Test the site url property."""
+        self.assertEqual(self.harness.charm._site_url, 'http://mattermost-k8s')
+        self.harness.update_config({'site_url': 'https://chat.example.com'})
+        self.assertEqual(self.harness.charm._site_url, 'https://chat.example.com')
 
     def test_update_pod_spec_for_k8s_ingress(self):
         """Test making the k8s ingress, and ensuring ingress name is different to app name

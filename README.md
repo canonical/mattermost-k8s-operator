@@ -21,14 +21,15 @@ To deploy the charm and relate it to [the PostgreSQL K8s charm](https://charmhub
 Kubernetes model:
 
     juju deploy postgresql-k8s
-    juju deploy mattermost-k8s --config juju-external-hostname=foo.internal
+    juju deploy mattermost-k8s
     juju relate mattermost-k8s postgresql-k8s:db
     juju expose mattermost-k8s
 
 Once the deployment has completed and the "mattermost-k8s" workload state in `juju
-status` has changed to "active" you can visit http://${mattermost_ip}:8065 in a browser and log in to
+status` has changed to "active" you can visit `http://mattermost-k8s` in a browser
+(assuming `mattermost-k8s` resolves to the IP(s) of your k8s ingress) and log in to
 your Mattermost instance, and you'll be presented with a screen to create an
 initial admin account. Further accounts must be created using this admin account, or by
 setting up an external authentication source, such as SAML.
 
-For further details, [see here](https://charmhub.io/mattermost-charmers-mattermost/docs).
+For further details, [see here](https://charmhub.io/mattermost-k8s/docs).
