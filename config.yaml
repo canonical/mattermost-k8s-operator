@@ -214,6 +214,8 @@ options:
           Whether to use Ubuntu SSO to log in.
 
           This will not work unless the administrators of login.ubuntu.com have created a suitable SAML config first.
+
+          This feature requires a Mattermost Enterprise Edition licence.
         default: false
     use_canonical_defaults:
         type: boolean
