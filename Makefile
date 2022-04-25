@@ -6,8 +6,6 @@ lint: blacken
 	@echo "Running flake8"
 	@tox -e lint
 
-# We actually use the build directory created by charmcraft,
-# but the .charm file makes a much more convenient sentinel.
 unittest: blacken lint
 	@tox -e unit
 
@@ -16,8 +14,5 @@ test: lint unittest
 clean:
 	@echo "Cleaning files"
 	@git clean -fXd
-
-mattermost-k8s.charm: src/*.py requirements.txt
-	@charmcraft pack
 
 .PHONY: lint test unittest clean
