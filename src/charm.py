@@ -213,7 +213,6 @@ class MattermostK8sCharm(CharmBase):
         pod_config = {
             'MATTERMOST_HTTPD_LISTEN_PORT': CONTAINER_PORT,
             'MM_CONFIG': db_uri,
-            'MM_CONFIG': db_uri,
             'MM_SQLSETTINGS_DATASOURCE': db_uri,
             # image proxy
             'MM_IMAGEPROXYSETTINGS_ENABLE': 'true' if config['image_proxy_enabled'] else 'false',
