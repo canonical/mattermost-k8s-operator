@@ -221,6 +221,7 @@ class MattermostK8sCharm(CharmBase):
             'MM_LOGSETTINGS_CONSOLELEVEL': 'DEBUG' if config['debug'] else 'INFO',
             'MM_LOGSETTINGS_ENABLECONSOLE': 'true',
             'MM_LOGSETTINGS_ENABLEFILE': 'false',
+            'MM_TEAMSETTINGS_MAXCHANNELSPERTEAM': config['max_channels_per_team'],
         }
 
         if config['primary_team']:
