@@ -44,12 +44,12 @@ RUN if [ "$image_flavour" = canonical ]; then \
 
 # Enable prepackaged plugin
 RUN if [ "$image_flavour" = canonical ]; then \
-        tar -C /mattermost/plugins -xvzf /mattermost/prepackaged_plugins/mattermost-plugin-github-v2.1.1-linux-amd64.tar.gz ; \
+        tar -C /mattermost/plugins -xvzf /mattermost/prepackaged_plugins/mattermost-plugin-github-v2.0.1-linux-amd64.tar.gz ; \
     fi
 
 # Enable prepackaged plugin
 RUN if [ "$image_flavour" = canonical ]; then \
-        tar -C /mattermost/plugins -xvzf /mattermost/prepackaged_plugins/mattermost-plugin-gitlab-v1.4.0-linux-amd64.tar.gz ; \
+        tar -C /mattermost/plugins -xvzf /mattermost/prepackaged_plugins/mattermost-plugin-gitlab-v1.3.0-linux-amd64.tar.gz ; \
     fi
 
 # Download and enable third-party plugin
