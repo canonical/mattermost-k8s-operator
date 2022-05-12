@@ -7,7 +7,7 @@ ARG edition=enterprise
 ARG image_flavour=default
 ARG mattermost_gid=2000
 ARG mattermost_uid=2000
-ARG mattermost_version=5.39.0
+ARG mattermost_version=6.6.0
 ARG mattermost_webapp=mattermost-webapp.tar.gz
 
 LABEL org.label-schema.version=${mattermost_version}
@@ -63,7 +63,7 @@ RUN if [ "$image_flavour" = canonical ]; then \
 RUN if [ "$image_flavour" = canonical ]; then \
 	cd /mattermost/plugins && \
 	set -o pipefail && \
-	curl -L https://github.com/moussetc/mattermost-plugin-giphy/releases/download/v2.1.0/com.github.moussetc.mattermost.plugin.giphy-2.1.0.tar.gz | tar -xvz ; \
+	curl -L https://github.com/moussetc/mattermost-plugin-giphy/releases/download/v2.1.1/com.github.moussetc.mattermost.plugin.giphy-2.1.1.tar.gz | tar -xvz ; \
     fi
 
 # Download and enable third-party plugin
