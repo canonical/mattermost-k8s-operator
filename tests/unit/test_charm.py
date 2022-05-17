@@ -3,6 +3,9 @@
 
 import mock
 import unittest
+import pytest
+from ops.model import ActiveStatus, BlockedStatus
+from pytest_operator.plugin import OpsTest
 
 from unittest.mock import Mock
 
@@ -112,6 +115,23 @@ CONFIG_CHANNELS = {
 
 
 class TestMattermostK8sCharmHooksDisabled(unittest.TestCase):
+    @pytest.mark.abort_on_fail
+    async def test_build_and_deploy(ops_test: OpsTest):
+
+        charm = await ops_test.build_charm(".")
+        await ops_test.model.deploy("postgresql-k8s")
+        await ops_test.model.deploy(charm, num_units=0)
+        await ops_test.model.add_relation(
+            "postgresql-k8s:db",
+            "mattermost-k8s",
+        )
+        await ops_test.model.wait_for_idle()
+
+
+    async def test_status(ops_test: OpsTest):
+        assert ops_test.model.applications["mattermost-k8s"].status == ActiveStatus.name
+        assert ops_test.model.applications["postgresql-k8s"].status == ActiveStatus.name
+
     def setUp(self):
         self.harness = testing.Harness(MattermostK8sCharm)
         self.harness.begin()
