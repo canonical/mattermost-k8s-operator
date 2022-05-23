@@ -2,6 +2,7 @@ import pytest
 from ops.model import ActiveStatus
 from pytest_operator.plugin import OpsTest
 
+
 @pytest.mark.abort_on_fail
 async def juju_run(unit, cmd):
     """Helper function that runs a juju command"""
@@ -20,7 +21,7 @@ async def test_build_and_deploy(ops_test: OpsTest):
         "postgresql-k8s:db",
         "mattermost-k8s",
     )
-    await ops_test.model.wait_for_idle(status = ActiveStatus.name)
+    await ops_test.model.wait_for_idle(status=ActiveStatus.name)
 
 
 async def test_status(ops_test: OpsTest):
