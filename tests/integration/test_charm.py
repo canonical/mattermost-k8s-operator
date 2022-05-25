@@ -11,6 +11,7 @@ async def juju_run(unit, cmd):
     stdout = result.results.get("Stdout")
     stderr = result.results.get("Stderr")
     assert code == "0", f"{cmd} failed ({code}): {stderr or stdout}"
+    return stdout
 
 
 async def test_build_and_deploy(ops_test: OpsTest):
@@ -30,6 +31,8 @@ async def test_status(ops_test: OpsTest):
 
 
 async def test_workload_online_default(ops_test: OpsTest):
-    app = ops_test.model.applications["mattermost-k8s"]
+    app = ops_test.model.applications["postgresql-k8s"]
     unit = app.units[0]
-    await juju_run(unit, "ls")
+    matt_unit = ops_test.model.applications["mattermost-k8s"]
+    curl_output = await juju_run(unit, "curl {}".format(matt_unit.public_address + ":8065"))
+    assert 'Mattermost' in curl_output
