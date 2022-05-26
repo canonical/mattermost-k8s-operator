@@ -31,8 +31,7 @@ async def test_status(ops_test: OpsTest):
 
 
 async def test_workload_online_default(ops_test: OpsTest):
-    app = ops_test.model.applications["postgresql-k8s"]
+    app = ops_test.model.applications["mattermost-k8s"]
     unit = app.units[0]
-    matt_unit = ops_test.model.applications["mattermost-k8s"]
-    curl_output = await juju_run(unit, "curl {}".format(matt_unit.public_address + ":8065"))
+    curl_output = await juju_run(unit, "curl 127.0.0.1:8065")
     assert 'Mattermost' in curl_output
