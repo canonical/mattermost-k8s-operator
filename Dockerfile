@@ -4,20 +4,25 @@ FROM ubuntu:focal
 SHELL ["/bin/bash", "-c"]
 
 ARG edition=enterprise
-ARG image_flavour=default
+ARG image_flavour=canonical
 ARG mattermost_gid=2000
 ARG mattermost_uid=2000
-ARG mattermost_version=5.39.0
-ARG mattermost_webapp=mattermost-webapp.tar.gz
+ARG mattermost_version=6.6.0
 
 LABEL org.label-schema.version=${mattermost_version}
 LABEL com.canonical.image-flavour=${image_flavour}
 LABEL com.canonical.mattermost-edition=${edition}
 
+COPY themes.patch patch/themes.patch
+
 # python3-yaml needed to run juju actions, xmlsec1 needed if UseNewSAMLLibrary is set to false (the default)
 RUN apt-get -qy update && \
     apt-get -qy dist-upgrade && \
-    apt-get -qy install curl python3-yaml xmlsec1 && \
+    apt-get -qy install curl python3-yaml xmlsec1 make && \
+    curl -s https://deb.nodesource.com/setup_16.x | bash && \
+    apt-get install nodejs -y && \
+    (echo "2" && cat) | apt-get install git -y && \
+    curl -qL https://www.npmjs.com/install.sh | sh && \
     rm -f /var/lib/apt/lists/*_*
 
 RUN mkdir -p /mattermost/data /mattermost/plugins /mattermost/client/plugins && \
@@ -76,8 +81,14 @@ RUN if [ "$image_flavour" = canonical ]; then \
 # Canonical's custom webapp
 RUN if [ "$image_flavour" = canonical ]; then \
 	rm -rf /mattermost/client && \
-	set -o pipefail && \
-	curl http://archive.admin.canonical.com/other/mattermost-webapp/${mattermost_version}-canonical/${mattermost_webapp} | tar -C /mattermost -xvz ; \
+    git clone -b v${mattermost_version} https://github.com/mattermost/mattermost-webapp && \
+	cd mattermost-webapp && \
+    git apply /patch/themes.patch && \
+    make package && \
+    mkdir /mattermost/client && \
+    cp -r ./dist/. /mattermost/client && \
+    cd .. && \
+    rm -rf mattermost-webapp ; \
     fi
 
 HEALTHCHECK CMD curl --fail http://localhost:8065 || exit 1
