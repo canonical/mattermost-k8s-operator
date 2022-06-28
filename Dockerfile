@@ -4,7 +4,7 @@ FROM ubuntu:focal
 SHELL ["/bin/bash", "-c"]
 
 ARG edition=enterprise
-ARG image_flavour=canonical
+ARG image_flavour=default
 ARG mattermost_gid=2000
 ARG mattermost_uid=2000
 ARG mattermost_version=6.6.0
