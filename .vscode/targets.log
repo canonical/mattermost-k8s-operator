@@ -1,4 +1,6 @@
 make all --print-data-base --no-builtin-variables --no-builtin-rules --question
+make: *** No rule to make target 'all'.  Stop.
+
 # GNU Make 4.3
 # Built for x86_64-pc-linux-gnu
 # Copyright (C) 1988-2020 Free Software Foundation, Inc.
@@ -6,7 +8,7 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Tue Jun 28 08:47:01 2022
+# Make data base, printed on Fri Jul  1 11:16:52 2022
 
 # Variables
 
@@ -15,13 +17,11 @@ GDK_BACKEND = x11
 # environment
 LC_ALL = C
 # environment
-NO_AT_BRIDGE = 1
-# environment
 GNOME_SHELL_SESSION_MODE = ubuntu
 # environment
 SSH_AGENT_LAUNCHER = gnome-keyring
 # environment
-VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-07150b69-7767-41e8-aa28-89c591431958.sock
+VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-9899b831-8394-4e42-b3cf-ddd8bc4bc853.sock
 # environment
 LC_NAME = es_AR.UTF-8
 # environment
@@ -48,8 +48,6 @@ PWD = /home/gtrkiller/Desktop/charm-k8s-mattermost
 %D = $(patsubst %/,%,$(dir $%))
 # environment
 XDG_DATA_DIRS = /usr/share/ubuntu:/usr/share/gnome:/usr/local/share/:/usr/share/:/var/lib/snapd/desktop
-# environment
-OLDPWD = /home/gtrkiller/Desktop
 # automatic
 ^D = $(patsubst %/,%,$(dir $^))
 # environment
@@ -67,11 +65,11 @@ XAUTHORITY = /run/user/1000/gdm/Xauthority
 # default
 .INCLUDE_DIRS = /usr/local/include /usr/include /usr/include
 # environment
-GNOME_TERMINAL_SERVICE = :1.298
+GNOME_TERMINAL_SERVICE = :1.186
 # makefile
 MAKEFLAGS = pqrR
 # environment
-DBUS_STARTER_ADDRESS = unix:path=/run/user/1000/bus,guid=3c880a6fbfad29ed06dcd1dc62b72e10
+DBUS_STARTER_ADDRESS = unix:path=/run/user/1000/bus,guid=5b7dcef9c4a498bdda116e0962bef7f2
 # makefile
 CURDIR := /home/gtrkiller/Desktop/charm-k8s-mattermost
 # environment
@@ -101,19 +99,19 @@ MAKEFILE_LIST := Makefile
 # environment
 VSCODE_VERBOSE_LOGGING = true
 # environment
-VSCODE_PID = 996662
+VSCODE_PID = 87870
 # environment
 XDG_SESSION_TYPE = x11
 # automatic
 ?D = $(patsubst %/,%,$(dir $?))
 # environment
-SESSION_MANAGER = local/gtrkiller-Lenovo-Y520-15IKBN:@/tmp/.ICE-unix/2001,unix/gtrkiller-Lenovo-Y520-15IKBN:/tmp/.ICE-unix/2001
+SESSION_MANAGER = local/gtrkiller-Lenovo-Y520-15IKBN:@/tmp/.ICE-unix/2002,unix/gtrkiller-Lenovo-Y520-15IKBN:/tmp/.ICE-unix/2002
 # automatic
 *F = $(notdir $*)
 # environment
 CHROME_DESKTOP = code-url-handler.desktop
 # environment
-DBUS_SESSION_BUS_ADDRESS = unix:path=/run/user/1000/bus,guid=3c880a6fbfad29ed06dcd1dc62b72e10
+DBUS_SESSION_BUS_ADDRESS = unix:path=/run/user/1000/bus,guid=5b7dcef9c4a498bdda116e0962bef7f2
 # automatic
 <D = $(patsubst %/,%,$(dir $<))
 # environment
@@ -131,7 +129,7 @@ XMODIFIERS = @im=ibus
 # environment
 SHLVL = 1
 # environment
-GNOME_TERMINAL_SCREEN = /org/gnome/Terminal/screen/bba5d2c8_6a9b_4a4f_9e67_b0b85bb55613
+GNOME_TERMINAL_SCREEN = /org/gnome/Terminal/screen/1400d982_46a5_4758_a49f_ca6df84887d7
 # environment
 MAKELEVEL := 0
 # default
@@ -173,7 +171,7 @@ LOGNAME = gtrkiller
 # makefile
 .DEFAULT_GOAL := blacken
 # environment
-SYSTEMD_EXEC_PID = 2001
+SYSTEMD_EXEC_PID = 2002
 # environment
 DISPLAY = :0
 # environment
@@ -233,7 +231,7 @@ GDMSESSION = ubuntu
 # environment
 LC_IDENTIFICATION = es_AR.UTF-8
 # variable set hash-table stats:
-# Load=111/1024=11%, Rehash=0, Collisions=12/141=9%
+# Load=109/1024=11%, Rehash=0, Collisions=12/139=9%
 
 # Pattern-specific Variable Values
 
@@ -277,13 +275,11 @@ clean:
 	@git clean -fXd
 
 # Not a target:
- 
-make: *** No rule to make target 'all'.  Stop.
-
 .DEFAULT:
 #  Implicit rule search has not been done.
 #  Modification time never checked.
 #  File has not been updated.
+ 
 
 # Not a target:
 all:
@@ -333,6 +329,6 @@ unittest: blacken lint
 # strcache performance: lookups = 55 / hit rate = 34%
 # hash-table stats:
 # Load=36/8192=0%, Rehash=0, Collisions=0/55=0%
-# Finished Make data base on Tue Jun 28 08:47:01 2022
+# Finished Make data base on Fri Jul  1 11:16:52 2022
 
  
