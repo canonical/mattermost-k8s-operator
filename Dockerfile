@@ -10,23 +10,35 @@ RUN apt-get -qy update && \
     curl -qL https://www.npmjs.com/install.sh | sh && \
     rm -f /var/lib/apt/lists/*_*
 
-FROM builder
-
 # We use "set -o pipefail"
 SHELL ["/bin/bash", "-c"]
 
+ARG image_flavour=canonical
+ARG mattermost_version=6.6.0
+
+COPY themes.patch patch/themes.patch
+
+RUN git clone -b v${mattermost_version} https://github.com/mattermost/mattermost-webapp && \
+	cd mattermost-webapp && \
+    git apply /patch/themes.patch && \
+    make package ;
+
+FROM ubuntu:focal
+
 ARG edition=enterprise
-ARG image_flavour=default
+ARG image_flavour=canonical
 ARG mattermost_gid=2000
 ARG mattermost_uid=2000
 ARG mattermost_version=6.6.0
-ARG mattermost_webapp=mattermost-webapp.tar.gz
 
 LABEL org.label-schema.version=${mattermost_version}
 LABEL com.canonical.image-flavour=${image_flavour}
 LABEL com.canonical.mattermost-edition=${edition}
 
-COPY themes.patch patch/themes.patch
+SHELL ["/bin/bash", "-c"]
+
+RUN apt-get -qy update && \
+    apt-get -qy install curl ; 
 
 RUN mkdir -p /mattermost/data /mattermost/plugins /mattermost/client/plugins && \
     set -o pipefail && \
@@ -82,17 +94,13 @@ RUN if [ "$image_flavour" = canonical ]; then \
     fi
 
 # Canonical's custom webapp
+COPY --from=builder /mattermost-webapp/dist/. /throwaway/ 
 RUN if [ "$image_flavour" = canonical ]; then \
 	rm -rf /mattermost/client && \
-    git clone -b v${mattermost_version} https://github.com/mattermost/mattermost-webapp && \
-	cd mattermost-webapp && \
-    git apply /patch/themes.patch && \
-    make package && \
-    mkdir /mattermost/client && \
-    cp -r ./dist/. /mattermost/client && \
-    cd .. && \
-    rm -rf mattermost-webapp ; \
+    cp -r /throwaway/. /mattermost/client ; \
     fi
+
+RUN rm -rf /throwaway
 
 HEALTHCHECK CMD curl --fail http://localhost:8065 || exit 1
 
