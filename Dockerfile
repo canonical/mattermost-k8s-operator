@@ -1,19 +1,13 @@
-FROM ubuntu:focal AS builder
+FROM ubuntu:focal AS canonical_flavour_builder
 
-# python3-yaml needed to run juju actions, xmlsec1 needed if UseNewSAMLLibrary is set to false (the default)
 RUN apt-get -qy update && \
     apt-get -qy dist-upgrade && \
-    apt-get -qy install curl python3-yaml xmlsec1 make && \
+    apt-get -qy install curl make python3-yaml && \
     curl -s https://deb.nodesource.com/setup_16.x | bash && \
     apt-get install nodejs -y && \
     (echo "2" && cat) | apt-get install git -y && \
-    curl -qL https://www.npmjs.com/install.sh | sh && \
-    rm -f /var/lib/apt/lists/*_*
+    curl -qL https://www.npmjs.com/install.sh | sh
 
-# We use "set -o pipefail"
-SHELL ["/bin/bash", "-c"]
-
-ARG image_flavour=canonical
 ARG mattermost_version=6.6.0
 
 COPY themes.patch patch/themes.patch
@@ -94,13 +88,13 @@ RUN if [ "$image_flavour" = canonical ]; then \
     fi
 
 # Canonical's custom webapp
-COPY --from=builder /mattermost-webapp/dist/. /throwaway/ 
+COPY --from=canonical_flavour_builder /mattermost-webapp/dist/. /canonical_flavour_tmp/ 
 RUN if [ "$image_flavour" = canonical ]; then \
 	rm -rf /mattermost/client && \
-    cp -r /throwaway/. /mattermost/client ; \
+    cp -r /canonical_flavour_tmp/. /mattermost/client ; \
     fi
 
-RUN rm -rf /throwaway
+RUN rm -rf /canonical_flavour_tmp
 
 HEALTHCHECK CMD curl --fail http://localhost:8065 || exit 1
 
