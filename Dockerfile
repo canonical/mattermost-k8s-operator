@@ -5,7 +5,7 @@ FROM ubuntu:focal AS canonical_flavour_builder
 #Git installation needs user input to pick a region. We automate that with the echo 2 && cat command.
 RUN apt-get -qy update && \
     apt-get -qy dist-upgrade && \
-    apt-get -qy install curl make python3-yaml xmlsec1 && \
+    apt-get -qy install curl make && \
     curl -s https://deb.nodesource.com/setup_16.x | bash && \
     apt-get install nodejs -y && \
     (echo "2" && cat) | apt-get install git -y && \
@@ -34,8 +34,9 @@ LABEL com.canonical.mattermost-edition=${edition}
 
 SHELL ["/bin/bash", "-c"]
 
+# python3-yaml needed to run juju actions, xmlsec1 needed if UseNewSAMLLibrary is set to false (the default)
 RUN apt-get -qy update && \
-    apt-get -qy install curl 
+    apt-get -qy install curl python3-yaml xmlsec1
 
 RUN mkdir -p /mattermost/data /mattermost/plugins /mattermost/client/plugins && \
     set -o pipefail && \
