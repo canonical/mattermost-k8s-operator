@@ -1,18 +1,39 @@
-FROM ubuntu:focal
+FROM ubuntu:focal AS canonical_flavour_builder
 
-# We use "set -o pipefail"
-SHELL ["/bin/bash", "-c"]
+#NodeJS and NPM need to download the source to install. 
+#If we don't do this the version of both packages will be too old and 'make package' will fail.
+#Git installation needs user input to pick a region. We automate that with the echo 2 && cat command.
+RUN apt-get -qy update && \
+    apt-get -qy dist-upgrade && \
+    apt-get -qy install curl make && \
+    curl -s https://deb.nodesource.com/setup_16.x | bash && \
+    apt-get install nodejs -y && \
+    (echo "2" && cat) | apt-get install git -y && \
+    curl -qL https://www.npmjs.com/install.sh | sh
+
+ARG mattermost_version=6.6.0
+
+COPY themes.patch patch/themes.patch
+
+RUN git clone -b v${mattermost_version} https://github.com/mattermost/mattermost-webapp && \
+    cd mattermost-webapp && \
+    git apply /patch/themes.patch && \
+    make package
+
+FROM ubuntu:focal
 
 ARG edition=enterprise
 ARG image_flavour=default
 ARG mattermost_gid=2000
 ARG mattermost_uid=2000
 ARG mattermost_version=6.6.0
-ARG mattermost_webapp=mattermost-webapp.tar.gz
 
 LABEL org.label-schema.version=${mattermost_version}
 LABEL com.canonical.image-flavour=${image_flavour}
 LABEL com.canonical.mattermost-edition=${edition}
+
+# We use "set -o pipefail"
+SHELL ["/bin/bash", "-c"]
 
 # python3-yaml needed to run juju actions, xmlsec1 needed if UseNewSAMLLibrary is set to false (the default)
 RUN apt-get -qy update && \
@@ -74,11 +95,13 @@ RUN if [ "$image_flavour" = canonical ]; then \
     fi
 
 # Canonical's custom webapp
+COPY --from=canonical_flavour_builder /mattermost-webapp/dist/. /canonical_flavour_tmp/ 
 RUN if [ "$image_flavour" = canonical ]; then \
 	rm -rf /mattermost/client && \
-	set -o pipefail && \
-	curl http://archive.admin.canonical.com/other/mattermost-webapp/${mattermost_version}-canonical/${mattermost_webapp} | tar -C /mattermost -xvz ; \
+    cp -r /canonical_flavour_tmp/. /mattermost/client ; \
     fi
+
+RUN rm -rf /canonical_flavour_tmp
 
 HEALTHCHECK CMD curl --fail http://localhost:8065 || exit 1
 

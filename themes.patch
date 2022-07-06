@@ -1,0 +1,119 @@
+diff --git a/components/admin_console/admin_definition.jsx b/components/admin_console/admin_definition.jsx
+index b60057876..5f59ce763 100644
+--- a/components/admin_console/admin_definition.jsx
++++ b/components/admin_console/admin_definition.jsx
+@@ -5947,6 +5947,16 @@ const AdminDefinition = {
+                                 display_name: 'Onyx',
+                                 display_name_default: 'Onyx',
+                             },
++                            {
++                                value: 'canonicalLight',
++                                display_name: 'canonicalLight',
++                                display_name_default: 'canonicalLight',
++                            },
++                            {
++                                value: 'canonicalDark',
++                                display_name: 'canonicalDark',
++                                display_name_default: 'canonicalDark',
++                            },
+                         ],
+                         isHidden: it.any(
+                             it.not(it.licensed),
+diff --git a/packages/mattermost-redux/src/constants/preferences.ts b/packages/mattermost-redux/src/constants/preferences.ts
+index 4ef8a10f2..f1c5ffce6 100644
+--- a/packages/mattermost-redux/src/constants/preferences.ts
++++ b/packages/mattermost-redux/src/constants/preferences.ts
+@@ -203,6 +203,62 @@ const Preferences = {
+             mentionHighlightLink: '#a4f4f4',
+             codeTheme: 'monokai',
+         },
++        canonicalDark: {
++            type: 'Canonical Dark',
++            sidebarBg: '#5e2750',
++            sidebarText: '#ffffff',
++            sidebarUnreadText: '#ffffff',
++            sidebarTextHoverBg: '#3e313c',
++            sidebarTextActiveBorder: '#333333',
++            sidebarTextActiveColor: '#ffffff',
++            sidebarHeaderBg: '#2c001e',
++            sidebarHeaderTextColor: '#ffffff',
++            sidebarTeamBarBg: '#000000',
++            onlineIndicator: '#0e8420',
++            awayIndicator: '#f99b11',
++            dndIndicator: '#c7162b',
++            mentionBg: '#335280',
++            mentionBj: '#335280',
++            mentionColor: '#007aa6',
++            centerChannelBg: '#333333',
++            centerChannelColor: '#ffffff',
++            newMessageSeparator: '#335280',
++            linkColor: '#007aa6',
++            buttonBg: '#0e8420',
++            buttonColor: '#ffffff',
++            errorTextColor: '#c7162b',
++            mentionHighlightBg: '#f99b11',
++            mentionHighlightLink: '#007AA6',
++            codeTheme: 'github',
++        },
++        canonicalLight: {
++            type: 'Canonical Light',
++            sidebarBg: '#5e2750',
++            sidebarText: '#ffffff',
++            sidebarUnreadText: '#ffffff',
++            sidebarTextHoverBg: '#3e313c',
++            sidebarTextActiveBorder: '#333333',
++            sidebarTextActiveColor: '#ffffff',
++            sidebarHeaderBg: '#2c001e',
++            sidebarHeaderTextColor: '#ffffff',
++            sidebarTeamBarBg: '#000000',
++            onlineIndicator: '#0e8420',
++            awayIndicator: '#f99b11',
++            dndIndicator: '#c7162b',
++            mentionBg: '#335280',
++            mentionBj: '#335280',
++            mentionColor: '#007aa6',
++            centerChannelBg: '#ffffff',
++            centerChannelColor: '#111111',
++            newMessageSeparator: '#007aa6',
++            linkColor: '#007aa6',
++            buttonBg: '#0e8420',
++            buttonColor: '#ffffff',
++            errorTextColor: '#c7162b',
++            mentionHighlightBg: '#f99b11',
++            mentionHighlightLink: '#007aa6',
++            codeTheme: 'github',
++        },
+     } as Record<ThemeKey, Theme>,
+ };
+ 
+diff --git a/packages/mattermost-redux/src/types/themes.ts b/packages/mattermost-redux/src/types/themes.ts
+index 1706cc122..feeac7331 100644
+--- a/packages/mattermost-redux/src/types/themes.ts
++++ b/packages/mattermost-redux/src/types/themes.ts
+@@ -3,11 +3,11 @@
+ 
+ export type LegacyThemeKey = 'default' | 'organization' | 'mattermostDark' | 'windows10';
+ 
+-export type ThemeKey = 'denim' | 'sapphire' | 'quartz' | 'indigo' | 'onyx';
++export type ThemeKey = 'denim' | 'sapphire' | 'quartz' | 'indigo' | 'onyx' | 'canonicalDark' | 'canonicalLight';
+ 
+ export type LegacyThemeType = 'Mattermost' | 'Organization' | 'Mattermost Dark' | 'Windows Dark';
+ 
+-export type ThemeType = 'Denim' | 'Sapphire' | 'Quartz' | 'Indigo' | 'Onyx';
++export type ThemeType = 'Denim' | 'Sapphire' | 'Quartz' | 'Indigo' | 'Onyx' | 'Canonical Dark' | 'Canonical Light';
+ 
+ export type Theme = {
+     [key: string]: string | undefined;
+diff --git a/packages/mattermost-redux/src/utils/theme_utils.ts b/packages/mattermost-redux/src/utils/theme_utils.ts
+index 13843235e..f73529c51 100644
+--- a/packages/mattermost-redux/src/utils/theme_utils.ts
++++ b/packages/mattermost-redux/src/utils/theme_utils.ts
+@@ -128,6 +128,8 @@ const themeTypeMap: ThemeTypeMap = {
+     Quartz: 'quartz',
+     Indigo: 'indigo',
+     Onyx: 'onyx',
++    'Canonical Dark': 'canonicalDark',
++    'Canonical Light': 'canonicalLight',
+ };
+ 
+ // setThemeDefaults will set defaults on the theme for any unset properties.
