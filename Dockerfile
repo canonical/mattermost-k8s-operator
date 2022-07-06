@@ -1,8 +1,11 @@
 FROM ubuntu:focal AS canonical_flavour_builder
 
+#NodeJS and NPM need to download the source to install. 
+#If we don't do this the version of both packages will be too old and 'make package' will fail.
+#Git installation needs user input to pick a region. We automate that with the echo 2 && cat command.
 RUN apt-get -qy update && \
     apt-get -qy dist-upgrade && \
-    apt-get -qy install curl make python3-yaml && \
+    apt-get -qy install curl make python3-yaml xmlsec1 && \
     curl -s https://deb.nodesource.com/setup_16.x | bash && \
     apt-get install nodejs -y && \
     (echo "2" && cat) | apt-get install git -y && \
@@ -13,9 +16,9 @@ ARG mattermost_version=6.6.0
 COPY themes.patch patch/themes.patch
 
 RUN git clone -b v${mattermost_version} https://github.com/mattermost/mattermost-webapp && \
-	cd mattermost-webapp && \
+    cd mattermost-webapp && \
     git apply /patch/themes.patch && \
-    make package ;
+    make package
 
 FROM ubuntu:focal
 
@@ -32,7 +35,7 @@ LABEL com.canonical.mattermost-edition=${edition}
 SHELL ["/bin/bash", "-c"]
 
 RUN apt-get -qy update && \
-    apt-get -qy install curl ; 
+    apt-get -qy install curl 
 
 RUN mkdir -p /mattermost/data /mattermost/plugins /mattermost/client/plugins && \
     set -o pipefail && \
