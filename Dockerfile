@@ -32,11 +32,14 @@ LABEL org.label-schema.version=${mattermost_version}
 LABEL com.canonical.image-flavour=${image_flavour}
 LABEL com.canonical.mattermost-edition=${edition}
 
+# We use "set -o pipefail"
 SHELL ["/bin/bash", "-c"]
 
 # python3-yaml needed to run juju actions, xmlsec1 needed if UseNewSAMLLibrary is set to false (the default)
 RUN apt-get -qy update && \
-    apt-get -qy install curl python3-yaml xmlsec1
+    apt-get -qy dist-upgrade && \
+    apt-get -qy install curl python3-yaml xmlsec1 && \
+    rm -f /var/lib/apt/lists/*_*
 
 RUN mkdir -p /mattermost/data /mattermost/plugins /mattermost/client/plugins && \
     set -o pipefail && \
