@@ -1,8 +1,10 @@
 FROM ubuntu:focal AS canonical_flavour_builder
 
-#NodeJS and NPM need to download the source to install. 
-#If we don't do this the version of both packages will be too old and 'make package' will fail.
-#Git installation needs user input to pick a region. We automate that with the echo 2 && cat command.
+# NodeJS and NPM are needed to download the source to install.
+# If we don't do this the version of both packages will be too old and `make
+# package` will fail.
+# Git installation needs user input to pick a region. We automate that with
+# the `echo 2 && cat` command.
 RUN apt-get -qy update && \
     apt-get -qy dist-upgrade && \
     apt-get -qy install curl make && \
@@ -13,7 +15,7 @@ RUN apt-get -qy update && \
 
 ARG mattermost_version=6.6.0
 
-COPY themes.patch patch/themes.patch
+COPY files/canonical_flavour/themes.patch patch/themes.patch
 
 RUN git clone -b v${mattermost_version} https://github.com/mattermost/mattermost-webapp && \
     cd mattermost-webapp && \
@@ -98,7 +100,7 @@ RUN if [ "$image_flavour" = canonical ]; then \
 COPY --from=canonical_flavour_builder /mattermost-webapp/dist/. /canonical_flavour_tmp/ 
 RUN if [ "$image_flavour" = canonical ]; then \
 	rm -rf /mattermost/client && \
-    cp -r /canonical_flavour_tmp/. /mattermost/client ; \
+	cp -r /canonical_flavour_tmp/. /mattermost/client ; \
     fi
 
 RUN rm -rf /canonical_flavour_tmp
