@@ -1,24 +1,36 @@
 FROM ubuntu:focal AS canonical_flavour_builder
 
-# NodeJS and NPM are needed to download the source to install.
-# If we don't do this the version of both packages will be too old and `make
-# package` will fail.
-# Git installation needs user input to pick a region. We automate that with
-# the `echo 2 && cat` command.
-RUN apt-get -qy update && \
-    apt-get -qy dist-upgrade && \
-    apt-get -qy install curl make && \
-    curl -s https://deb.nodesource.com/setup_16.x | bash && \
-    apt-get install nodejs -y && \
-    (echo "2" && cat) | apt-get install git -y && \
-    curl -qL https://www.npmjs.com/install.sh | sh
+# Avoid needing any input from package installs.
+ENV DEBIAN_FRONTEND=noninteractive
 
 ARG mattermost_version=6.6.0
 
+# Update ca-certificates before running git clone to ensure certs are up to
+# date.
+RUN apt-get -y update && \
+    apt-get -y dist-upgrade && \
+    apt-get -y --no-install-recommends install \
+        ca-certificates && \
+    update-ca-certificates && \
+    apt-get -y --no-install-recommends install \
+        git
+
+RUN git clone -b v${mattermost_version} https://github.com/mattermost/mattermost-webapp
+
+# We need version 16+ of NodeJS for `make package` to succeed.
+RUN apt-get -y update && \
+    apt-get -y dist-upgrade && \
+    apt-get -y --no-install-recommends install \
+        curl \
+        make \
+        && \
+    curl -s https://deb.nodesource.com/setup_16.x | bash && \
+    apt-get -y update && \
+    apt-get -y --no-install-recommends install nodejs
+
 COPY files/canonical_flavour/themes.patch patch/themes.patch
 
-RUN git clone -b v${mattermost_version} https://github.com/mattermost/mattermost-webapp && \
-    cd mattermost-webapp && \
+RUN cd mattermost-webapp && \
     git apply /patch/themes.patch && \
     make package
 
