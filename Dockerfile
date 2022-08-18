@@ -15,8 +15,6 @@ RUN apt-get -y update && \
     apt-get -y --no-install-recommends install \
         git
 
-RUN git clone -b v${mattermost_version} https://github.com/mattermost/mattermost-webapp
-
 # We need version 16+ of NodeJS for `make package` to succeed.
 RUN apt-get -y update && \
     apt-get -y dist-upgrade && \
@@ -28,10 +26,34 @@ RUN apt-get -y update && \
     apt-get -y update && \
     apt-get -y --no-install-recommends install nodejs
 
+# Patch the https-proxy-agent library used by npm to limit the open socket
+# number connected to proxy server.
+# Currently, npm will open an unlimited number of sockets to the http proxy.
+# For a large project, socket numbers may be up to thousands, which can cause
+# issues in the build process. This patch will limit the open sockets connected
+# to the http proxy server down to 15. The number can be adjusted by the
+# NPM_HTTPS_PROXY_AGENT_MAX_SOCKETS environment variable.
+COPY files/canonical_flavour/https-proxy-agent.patch patch/https-proxy-agent.patch
+
+RUN curl -sSL https://github.com/TooTallNate/node-https-proxy-agent/archive/refs/tags/5.0.1.tar.gz -o node-https-proxy-agent.tar.gz && \
+    echo "1afed785d8d9deadac371824d6622aeabc7919ed6db3b3a6ad0033bd1105d2f4  node-https-proxy-agent.tar.gz" | shasum -c && \
+    tar -xf node-https-proxy-agent.tar.gz && \
+    cd node-https-proxy-agent-5.0.1 && \
+    git apply /patch/https-proxy-agent.patch && \
+    npm config set progress=false loglevel=info && \
+    npm install && \
+    npm run build && \
+    rm -rf /usr/lib/node_modules/npm/node_modules/https-proxy-agent/ && \
+    mv ./dist /usr/lib/node_modules/npm/node_modules/https-proxy-agent && \
+    cd ..
+
 COPY files/canonical_flavour/themes.patch patch/themes.patch
+
+RUN git clone -b v${mattermost_version} https://github.com/mattermost/mattermost-webapp
 
 RUN cd mattermost-webapp && \
     git apply /patch/themes.patch && \
+    npm config set progress=false loglevel=info && \
     make package
 
 FROM ubuntu:focal
