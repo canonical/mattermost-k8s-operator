@@ -1,0 +1,58 @@
+diff --git a/src/agent.ts b/src/agent.ts
+--- a/src/agent.ts
++++ b/src/agent.ts
+@@ -27,6 +27,8 @@
+ export default class HttpsProxyAgent extends Agent {
+ 	private secureProxy: boolean;
+ 	private proxy: HttpsProxyAgentOptions;
++	private agentMaxSockets: number;
++	private agentCurrentSockets: number;
+ 
+ 	constructor(_opts: string | HttpsProxyAgentOptions) {
+ 		let opts: HttpsProxyAgentOptions;
+@@ -74,6 +76,8 @@
+ 		}
+ 
+ 		this.proxy = proxy;
++		this.agentCurrentSockets = 0;
++		this.agentMaxSockets = parseInt( process.env.NPM_HTTPS_PROXY_AGENT_MAX_SOCKETS || '15');
+ 	}
+ 
+ 	/**
+@@ -88,6 +92,10 @@
+ 	): Promise<net.Socket> {
+ 		const { proxy, secureProxy } = this;
+ 
++		while (this.agentCurrentSockets >= this.agentMaxSockets) {
++			await new Promise((resolve) => setTimeout(resolve, 100));
++		}
++
+ 		// Create a socket connection to the proxy server.
+ 		let socket: net.Socket;
+ 		if (secureProxy) {
+@@ -98,7 +106,12 @@
+ 			socket = net.connect(proxy as net.NetConnectOpts);
+ 		}
+ 
+-		const headers: OutgoingHttpHeaders = { ...proxy.headers };
++		socket.on('close', () => {
++			this.agentCurrentSockets -= 1
++		});
++		this.agentCurrentSockets += 1;
++
++		const headers: OutgoingHttpHeaders = {...proxy.headers};
+ 		const hostname = `${opts.host}:${opts.port}`;
+ 		let payload = `CONNECT ${hostname} HTTP/1.1\r\n`;
+ 
+@@ -177,6 +190,11 @@
+ 			s.push(null);
+ 		});
+ 
++		fakeSocket.on('close', () => {
++			this.agentCurrentSockets -= 1
++		});
++		this.agentCurrentSockets += 1;
++
+ 		return fakeSocket;
+ 	}
+ }
