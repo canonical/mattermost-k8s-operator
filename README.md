@@ -20,23 +20,23 @@ straightforward through Juju’s clean interface. It will allow easy deployment
 into multiple environments for testing of changes, and supports scaling out for
 enterprise deployments.
 
-## Usage
+## Deployment options overview
 
-For details on using Kubernetes with Juju
-[see here](https://juju.is/docs/kubernetes), and for details on using Juju with
-MicroK8s for easy local testing
-[see here](https://juju.is/docs/microk8s-cloud).
+For overall concepts related to using Juju
+[see the Juju overview page](https://juju.is/). For easy local testing we
+recommend
+[this how to on using MicroK8s with Juju](https://juju.is/docs/microk8s-cloud).
+
+## How to deploy this charm (quick guide)
 
 To deploy the charm and relate it to
 [the PostgreSQL K8s charm](https://charmhub.io/postgresql-k8s) within a Juju
 Kubernetes model:
 
-```bash
-juju deploy postgresql-k8s
-juju deploy mattermost-k8s
-juju relate mattermost-k8s postgresql-k8s:db
-juju expose mattermost-k8s
-```
+    juju deploy postgresql-k8s
+    juju deploy mattermost-k8s
+    juju relate mattermost-k8s postgresql-k8s:db
+    juju expose mattermost-k8s
 
 Once the deployment has completed and the "mattermost-k8s" workload state in
 `juju status` has changed to "active" you can visit `http://mattermost-k8s` in
@@ -46,4 +46,5 @@ to create an initial admin account. Further accounts must be created using this
 admin account, or by setting up an external authentication source, such as
 SAML.
 
-For further details, [see here](https://charmhub.io/mattermost-k8s/docs).
+For further details,
+[see the charm’s detailed documentation](https://charmhub.io/mattermost-k8s/docs).
