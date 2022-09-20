@@ -20,7 +20,7 @@ index b60057876..5f59ce763 100644
                          isHidden: it.any(
                              it.not(it.licensed),
 diff --git a/packages/mattermost-redux/src/constants/preferences.ts b/packages/mattermost-redux/src/constants/preferences.ts
-index 4ef8a10f2..f1c5ffce6 100644
+index 4ef8a10f2..d79ab655a 100644
 --- a/packages/mattermost-redux/src/constants/preferences.ts
 +++ b/packages/mattermost-redux/src/constants/preferences.ts
 @@ -203,6 +203,62 @@ const Preferences = {
@@ -43,17 +43,17 @@ index 4ef8a10f2..f1c5ffce6 100644
 +            dndIndicator: '#c7162b',
 +            mentionBg: '#335280',
 +            mentionBj: '#335280',
-+            mentionColor: '#007aa6',
++            mentionColor: '#ffffff',
 +            centerChannelBg: '#333333',
 +            centerChannelColor: '#ffffff',
 +            newMessageSeparator: '#335280',
-+            linkColor: '#007aa6',
++            linkColor: '#8fc7ff',
 +            buttonBg: '#0e8420',
 +            buttonColor: '#ffffff',
 +            errorTextColor: '#c7162b',
 +            mentionHighlightBg: '#f99b11',
 +            mentionHighlightLink: '#007AA6',
-+            codeTheme: 'github',
++            codeTheme: 'monokai',
 +        },
 +        canonicalLight: {
 +            type: 'Canonical Light',
