@@ -15,3 +15,5 @@ requires:
   db:
     interface: pgsql
     limit: 1
+assumes:
+  - k8s-api
