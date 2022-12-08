@@ -1,8 +1,8 @@
 diff --git a/components/admin_console/admin_definition.jsx b/components/admin_console/admin_definition.jsx
-index b60057876..5f59ce763 100644
+index cfae4700d..51f7145e4 100644
 --- a/components/admin_console/admin_definition.jsx
 +++ b/components/admin_console/admin_definition.jsx
-@@ -5947,6 +5947,16 @@ const AdminDefinition = {
+@@ -6305,6 +6305,16 @@ const AdminDefinition = {
                                  display_name: 'Onyx',
                                  display_name_default: 'Onyx',
                              },
@@ -20,10 +20,10 @@ index b60057876..5f59ce763 100644
                          isHidden: it.any(
                              it.not(it.licensed),
 diff --git a/packages/mattermost-redux/src/constants/preferences.ts b/packages/mattermost-redux/src/constants/preferences.ts
-index 4ef8a10f2..d79ab655a 100644
+index ffdd77201..1ee4d635e 100644
 --- a/packages/mattermost-redux/src/constants/preferences.ts
 +++ b/packages/mattermost-redux/src/constants/preferences.ts
-@@ -203,6 +203,62 @@ const Preferences = {
+@@ -210,6 +210,62 @@ const Preferences = {
              mentionHighlightLink: '#a4f4f4',
              codeTheme: 'monokai',
          },
@@ -84,8 +84,8 @@ index 4ef8a10f2..d79ab655a 100644
 +            codeTheme: 'github',
 +        },
      } as Record<ThemeKey, Theme>,
+     RECENT_EMOJIS: 'recent_emojis',
  };
- 
 diff --git a/packages/mattermost-redux/src/types/themes.ts b/packages/mattermost-redux/src/types/themes.ts
 index 1706cc122..feeac7331 100644
 --- a/packages/mattermost-redux/src/types/themes.ts
