@@ -42,7 +42,7 @@ options:
           Switching to a newer image version will initiate an upgrade of Mattermost.
 
           This setting is required.
-        default: mattermostcharmers/mattermost:v7.1.4-20.04_edge
+        default: mattermostcharmers/mattermost:v6.6.0-20.04_edge
     mattermost_image_username:
         type: string
         description: |
