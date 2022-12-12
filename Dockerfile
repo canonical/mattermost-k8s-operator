@@ -3,7 +3,7 @@ FROM ubuntu:focal AS canonical_flavour_builder
 # Avoid needing any input from package installs.
 ENV DEBIAN_FRONTEND=noninteractive
 
-ARG mattermost_version=6.6.0
+ARG mattermost_version=7.1.4
 
 # Update ca-certificates before running git clone to ensure certs are up to
 # date.
@@ -62,7 +62,7 @@ ARG edition=enterprise
 ARG image_flavour=default
 ARG mattermost_gid=2000
 ARG mattermost_uid=2000
-ARG mattermost_version=6.6.0
+ARG mattermost_version=7.1.4
 
 LABEL org.label-schema.version=${mattermost_version}
 LABEL com.canonical.image-flavour=${image_flavour}
