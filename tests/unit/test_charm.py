@@ -106,7 +106,7 @@ CONFIG_LICENCE_REQUIRED_MIXED_INGRESS = {
     'sso': False,
 }
 
-CONFIG_CHANNELS = {
+CONFIG_TEAM = {
     'max_channels_per_team': 20,
     'max_users_per_team': 30,
 }
@@ -129,7 +129,7 @@ class TestMattermostK8sCharmHooksDisabled(unittest.TestCase):
     def test_make_pod_config(self):
         """Make pod config."""
         self.harness.charm.state.db_uri = 'postgresql://10.0.1.101:5432/'
-        self.harness.update_config(CONFIG_CHANNELS)
+        self.harness.update_config(CONFIG_TEAM)
         expected = {
             'MATTERMOST_HTTPD_LISTEN_PORT': 8065,
             'MM_CONFIG': 'postgres://10.0.1.101:5432/',
