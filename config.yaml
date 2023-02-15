@@ -58,6 +58,11 @@ options:
       description: |
         Maximum number of channels per team, including both active and deleted channels.
       default: 3000
+    max_users_per_team:
+      type: int
+      description: |
+        Maximum number of users per team, including active and inactive users.
+      default: 1000
     outbound_proxy:
         type: string
         description: The proxy to use for outbound requests.

@@ -106,8 +106,9 @@ CONFIG_LICENCE_REQUIRED_MIXED_INGRESS = {
     'sso': False,
 }
 
-CONFIG_CHANNELS = {
+CONFIG_TEAM = {
     'max_channels_per_team': 20,
+    'max_users_per_team': 30,
 }
 
 
@@ -128,7 +129,7 @@ class TestMattermostK8sCharmHooksDisabled(unittest.TestCase):
     def test_make_pod_config(self):
         """Make pod config."""
         self.harness.charm.state.db_uri = 'postgresql://10.0.1.101:5432/'
-        self.harness.update_config(CONFIG_CHANNELS)
+        self.harness.update_config(CONFIG_TEAM)
         expected = {
             'MATTERMOST_HTTPD_LISTEN_PORT': 8065,
             'MM_CONFIG': 'postgres://10.0.1.101:5432/',
@@ -140,6 +141,7 @@ class TestMattermostK8sCharmHooksDisabled(unittest.TestCase):
             'MM_SERVICESETTINGS_SITEURL': 'http://mattermost-k8s',
             'MM_SQLSETTINGS_DATASOURCE': 'postgres://10.0.1.101:5432/',
             'MM_TEAMSETTINGS_MAXCHANNELSPERTEAM': 20,
+            'MM_TEAMSETTINGS_MAXUSERSPERTEAM': 30,
         }
         self.assertEqual(self.harness.charm._make_pod_config(), expected)
         # Now test with `primary_team` set.
