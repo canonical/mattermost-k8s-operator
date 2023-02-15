@@ -61,7 +61,7 @@ options:
     max_users_per_team:
       type: int
       description: |
-        Maximum number of users per team, including both active and deleted users.
+        Maximum number of users per team, including active and inactive users.
       default: 1000
     outbound_proxy:
         type: string
