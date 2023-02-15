@@ -222,6 +222,7 @@ class MattermostK8sCharm(CharmBase):
             'MM_LOGSETTINGS_ENABLECONSOLE': 'true',
             'MM_LOGSETTINGS_ENABLEFILE': 'false',
             'MM_TEAMSETTINGS_MAXCHANNELSPERTEAM': config['max_channels_per_team'],
+            'MM_TEAMSETTINGS_MAXUSERSPERTEAM': config['max_users_per_team'],
         }
 
         if config['primary_team']:
