@@ -1,4 +1,0 @@
-ignore_files:
-  - config.yaml
-  - src/charm.py
-  - tests/unit/test_charm.py
