@@ -1,6 +1,6 @@
 name: mattermost-k8s
 display-name: Mattermost
-summary: Flexible messaging platform that enables secure team collaboration.
+summary: Messaging platform for teams.
 docs: https://discourse.charmhub.io/t/mattermost-documentation-overview/3758
 maintainers:
   - launchpad.net/~canonical-is-devops
