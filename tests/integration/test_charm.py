@@ -18,6 +18,7 @@ async def test_build_and_deploy(ops_test: OpsTest):
     charm = await ops_test.build_charm(".")
     await ops_test.model.deploy("postgresql-k8s")
     await ops_test.model.deploy(charm)
+    await ops_test.model.wait_for_idle(raise_on_error=False)
     await ops_test.model.add_relation(
         "postgresql-k8s:db",
         "mattermost-k8s",
