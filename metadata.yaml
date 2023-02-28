@@ -9,8 +9,9 @@ description: |
   secure team collaboration.
   https://mattermost.com
 min-juju-version: 2.8.0  # charm storage in state
+version: 1
 series:
-  - kubernetes
+  - focal
 requires:
   db:
     interface: pgsql
