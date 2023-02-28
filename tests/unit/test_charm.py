@@ -462,7 +462,7 @@ class TestMattermostK8sCharmHooksEnabled(unittest.TestCase):
 
     @mock.patch('subprocess.run')
     def test_on_grant_admin_role_action(self, _run):
-        class DummySubProcess(object):
+        class PlaceholderSubProcess(object):
             def __init__(self, returncode, stderr):
                 self._returncode = returncode
                 self._stderr = stderr
@@ -477,7 +477,7 @@ class TestMattermostK8sCharmHooksEnabled(unittest.TestCase):
 
         action_event = Mock(params={"user": "baron_von_whatsit"})
         # Initially set return code to 0, stderr to None.
-        _run.return_value = DummySubProcess(0, None)
+        _run.return_value = PlaceholderSubProcess(0, None)
         self.harness.charm._on_grant_admin_role_action(action_event)
         expected_msg = (
             "Ran grant-admin-role for user 'baron_von_whatsit'. They will need to log out and log back in "
@@ -485,7 +485,7 @@ class TestMattermostK8sCharmHooksEnabled(unittest.TestCase):
         )
         self.assertTrue(action_event.set_results.called_with({"info": expected_msg}))
         # Now set the return code to 1, and include some stderr.
-        _run.return_value = DummySubProcess(1, b'Terrible news!')
+        _run.return_value = PlaceholderSubProcess(1, b'Terrible news!')
         expected_msg = (
             "Failed to run '/mattermost/bin/mattermost roles system_admin baron_von_whatsit'. Output was:\n"
             "Terrible News!"
