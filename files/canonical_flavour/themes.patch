@@ -86,24 +86,25 @@ index ffdd77201..1ee4d635e 100644
      } as Record<ThemeKey, Theme>,
      RECENT_EMOJIS: 'recent_emojis',
  };
-diff --git a/packages/mattermost-redux/src/types/themes.ts b/packages/mattermost-redux/src/types/themes.ts
-index 1706cc122..feeac7331 100644
---- a/packages/mattermost-redux/src/types/themes.ts
-+++ b/packages/mattermost-redux/src/types/themes.ts
-@@ -3,11 +3,11 @@
- 
- export type LegacyThemeKey = 'default' | 'organization' | 'mattermostDark' | 'windows10';
- 
+diff --git a/packages/mattermost-redux/src/selectors/entities/preferences.ts b/packages/mattermost-redux/src/selectors/entities/preferences.ts
+index 698166fbd..7cd1b1b6d 100644
+--- a/packages/mattermost-redux/src/selectors/entities/preferences.ts
++++ b/packages/mattermost-redux/src/selectors/entities/preferences.ts
+@@ -111,11 +111,11 @@ const getThemePreference = createSelector(
+     },
+ );
+
 -export type ThemeKey = 'denim' | 'sapphire' | 'quartz' | 'indigo' | 'onyx';
 +export type ThemeKey = 'denim' | 'sapphire' | 'quartz' | 'indigo' | 'onyx' | 'canonicalDark' | 'canonicalLight';
- 
+
  export type LegacyThemeType = 'Mattermost' | 'Organization' | 'Mattermost Dark' | 'Windows Dark';
- 
+
 -export type ThemeType = 'Denim' | 'Sapphire' | 'Quartz' | 'Indigo' | 'Onyx';
 +export type ThemeType = 'Denim' | 'Sapphire' | 'Quartz' | 'Indigo' | 'Onyx' | 'Canonical Dark' | 'Canonical Light';
- 
+
  export type Theme = {
      [key: string]: string | undefined;
+
 diff --git a/packages/mattermost-redux/src/utils/theme_utils.ts b/packages/mattermost-redux/src/utils/theme_utils.ts
 index 13843235e..f73529c51 100644
 --- a/packages/mattermost-redux/src/utils/theme_utils.ts

@@ -3,7 +3,7 @@ FROM ubuntu:focal AS canonical_flavour_builder
 # Avoid needing any input from package installs.
 ENV DEBIAN_FRONTEND=noninteractive
 
-ARG mattermost_version=7.1.4
+ARG mattermost_version=7.8.0
 
 # Update ca-certificates before running git clone to ensure certs are up to
 # date.
@@ -54,7 +54,7 @@ RUN git clone -b v${mattermost_version} https://github.com/mattermost/mattermost
 RUN cd mattermost-webapp && \
     git apply /patch/themes.patch && \
     npm config set progress=false loglevel=info && \
-    make package
+    make dist
 
 FROM ubuntu:focal
 
@@ -62,7 +62,7 @@ ARG edition=enterprise
 ARG image_flavour=default
 ARG mattermost_gid=2000
 ARG mattermost_uid=2000
-ARG mattermost_version=7.1.4
+ARG mattermost_version=7.8.0
 
 LABEL org.label-schema.version=${mattermost_version}
 LABEL com.canonical.image-flavour=${image_flavour}
@@ -101,12 +101,12 @@ RUN if [ "$image_flavour" = canonical ]; then \
 
 # Enable prepackaged plugin
 RUN if [ "$image_flavour" = canonical ]; then \
-        tar -C /mattermost/plugins -xvzf /mattermost/prepackaged_plugins/mattermost-plugin-github-v2.0.1-linux-amd64.tar.gz ; \
+        tar -C /mattermost/plugins -xvzf /mattermost/prepackaged_plugins/mattermost-plugin-github-v2.1.4-linux-amd64.tar.gz ; \
     fi
 
 # Enable prepackaged plugin
 RUN if [ "$image_flavour" = canonical ]; then \
-        tar -C /mattermost/plugins -xvzf /mattermost/prepackaged_plugins/mattermost-plugin-gitlab-v1.3.0-linux-amd64.tar.gz ; \
+        tar -C /mattermost/plugins -xvzf /mattermost/prepackaged_plugins/mattermost-plugin-gitlab-v1.6.0-linux-amd64.tar.gz ; \
     fi
 
 # Download and enable third-party plugin
