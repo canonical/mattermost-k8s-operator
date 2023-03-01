@@ -1,0 +1,5 @@
+juju>=2,<3
+ops >= 1.5.0
+ops-lib-pgsql
+pytest
+pytest_operator

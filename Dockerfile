@@ -5,20 +5,15 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 ARG mattermost_version=7.8.0
 
-# Update ca-certificates before running git clone to ensure certs are up to
-# date.
+# Update ca-certificates before running git clone to ensure certs are up to date.
+# We need version 16+ of NodeJS for `make package` to succeed.
 RUN apt-get -y update && \
-    apt-get -y dist-upgrade && \
+    apt-get -y upgrade && \
     apt-get -y --no-install-recommends install \
         ca-certificates && \
     update-ca-certificates && \
     apt-get -y --no-install-recommends install \
-        git
-
-# We need version 16+ of NodeJS for `make package` to succeed.
-RUN apt-get -y update && \
-    apt-get -y dist-upgrade && \
-    apt-get -y --no-install-recommends install \
+        git \
         curl \
         make \
         && \
@@ -73,7 +68,7 @@ SHELL ["/bin/bash", "-c"]
 
 # python3-yaml needed to run juju actions, xmlsec1 needed if UseNewSAMLLibrary is set to false (the default)
 RUN apt-get -qy update && \
-    apt-get -qy dist-upgrade && \
+    apt-get -qy upgrade && \
     apt-get -qy install curl python3-yaml xmlsec1 && \
     rm -f /var/lib/apt/lists/*_*
 

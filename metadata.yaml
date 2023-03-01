@@ -1,16 +1,18 @@
 name: mattermost-k8s
 display-name: Mattermost
-summary: Mattermost is a flexible, open source messaging platform that enables secure team collaboration.
+summary: Messaging platform for team collaboration.
 docs: https://discourse.charmhub.io/t/mattermost-documentation-overview/3758
 maintainers:
-  - launchpad.net/~canonical-is-sre
+  - launchpad.net/~canonical-is-devops
+issues: https://github.com/canonical/mattermost-k8s-operator/issues
 description: |
   Mattermost is a flexible, open source messaging platform that enables
   secure team collaboration.
   https://mattermost.com
 min-juju-version: 2.8.0  # charm storage in state
+version: 1
 series:
-  - kubernetes
+  - focal
 requires:
   db:
     interface: pgsql

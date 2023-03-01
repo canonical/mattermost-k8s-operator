@@ -18,6 +18,7 @@ async def test_build_and_deploy(ops_test: OpsTest):
     charm = await ops_test.build_charm(".")
     await ops_test.model.deploy("postgresql-k8s")
     await ops_test.model.deploy(charm)
+    await ops_test.model.wait_for_idle(raise_on_error=False)
     await ops_test.model.add_relation(
         "postgresql-k8s:db",
         "mattermost-k8s",
@@ -33,6 +34,8 @@ async def test_status(ops_test: OpsTest):
 async def test_workload_online_default(ops_test: OpsTest):
     app = ops_test.model.applications["mattermost-k8s"]
     mmost_unit = app.units[0]
-    action = await mmost_unit.run('unit-get private-address')
-    curl_output = await juju_run(mmost_unit, "curl {}:8065".format(action.results['Stdout'].replace('\n', "")))
-    assert 'Mattermost' in curl_output
+    action = await mmost_unit.run("unit-get private-address")
+    curl_output = await juju_run(
+        mmost_unit, "curl {}:8065".format(action.results["Stdout"].replace("\n", ""))
+    )
+    assert "Mattermost" in curl_output
