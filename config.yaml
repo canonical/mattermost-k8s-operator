@@ -4,7 +4,7 @@ options:
         description: |
           Enable clustering.
 
-          This feature requires a Mattermost Enterprise Edition licence.
+          This feature requires a Mattermost Enterprise Edition license.
         default: false
     debug:
         type: boolean
@@ -26,12 +26,12 @@ options:
 
           This can be used to lock down access to Mattermost based on source IP address.
         default: ''
-    licence:
+    license:
         type: string
         description: |
-          The contents of the licence file as supplied by Mattermost.
+          The contents of the license file as supplied by Mattermost.
 
-          Some features are not available without a licence.  For more
+          Some features are not available without a license.  For more
           information, consult the Mattermost documentation.
         default: ''
     mattermost_image_path:
@@ -91,7 +91,7 @@ options:
 
           For more information, see https://docs.mattermost.com/deployment/metrics.html
 
-          This feature requires a Mattermost Enterprise Edition licence.
+          This feature requires a Mattermost Enterprise Edition license.
         default: false
     primary_team:
         type: string
@@ -181,7 +181,7 @@ options:
         description: |
           Whether to use S3 Server-Side Encryption.
 
-          This requires configuration on the S3 side, as well as a suitable Mattermost licence.
+          This requires configuration on the S3 side, as well as a suitable Mattermost license.
         default: false
     smtp_connection_security:
         type: string
@@ -225,7 +225,7 @@ options:
 
           This will not work unless the administrators of login.ubuntu.com have created a suitable SAML config first.
 
-          This feature requires a Mattermost Enterprise Edition licence.
+          This feature requires a Mattermost Enterprise Edition license.
         default: false
     use_canonical_defaults:
         type: boolean

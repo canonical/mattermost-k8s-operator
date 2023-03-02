@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
-
-# Copyright 2020 Canonical Ltd.
-# Licensed under the GPLv3, see LICENCE file for details.
+# Copyright 2023 Canonical Ltd.
+# See LICENSE file for licensing details.
 
 import logging
 import os
@@ -28,10 +27,10 @@ CONTAINER_PORT = 8065
 # Default port, enforced via envConfig to prevent operator error
 METRICS_PORT = 8067
 DATABASE_NAME = "mattermost"
-LICENCE_SECRET_KEY_NAME = "licence"
+LICENSE_SECRET_KEY_NAME = "license"
 REQUIRED_S3_SETTINGS = ["s3_bucket", "s3_region", "s3_access_key_id", "s3_secret_access_key"]
 REQUIRED_SETTINGS = ["mattermost_image_path"]
-REQUIRED_SSO_SETTINGS = ["licence", "site_url"]
+REQUIRED_SSO_SETTINGS = ["license", "site_url"]
 SAML_IDP_CRT = "saml-idp.crt"
 
 
@@ -107,6 +106,24 @@ class MattermostK8sCharm(CharmBase):
         self.framework.observe(self.db.on.master_changed, self._on_master_changed)
         self.framework.observe(self.db.on.standby_changed, self._on_standby_changed)
         self.framework.observe(self.on.db_master_available, self.configure_pod)
+
+    def _on_grant_admin_role_action(self, event):
+        """Handle the grant-admin-role action."""
+        user = event.params["user"]
+        cmd = ["/mattermost/bin/mattermost", "roles", "system_admin", user]
+        granted = subprocess.run(cmd, capture_output=True)
+        if granted.returncode != 0:
+            event.fail(
+                "Failed to run '{}'. Output was:\n{}".format(
+                    " ".join(cmd), granted.stderr.decode("utf-8")
+                )
+            )
+        else:
+            msg = (
+                "Ran grant-admin-role for user '{}'. They will need to log out and log back in "
+                "to Mattermost to fully receive their permissions upgrade.".format(user)
+            )
+            event.set_results({"info": msg})
 
     @property
     def _site_url(self):
@@ -237,20 +254,20 @@ class MattermostK8sCharm(CharmBase):
 
         missing = {setting for setting in REQUIRED_SETTINGS if not config[setting]}
 
-        if config["clustering"] and not config["licence"]:
-            missing.add("licence")
+        if config["clustering"] and not config["license"]:
+            missing.add("license")
 
         if config["mattermost_image_username"] and not config["mattermost_image_password"]:
             missing.add("mattermost_image_password")
 
-        if config["performance_monitoring_enabled"] and not config["licence"]:
-            missing.add("licence")
+        if config["performance_monitoring_enabled"] and not config["license"]:
+            missing.add("license")
 
         if config["s3_enabled"]:
             missing.update({setting for setting in REQUIRED_S3_SETTINGS if not config[setting]})
 
-        if config["s3_server_side_encryption"] and not config["licence"]:
-            missing.add("licence")
+        if config["s3_server_side_encryption"] and not config["license"]:
+            missing.add("license")
 
         if config["sso"]:
             missing.update({setting for setting in REQUIRED_SSO_SETTINGS if not config[setting]})
@@ -333,68 +350,68 @@ class MattermostK8sCharm(CharmBase):
         resources["ingressResources"] = [ingress]
         pod_spec["kubernetesResources"] = resources
 
-    def _get_licence_secret_name(self):
-        """Compute a content-dependent name for the licence secret.
+    def _get_license_secret_name(self):
+        """Compute a content-dependent name for the license secret.
 
-        The name is varied so that licence updates cause the pods to
-        be respawned.  Mattermost reads the licence file on startup
+        The name is varied so that license updates cause the pods to
+        be respawned.  Mattermost reads the license file on startup
         and updates the copy in the database, if necessary.
         """
-        crc = "{:08x}".format(crc32(self.model.config["licence"].encode("utf-8")))
-        return "{}-licence-{}".format(self.app.name, crc)
+        crc = "{:08x}".format(crc32(self.model.config["license"].encode("utf-8")))
+        return "{}-license-{}".format(self.app.name, crc)
 
-    def _make_licence_volume_configs(self):
-        """Return volume config for the licence secret."""
+    def _make_license_volume_configs(self):
+        """Return volume config for the license secret."""
         config = self.model.config
-        if not config["licence"]:
+        if not config["license"]:
             return []
         return [
             {
-                "name": "licence",
+                "name": "license",
                 "mountPath": "/secrets",
                 "secret": {
-                    "name": self._get_licence_secret_name(),
+                    "name": self._get_license_secret_name(),
                     "files": [
-                        {"key": LICENCE_SECRET_KEY_NAME, "path": "licence.txt", "mode": 0o444}
+                        {"key": LICENSE_SECRET_KEY_NAME, "path": "license.txt", "mode": 0o444}
                     ],
                 },
             }
         ]
 
-    def _make_licence_k8s_secrets(self):
-        """Return secret for the licence."""
+    def _make_license_k8s_secrets(self):
+        """Return secret for the license."""
         config = self.model.config
-        if not config["licence"]:
+        if not config["license"]:
             return []
         return [
             {
-                "name": self._get_licence_secret_name(),
+                "name": self._get_license_secret_name(),
                 "type": "Opaque",
-                "stringData": {LICENCE_SECRET_KEY_NAME: config["licence"]},
+                "stringData": {LICENSE_SECRET_KEY_NAME: config["license"]},
             }
         ]
 
-    def _update_pod_spec_for_licence(self, pod_spec):
-        """Update pod_spec to make the licence, if configured, available to Mattermost."""
+    def _update_pod_spec_for_license(self, pod_spec):
+        """Update pod_spec to make the license, if configured, available to Mattermost."""
         config = self.model.config
-        if not config["licence"]:
+        if not config["license"]:
             return
 
         secrets = pod_spec["kubernetesResources"].get("secrets", [])
         secrets = extend_list_merging_dicts_matched_by_key(
-            secrets, self._make_licence_k8s_secrets(), key="name"
+            secrets, self._make_license_k8s_secrets(), key="name"
         )
         pod_spec["kubernetesResources"]["secrets"] = secrets
 
         container = get_container(pod_spec, self.app.name)
         volume_config = container.get("volumeConfig", [])
         volume_config = extend_list_merging_dicts_matched_by_key(
-            volume_config, self._make_licence_volume_configs(), key="name"
+            volume_config, self._make_license_volume_configs(), key="name"
         )
         container["volumeConfig"] = volume_config
 
         get_env_config(pod_spec, self.app.name).update(
-            {"MM_SERVICESETTINGS_LICENSEFILELOCATION": "/secrets/licence.txt"},
+            {"MM_SERVICESETTINGS_LICENSEFILELOCATION": "/secrets/license.txt"},
         )
 
     def _update_pod_spec_for_canonical_defaults(self, pod_spec):
@@ -573,7 +590,7 @@ class MattermostK8sCharm(CharmBase):
         self._update_pod_spec_for_canonical_defaults(pod_spec)
         self._update_pod_spec_for_clustering(pod_spec)
         self._update_pod_spec_for_k8s_ingress(pod_spec)
-        self._update_pod_spec_for_licence(pod_spec)
+        self._update_pod_spec_for_license(pod_spec)
         self._update_pod_spec_for_performance_monitoring(pod_spec)
         self._update_pod_spec_for_push(pod_spec)
         self._update_pod_spec_for_sso(pod_spec)
@@ -582,24 +599,6 @@ class MattermostK8sCharm(CharmBase):
         self.unit.status = MaintenanceStatus("Setting pod spec")
         self.model.pod.set_spec(pod_spec)
         self.unit.status = ActiveStatus()
-
-    def _on_grant_admin_role_action(self, event):
-        """Handle the grant-admin-role action."""
-        user = event.params["user"]
-        cmd = ["/mattermost/bin/mattermost", "roles", "system_admin", user]
-        granted = subprocess.run(cmd, capture_output=True)
-        if granted.returncode != 0:
-            event.fail(
-                "Failed to run '{}'. Output was:\n{}".format(
-                    " ".join(cmd), granted.stderr.decode("utf-8")
-                )
-            )
-        else:
-            msg = (
-                "Ran grant-admin-role for user '{}'. They will need to log out and log back in "
-                "to Mattermost to fully receive their permissions upgrade.".format(user)
-            )
-            event.set_results({"info": msg})
 
 
 if __name__ == "__main__":
