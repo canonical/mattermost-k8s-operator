@@ -28,31 +28,9 @@ def test_missing_config_settings(config, expected):
 
 
 @pytest.mark.parametrize(
-    "use_canonical_default, expected",
-    [
-        (False, {}),
-        (
-            True,
-            {
-                "MM_SERVICESETTINGS_CLOSEUNUSEDDIRECTMESSAGES": "true",
-                "MM_SERVICESETTINGS_ENABLECUSTOMEMOJI": "true",
-                "MM_SERVICESETTINGS_ENABLELINKPREVIEWS": "true",
-                "MM_SERVICESETTINGS_ENABLEUSERACCESSTOKENS": "true",
-                "MM_TEAMSETTINGS_MAXUSERSPERTEAM": "1000",
-            },
-        ),
-    ],
-)
-def test_env_for_canonical_defaults(use_canonical_default, expected):
-    """Test output of env_for_canonical_defaults function."""
-    config = {"use_canonical_defaults": use_canonical_default}
-    assert environment._env_for_canonical_defaults(config) == expected
-
-
-@pytest.mark.parametrize(
     "config, expected",
     [
-        ({}, {}),
+        ({}, ()),
         (
             {
                 "smtp_host": "placeholder",
@@ -63,16 +41,16 @@ def test_env_for_canonical_defaults(use_canonical_default, expected):
                 "smtp_user": "placeholder",
                 "smtp_port": "placeholder",
             },
-            {
-                "MM_EMAILSETTINGS_CONNECTIONSECURITY": "placeholder",
-                "MM_EMAILSETTINGS_ENABLESMTPAUTH": "true",
-                "MM_EMAILSETTINGS_FEEDBACKEMAIL": "placeholder",
-                "MM_EMAILSETTINGS_REPLYTOADDRESS": "placeholder",
-                "MM_EMAILSETTINGS_SMTPPASSWORD": "placeholder",
-                "MM_EMAILSETTINGS_SMTPPORT": "placeholder",
-                "MM_EMAILSETTINGS_SMTPSERVER": "placeholder",
-                "MM_EMAILSETTINGS_SMTPUSERNAME": "placeholder",
-            },
+            (
+                ("MM_EMAILSETTINGS_CONNECTIONSECURITY", "placeholder"),
+                ("MM_EMAILSETTINGS_ENABLESMTPAUTH", "true"),
+                ("MM_EMAILSETTINGS_FEEDBACKEMAIL", "placeholder"),
+                ("MM_EMAILSETTINGS_REPLYTOADDRESS", "placeholder"),
+                ("MM_EMAILSETTINGS_SMTPPASSWORD", "placeholder"),
+                ("MM_EMAILSETTINGS_SMTPPORT", "placeholder"),
+                ("MM_EMAILSETTINGS_SMTPSERVER", "placeholder"),
+                ("MM_EMAILSETTINGS_SMTPUSERNAME", "placeholder"),
+            ),
         ),
     ],
 )
@@ -84,7 +62,7 @@ def test_env_for_smtp(config, expected):
 @pytest.mark.parametrize(
     "config, site_url, expected",
     [
-        ({}, "", {}),
+        ({}, "", ()),
         (
             {
                 "sso": "true",
@@ -92,27 +70,27 @@ def test_env_for_smtp(config, expected):
                 "site_url": "http://placeholder.test",
             },
             "http://placeholder.test",
-            {
-                "MM_EMAILSETTINGS_ENABLESIGNINWITHEMAIL": "false",
-                "MM_EMAILSETTINGS_ENABLESIGNINWITHUSERNAME": "false",
-                "MM_EMAILSETTINGS_ENABLESIGNUPWITHEMAIL": "false",
-                "MM_SAMLSETTINGS_ENABLE": "true",
-                "MM_SAMLSETTINGS_IDPURL": "https://login.ubuntu.com/saml/",
-                "MM_SAMLSETTINGS_VERIFY": "true",
-                "MM_SAMLSETTINGS_ENCRYPT": "false",
-                "MM_SAMLSETTINGS_IDPDESCRIPTORURL": "https://login.ubuntu.com",
-                "MM_SAMLSETTINGS_SERVICEPROVIDERIDENTIFIER": "https://login.ubuntu.com",
-                "MM_SAMLSETTINGS_IDPMETADATAURL": "https://login.ubuntu.com/+saml/metadata",
-                "MM_SAMLSETTINGS_ASSERTIONCONSUMERSERVICEURL": "https://placeholder.test/login/sso/saml",
-                "MM_SAMLSETTINGS_LOGINBUTTONTEXT": "Ubuntu SSO",
-                "MM_SAMLSETTINGS_EMAILATTRIBUTE": "email",
-                "MM_SAMLSETTINGS_USERNAMEATTRIBUTE": "username",
-                "MM_SAMLSETTINGS_IDATTRIBUTE": "openid",
-                "MM_SAMLSETTINGS_FIRSTNAMEATTRIBUTE": "fullname",
-                "MM_SAMLSETTINGS_LASTNAMEATTRIBUTE": "",
-                "MM_SAMLSETTINGS_IDPCERTIFICATEFILE": "saml-idp.crt",
-                "MM_EXPERIMENTALSETTINGS_USENEWSAMLLIBRARY": "false",
-            },
+            (
+                ("MM_EMAILSETTINGS_ENABLESIGNINWITHEMAIL", "false"),
+                ("MM_EMAILSETTINGS_ENABLESIGNINWITHUSERNAME", "false"),
+                ("MM_EMAILSETTINGS_ENABLESIGNUPWITHEMAIL", "false"),
+                ("MM_SAMLSETTINGS_ENABLE", "true"),
+                ("MM_SAMLSETTINGS_IDPURL", "https://login.ubuntu.com/saml/"),
+                ("MM_SAMLSETTINGS_VERIFY", "true"),
+                ("MM_SAMLSETTINGS_ENCRYPT", "false"),
+                ("MM_SAMLSETTINGS_IDPDESCRIPTORURL", "https://login.ubuntu.com"),
+                ("MM_SAMLSETTINGS_SERVICEPROVIDERIDENTIFIER", "https://login.ubuntu.com"),
+                ("MM_SAMLSETTINGS_IDPMETADATAURL", "https://login.ubuntu.com/+saml/metadata"),
+                ("MM_SAMLSETTINGS_ASSERTIONCONSUMERSERVICEURL", "https://placeholder.test/login/sso/saml"),
+                ("MM_SAMLSETTINGS_LOGINBUTTONTEXT", "Ubuntu SSO"),
+                ("MM_SAMLSETTINGS_EMAILATTRIBUTE", "email"),
+                ("MM_SAMLSETTINGS_USERNAMEATTRIBUTE", "username"),
+                ("MM_SAMLSETTINGS_IDATTRIBUTE", "openid"),
+                ("MM_SAMLSETTINGS_FIRSTNAMEATTRIBUTE", "fullname"),
+                ("MM_SAMLSETTINGS_LASTNAMEATTRIBUTE", ""),
+                ("MM_SAMLSETTINGS_IDPCERTIFICATEFILE", "saml-idp.crt"),
+                ("MM_EXPERIMENTALSETTINGS_USENEWSAMLLIBRARY", "false"),
+            ),
         ),
     ],
 )
@@ -124,17 +102,17 @@ def test_env_for_sso(config, site_url, expected):
 @pytest.mark.parametrize(
     "config, expected",
     [
-        ({}, {}),
+        ({}, ()),
         (
             {
                 "push_notification_server": "placeholder",
                 "push_notifications_include_message_snippet": "placeholder",
             },
-            {
-                "MM_EMAILSETTINGS_SENDPUSHNOTIFICATIONS": "true",
-                "MM_EMAILSETTINGS_PUSHNOTIFICATIONCONTENTS": "full",
-                "MM_EMAILSETTINGS_PUSHNOTIFICATIONSERVER": "placeholder",
-            },
+            (
+                ("MM_EMAILSETTINGS_SENDPUSHNOTIFICATIONS", "true"),
+                ("MM_EMAILSETTINGS_PUSHNOTIFICATIONCONTENTS", "full"),
+                ("MM_EMAILSETTINGS_PUSHNOTIFICATIONSERVER", "placeholder"),
+            ),
         ),
     ],
 )
@@ -146,15 +124,15 @@ def test_env_for_push(config, expected):
 @pytest.mark.parametrize(
     "config, expected",
     [
-        ({}, {}),
+        ({}, ()),
         (
             {
                 "performance_monitoring_enabled": "placeholder",
             },
-            {
-                "MM_METRICSSETTINGS_ENABLE": "true",
-                "MM_METRICSSETTINGS_LISTENADDRESS": ":8067",
-            },
+            (
+                ("MM_METRICSSETTINGS_ENABLE", "true"),
+                ("MM_METRICSSETTINGS_LISTENADDRESS", ":8067"),
+            ),
         ),
     ],
 )
@@ -169,18 +147,18 @@ def test_env_for_performance_monitoring(config, expected):
         (
             {},
             "placeholder",
-            {},
+            (),
         ),
         (
             {
                 "clustering": "true",
             },
             "placeholder",
-            {
-                "MM_CLUSTERSETTINGS_ENABLE": "true",
-                "MM_CLUSTERSETTINGS_CLUSTERNAME": "placeholder-placeholder",
-                "MM_CLUSTERSETTINGS_USEIPADDRESS": "true",
-            },
+            (
+                ("MM_CLUSTERSETTINGS_ENABLE", "true"),
+                ("MM_CLUSTERSETTINGS_CLUSTERNAME", "placeholder-placeholder"),
+                ("MM_CLUSTERSETTINGS_USEIPADDRESS", "true"),
+            ),
         ),
     ],
 )

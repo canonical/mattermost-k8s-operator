@@ -9,43 +9,28 @@ from urllib.parse import urlparse
 CONTAINER_PORT = 8065
 # Default port, enforced via envConfig to prevent operator error
 METRICS_PORT = 8067
-DATABASE_NAME = "mattermost"
-REQUIRED_S3_SETTINGS = ["s3_bucket", "s3_region", "s3_access_key_id", "s3_secret_access_key"]
-REQUIRED_SETTINGS = ["mattermost_image_path"]
-REQUIRED_SSO_SETTINGS = ["license", "site_url"]
+REQUIRED_S3_SETTINGS = ("s3_bucket", "s3_region", "s3_access_key_id", "s3_secret_access_key")
+REQUIRED_SETTINGS = ("mattermost_image_path",)
+REQUIRED_SSO_SETTINGS = ("license", "site_url")
 SAML_IDP_CRT = "saml-idp.crt"
 
-
-def _env_for_canonical_defaults(config: dict) -> dict:
-    """Return various Mattermost settings particular to Canonical's deployment.
-
-    These settings may be less generally useful, and so they are controlled here as a unit.
-
-    Args:
-        config: dict of the charm's configuration
-
-    Returns:
-        dict of various Mattermost settings particular to Canonical's deployment.
-    """
-    if not config["use_canonical_defaults"]:
-        return {}
-    return {
-        # If this is off, users can't turn it on themselves.
-        "MM_SERVICESETTINGS_CLOSEUNUSEDDIRECTMESSAGES": "true",
-        # This allows Matterhorn to use emoji and react to messages.
-        "MM_SERVICESETTINGS_ENABLECUSTOMEMOJI": "true",
-        # If this is off, users can't turn it on themselves.
-        "MM_SERVICESETTINGS_ENABLELINKPREVIEWS": "true",
-        # Matterhorn recommends the use of Personal Access Tokens.
-        "MM_SERVICESETTINGS_ENABLEUSERACCESSTOKENS": "true",
-        # We'll use one large team.  Create and invite are
-        # disabled in the System Scheme, found in the Permissions
-        # section of the System Console.
-        "MM_TEAMSETTINGS_MAXUSERSPERTEAM": "1000",
-    }
+CANONICAL_DEFAULTS = (
+    # If this is off, users can't turn it on themselves.
+    ("MM_SERVICESETTINGS_CLOSEUNUSEDDIRECTMESSAGES", "true"),
+    # This allows Matterhorn to use emoji and react to messages.
+    ("MM_SERVICESETTINGS_ENABLECUSTOMEMOJI", "true"),
+    # If this is off, users can't turn it on themselves.
+    ("MM_SERVICESETTINGS_ENABLELINKPREVIEWS", "true"),
+    # Matterhorn recommends the use of Personal Access Tokens.
+    ("MM_SERVICESETTINGS_ENABLEUSERACCESSTOKENS", "true"),
+    # We'll use one large team.  Create and invite are
+    # disabled in the System Scheme, found in the Permissions
+    # section of the System Console.
+    ("MM_TEAMSETTINGS_MAXUSERSPERTEAM", "1000"),
+)
 
 
-def _env_for_clustering(config: dict, app_name: str) -> dict:
+def _env_for_clustering(config: dict, app_name: str) -> tuple:
     """Return clustering settings, varying the cluster name on the application name.
 
     This is done so that blue/green deployments in the same model won't talk to each other.
@@ -58,16 +43,16 @@ def _env_for_clustering(config: dict, app_name: str) -> dict:
         dict of clustering settings, varying the cluster name on the application name.
     """
     if not config.get("clustering"):
-        return {}
-    return {
-        "MM_CLUSTERSETTINGS_ENABLE": "true",
+        return ()
+    return (
+        ("MM_CLUSTERSETTINGS_ENABLE", "true"),
         # https://juju.is/docs/sdk/charm-environment-variables
-        "MM_CLUSTERSETTINGS_CLUSTERNAME": f"{app_name}-{os.environ.get('JUJU_MODEL_UUID')}",
-        "MM_CLUSTERSETTINGS_USEIPADDRESS": "true",
-    }
+        ("MM_CLUSTERSETTINGS_CLUSTERNAME", f"{app_name}-{os.environ.get('JUJU_MODEL_UUID')}"),
+        ("MM_CLUSTERSETTINGS_USEIPADDRESS", "true"),
+    )
 
 
-def _env_for_performance_monitoring(config: dict) -> dict:
+def _env_for_performance_monitoring(config: dict) -> tuple:
     """Return settings for the Prometheus exporter.
 
     Args:
@@ -77,17 +62,18 @@ def _env_for_performance_monitoring(config: dict) -> dict:
         dict of settings for the Prometheus exporter.
     """
     if not config.get("performance_monitoring_enabled"):
-        return {}
+        return ()
 
-    return {
-        "MM_METRICSSETTINGS_ENABLE": "true"
-        if config.get("performance_monitoring_enabled")
-        else "false",
-        "MM_METRICSSETTINGS_LISTENADDRESS": f":{METRICS_PORT}",
-    }
+    return (
+        (
+            "MM_METRICSSETTINGS_ENABLE",
+            "true" if config.get("performance_monitoring_enabled") else "false",
+        ),
+        ("MM_METRICSSETTINGS_LISTENADDRESS", f":{METRICS_PORT}"),
+    )
 
 
-def _env_for_push(config: dict) -> dict:
+def _env_for_push(config: dict) -> tuple:
     """Return settings for Mattermost HPNS (hosted push notification service).
 
     Args:
@@ -97,18 +83,18 @@ def _env_for_push(config: dict) -> dict:
         dict of settings for Mattermost HPNS (hosted push notification service).
     """
     if not config.get("push_notification_server"):
-        return {}
+        return ()
 
     contents = "full" if config.get("push_notifications_include_message_snippet") else "id_loaded"
 
-    return {
-        "MM_EMAILSETTINGS_SENDPUSHNOTIFICATIONS": "true",
-        "MM_EMAILSETTINGS_PUSHNOTIFICATIONCONTENTS": contents,
-        "MM_EMAILSETTINGS_PUSHNOTIFICATIONSERVER": config.get("push_notification_server"),
-    }
+    return (
+        ("MM_EMAILSETTINGS_SENDPUSHNOTIFICATIONS", "true"),
+        ("MM_EMAILSETTINGS_PUSHNOTIFICATIONCONTENTS", contents),
+        ("MM_EMAILSETTINGS_PUSHNOTIFICATIONSERVER", config.get("push_notification_server")),
+    )
 
 
-def _env_for_sso(config: dict, site_url: str) -> dict:
+def _env_for_sso(config: dict, site_url: str) -> tuple:
     """Return settings to use login.ubuntu.com via SAML for single sign-on.
 
     SAML_IDP_CRT must be generated and installed manually by a human (see README.md).
@@ -121,37 +107,37 @@ def _env_for_sso(config: dict, site_url: str) -> dict:
         dict of settings to use login.ubuntu.com via SAML for single sign-on.
     """
     if not config.get("sso") or any(not config.get(setting) for setting in REQUIRED_SSO_SETTINGS):
-        return {}
+        return ()
     site_hostname = urlparse(site_url).hostname
     use_experimental_saml_library = (
         "true" if config.get("use_experimental_saml_library") else "false"
     )
 
-    return {
-        "MM_EMAILSETTINGS_ENABLESIGNINWITHEMAIL": "false",
-        "MM_EMAILSETTINGS_ENABLESIGNINWITHUSERNAME": "false",
-        "MM_EMAILSETTINGS_ENABLESIGNUPWITHEMAIL": "false",
-        "MM_SAMLSETTINGS_ENABLE": "true",
-        "MM_SAMLSETTINGS_IDPURL": "https://login.ubuntu.com/saml/",
-        "MM_SAMLSETTINGS_VERIFY": "true",
-        "MM_SAMLSETTINGS_ENCRYPT": "false",  # per POC
-        "MM_SAMLSETTINGS_IDPDESCRIPTORURL": "https://login.ubuntu.com",
-        "MM_SAMLSETTINGS_SERVICEPROVIDERIDENTIFIER": "https://login.ubuntu.com",
-        "MM_SAMLSETTINGS_IDPMETADATAURL": "https://login.ubuntu.com/+saml/metadata",
-        "MM_SAMLSETTINGS_ASSERTIONCONSUMERSERVICEURL": f"https://{site_hostname}/login/sso/saml",
-        "MM_SAMLSETTINGS_LOGINBUTTONTEXT": "Ubuntu SSO",
-        "MM_SAMLSETTINGS_EMAILATTRIBUTE": "email",
-        "MM_SAMLSETTINGS_USERNAMEATTRIBUTE": "username",
-        "MM_SAMLSETTINGS_IDATTRIBUTE": "openid",
-        "MM_SAMLSETTINGS_FIRSTNAMEATTRIBUTE": "fullname",
-        "MM_SAMLSETTINGS_LASTNAMEATTRIBUTE": "",
-        "MM_SAMLSETTINGS_IDPCERTIFICATEFILE": SAML_IDP_CRT,
+    return (
+        ("MM_EMAILSETTINGS_ENABLESIGNINWITHEMAIL", "false"),
+        ("MM_EMAILSETTINGS_ENABLESIGNINWITHUSERNAME", "false"),
+        ("MM_EMAILSETTINGS_ENABLESIGNUPWITHEMAIL", "false"),
+        ("MM_SAMLSETTINGS_ENABLE", "true"),
+        ("MM_SAMLSETTINGS_IDPURL", "https://login.ubuntu.com/saml/"),
+        ("MM_SAMLSETTINGS_VERIFY", "true"),
+        ("MM_SAMLSETTINGS_ENCRYPT", "false"),  # per POC
+        ("MM_SAMLSETTINGS_IDPDESCRIPTORURL", "https://login.ubuntu.com"),
+        ("MM_SAMLSETTINGS_SERVICEPROVIDERIDENTIFIER", "https://login.ubuntu.com"),
+        ("MM_SAMLSETTINGS_IDPMETADATAURL", "https://login.ubuntu.com/+saml/metadata"),
+        ("MM_SAMLSETTINGS_ASSERTIONCONSUMERSERVICEURL", f"https://{site_hostname}/login/sso/saml"),
+        ("MM_SAMLSETTINGS_LOGINBUTTONTEXT", "Ubuntu SSO"),
+        ("MM_SAMLSETTINGS_EMAILATTRIBUTE", "email"),
+        ("MM_SAMLSETTINGS_USERNAMEATTRIBUTE", "username"),
+        ("MM_SAMLSETTINGS_IDATTRIBUTE", "openid"),
+        ("MM_SAMLSETTINGS_FIRSTNAMEATTRIBUTE", "fullname"),
+        ("MM_SAMLSETTINGS_LASTNAMEATTRIBUTE", ""),
+        ("MM_SAMLSETTINGS_IDPCERTIFICATEFILE", SAML_IDP_CRT),
         # If not set, we have to install xmlsec1, and Mattermost forks on every login(!).
-        "MM_EXPERIMENTALSETTINGS_USENEWSAMLLIBRARY": use_experimental_saml_library,
-    }
+        ("MM_EXPERIMENTALSETTINGS_USENEWSAMLLIBRARY", use_experimental_saml_library),
+    )
 
 
-def _env_for_smtp(config: dict) -> dict:
+def _env_for_smtp(config: dict) -> tuple:
     """Return settings for an outgoing SMTP relay.
 
     Args:
@@ -174,26 +160,26 @@ def _env_for_smtp(config: dict) -> dict:
             )
         )
     ):
-        return {}
+        return ()
 
     if not config["smtp_host"]:
-        return {}
+        return ()
 
     enable_smtp_auth = "false"
     if config["smtp_user"] and config["smtp_password"]:
         enable_smtp_auth = "true"
 
     # https://github.com/mattermost/mattermost-server/blob/master/model/config.go#L1532
-    return {
-        "MM_EMAILSETTINGS_CONNECTIONSECURITY": config["smtp_connection_security"],
-        "MM_EMAILSETTINGS_ENABLESMTPAUTH": enable_smtp_auth,
-        "MM_EMAILSETTINGS_FEEDBACKEMAIL": config["smtp_from_address"],
-        "MM_EMAILSETTINGS_REPLYTOADDRESS": config["smtp_reply_to_address"],
-        "MM_EMAILSETTINGS_SMTPPASSWORD": config["smtp_password"],
-        "MM_EMAILSETTINGS_SMTPPORT": config["smtp_port"],
-        "MM_EMAILSETTINGS_SMTPSERVER": config["smtp_host"],
-        "MM_EMAILSETTINGS_SMTPUSERNAME": config["smtp_user"],
-    }
+    return (
+        ("MM_EMAILSETTINGS_CONNECTIONSECURITY", config["smtp_connection_security"]),
+        ("MM_EMAILSETTINGS_ENABLESMTPAUTH", enable_smtp_auth),
+        ("MM_EMAILSETTINGS_FEEDBACKEMAIL", config["smtp_from_address"]),
+        ("MM_EMAILSETTINGS_REPLYTOADDRESS", config["smtp_reply_to_address"]),
+        ("MM_EMAILSETTINGS_SMTPPASSWORD", config["smtp_password"]),
+        ("MM_EMAILSETTINGS_SMTPPORT", config["smtp_port"]),
+        ("MM_EMAILSETTINGS_SMTPSERVER", config["smtp_host"]),
+        ("MM_EMAILSETTINGS_SMTPUSERNAME", config["smtp_user"]),
+    )
 
 
 def missing_config_settings(config: dict) -> list:
@@ -285,7 +271,9 @@ def generate(config: dict, app_name: str, site_url: str, db_uri: str) -> dict:
             }
         )
 
-    env.update(_env_for_canonical_defaults(config))
+    if config["use_canonical_defaults"]:
+        env.update(CANONICAL_DEFAULTS)
+
     env.update(_env_for_clustering(config, app_name))
     env.update(_env_for_performance_monitoring(config))
     env.update(_env_for_push(config))
