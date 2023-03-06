@@ -24,13 +24,13 @@ async def test_build_and_deploy(ops_test: OpsTest):
         "postgresql-k8s:db",
         "mattermost-k8s",
     )
-    # Application actually does have units
+    # mypy doesn't see that ActiveStatus has a name
     await ops_test.model.wait_for_idle(status=ActiveStatus.name, raise_on_error=False)  # type: ignore
 
 
 async def test_status(ops_test: OpsTest):
     assert ops_test.model
-    # Application actually does have units
+    # mypy doesn't see that ActiveStatus has a name
     assert ops_test.model.applications["mattermost-k8s"].status == ActiveStatus.name  # type: ignore
     assert ops_test.model.applications["postgresql-k8s"].status == ActiveStatus.name  # type: ignore
 
