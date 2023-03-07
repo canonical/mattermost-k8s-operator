@@ -46,6 +46,7 @@ def _env_for_clustering(config: dict, app_name: str) -> tuple:
         return ()
     return (
         ("MM_CLUSTERSETTINGS_ENABLE", "true"),
+        # 'JUJU_MODEL_UUID' is one of the env variables injected by juju
         # https://juju.is/docs/sdk/charm-environment-variables
         ("MM_CLUSTERSETTINGS_CLUSTERNAME", f"{app_name}-{os.environ.get('JUJU_MODEL_UUID')}"),
         ("MM_CLUSTERSETTINGS_USEIPADDRESS", "true"),
