@@ -166,9 +166,7 @@ def _env_for_smtp(config: dict) -> tuple:
     if not config["smtp_host"]:
         return ()
 
-    enable_smtp_auth = "false"
-    if config["smtp_user"] and config["smtp_password"]:
-        enable_smtp_auth = "true"
+    enable_smtp_auth = "true" if config["smtp_user"] and config["smtp_password"] else "false"
 
     # https://github.com/mattermost/mattermost-server/blob/master/model/config.go#L1532
     return (
