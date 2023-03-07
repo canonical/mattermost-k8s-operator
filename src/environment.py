@@ -11,7 +11,7 @@ CONTAINER_PORT = 8065
 METRICS_PORT = 8067
 REQUIRED_S3_SETTINGS = ("s3_bucket", "s3_region", "s3_access_key_id", "s3_secret_access_key")
 REQUIRED_SETTINGS = ("mattermost_image_path",)
-REQUIRED_SSO_SETTINGS = ("license", "site_url")
+REQUIRED_SSO_SETTINGS = ("licence", "site_url")
 SAML_IDP_CRT = "saml-idp.crt"
 
 CANONICAL_DEFAULTS = (
@@ -193,20 +193,20 @@ def missing_config_settings(config: dict) -> list:
     """
     missing = [setting for setting in REQUIRED_SETTINGS if not config.get(setting)]
 
-    if config.get("clustering") and not config.get("license"):
-        missing.append("license")
+    if config.get("clustering") and not config.get("licence"):
+        missing.append("licence")
 
     if config.get("mattermost_image_username") and not config.get("mattermost_image_password"):
         missing.append("mattermost_image_password")
 
-    if config.get("performance_monitoring_enabled") and not config.get("license"):
-        missing.append("license")
+    if config.get("performance_monitoring_enabled") and not config.get("licence"):
+        missing.append("licence")
 
     if config.get("s3_enabled"):
         missing += [setting for setting in REQUIRED_S3_SETTINGS if not config.get(setting)]
 
-    if config.get("s3_server_side_encryption") and not config.get("license"):
-        missing.append("license")
+    if config.get("s3_server_side_encryption") and not config.get("licence"):
+        missing.append("licence")
 
     if config.get("sso") == "true":
         missing += [setting for setting in REQUIRED_SSO_SETTINGS if not config.get(setting)]
