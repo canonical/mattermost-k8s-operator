@@ -42,9 +42,9 @@ CONFIG_IMAGE_NO_PASSWORD = {
     "sso": False,
 }
 
-CONFIG_LICENSE_SECRET = {"license": "RANDOMSTRING"}
+CONFIG_LICENSE_SECRET = {"licence": "RANDOMSTRING"}
 
-CONFIG_NO_LICENSE_SECRET = {"license": ""}
+CONFIG_NO_LICENSE_SECRET = {"licence": ""}
 
 CONFIG_NO_S3_SETTINGS_S3_ENABLED = {
     "clustering": False,
@@ -92,7 +92,7 @@ CONFIG_PUSH_NOTIFICATION_MESSAGE_SNIPPET = {
 CONFIG_LICENSE_REQUIRED_MIXED_INGRESS = {
     "clustering": True,
     "ingress_whitelist_source_range": "10.242.0.0/8,91.189.92.128/25",
-    "license": "",
+    "licence": "",
     "mattermost_image_path": "example.com/mattermost:latest",
     "mattermost_image_username": "",
     "mattermost_image_password": "",
@@ -117,7 +117,7 @@ class TestMattermostK8sCharmHooksDisabled(unittest.TestCase):
     def test_check_for_config_problems(self):
         """Config problems as a string."""
         self.harness.update_config(CONFIG_LICENSE_REQUIRED_MIXED_INGRESS)
-        expected = "required setting(s) empty: license; ingress_whitelist_source_range: invalid network(s): 10.242.0.0/8"
+        expected = "required setting(s) empty: licence; ingress_whitelist_source_range: invalid network(s): 10.242.0.0/8"
         self.assertEqual(self.harness.charm._check_for_config_problems(), expected)
 
     def test_env_generate(self):
@@ -156,43 +156,43 @@ class TestMattermostK8sCharmHooksDisabled(unittest.TestCase):
         expected["NO_PROXY"] = "charmhub.io"
         self.assertEqual(self.harness.charm._make_pod_config(), expected)
 
-    def test_get_license_secret_name(self):
-        """Test the license secret name is correctly constructed"""
+    def test_get_licence_secret_name(self):
+        """Test the licence secret name is correctly constructed"""
         self.harness.update_config(CONFIG_LICENSE_SECRET)
         self.assertEqual(
-            self.harness.charm._get_license_secret_name(), "mattermost-k8s-license-b5bbb1bf"
+            self.harness.charm._get_licence_secret_name(), "mattermost-k8s-licence-b5bbb1bf"
         )
 
-    def test_make_license_k8s_secrets(self):
-        """Test making license k8s secrets"""
+    def test_make_licence_k8s_secrets(self):
+        """Test making licence k8s secrets"""
         self.harness.update_config(CONFIG_NO_LICENSE_SECRET)
-        self.assertEqual(self.harness.charm._make_license_k8s_secrets(), [])
+        self.assertEqual(self.harness.charm._make_licence_k8s_secrets(), [])
         self.harness.update_config(CONFIG_LICENSE_SECRET)
         expected = [
             {
-                "name": "mattermost-k8s-license-b5bbb1bf",
+                "name": "mattermost-k8s-licence-b5bbb1bf",
                 "type": "Opaque",
-                "stringData": {"license": "RANDOMSTRING"},
+                "stringData": {"licence": "RANDOMSTRING"},
             }
         ]
-        self.assertEqual(self.harness.charm._make_license_k8s_secrets(), expected)
+        self.assertEqual(self.harness.charm._make_licence_k8s_secrets(), expected)
 
-    def test_make_license_volume_configs(self):
-        """Test making license volume configs"""
+    def test_make_licence_volume_configs(self):
+        """Test making licence volume configs"""
         self.harness.update_config(CONFIG_NO_LICENSE_SECRET)
-        self.assertEqual(self.harness.charm._make_license_volume_configs(), [])
+        self.assertEqual(self.harness.charm._make_licence_volume_configs(), [])
         self.harness.update_config(CONFIG_LICENSE_SECRET)
         expected = [
             {
-                "name": "license",
+                "name": "licence",
                 "mountPath": "/secrets",
                 "secret": {
-                    "name": "mattermost-k8s-license-b5bbb1bf",
-                    "files": [{"key": "license", "path": "license.txt", "mode": 0o444}],
+                    "name": "mattermost-k8s-licence-b5bbb1bf",
+                    "files": [{"key": "licence", "path": "licence.txt", "mode": 0o444}],
                 },
             }
         ]
-        self.assertEqual(self.harness.charm._make_license_volume_configs(), expected)
+        self.assertEqual(self.harness.charm._make_licence_volume_configs(), expected)
 
     def test_site_url(self):
         """Test the site url property."""

@@ -14,12 +14,12 @@ import environment
     [
         ({}, ["mattermost_image_path"]),
         ({"mattermost_image_path": "placeholder"}, []),
-        ({"mattermost_image_path": "placeholder", "clustering": "placeholder"}, ["license"]),
+        ({"mattermost_image_path": "placeholder", "clustering": "placeholder"}, ["licence"]),
         (
             {"mattermost_image_username": "placeholder"},
             ["mattermost_image_password", "mattermost_image_path"],
         ),
-        ({"mattermost_image_path": "placeholder", "sso": "true"}, ["license", "site_url"]),
+        ({"mattermost_image_path": "placeholder", "sso": "true"}, ["licence", "site_url"]),
     ],
 )
 def test_missing_config_settings(config, expected):
@@ -66,7 +66,7 @@ def test_env_for_smtp(config, expected):
         (
             {
                 "sso": "true",
-                "license": "placeholder",
+                "licence": "placeholder",
                 "site_url": "http://placeholder.test",
             },
             "http://placeholder.test",
@@ -81,7 +81,10 @@ def test_env_for_smtp(config, expected):
                 ("MM_SAMLSETTINGS_IDPDESCRIPTORURL", "https://login.ubuntu.com"),
                 ("MM_SAMLSETTINGS_SERVICEPROVIDERIDENTIFIER", "https://login.ubuntu.com"),
                 ("MM_SAMLSETTINGS_IDPMETADATAURL", "https://login.ubuntu.com/+saml/metadata"),
-                ("MM_SAMLSETTINGS_ASSERTIONCONSUMERSERVICEURL", "https://placeholder.test/login/sso/saml"),
+                (
+                    "MM_SAMLSETTINGS_ASSERTIONCONSUMERSERVICEURL",
+                    "https://placeholder.test/login/sso/saml",
+                ),
                 ("MM_SAMLSETTINGS_LOGINBUTTONTEXT", "Ubuntu SSO"),
                 ("MM_SAMLSETTINGS_EMAILATTRIBUTE", "email"),
                 ("MM_SAMLSETTINGS_USERNAMEATTRIBUTE", "username"),
