@@ -3,6 +3,7 @@
 # See LICENSE file for licensing details.
 
 import os
+from typing import Iterable
 from urllib.parse import urlparse
 
 # Mattermost's default port, and what we expect the image to use
@@ -30,7 +31,7 @@ CANONICAL_DEFAULTS = (
 )
 
 
-def _env_for_clustering(config: dict, app_name: str) -> tuple:
+def _env_for_clustering(config: dict, app_name: str) -> Iterable[tuple[str, str]]:
     """Return clustering settings, varying the cluster name on the application name.
 
     This is done so that blue/green deployments in the same model won't talk to each other.
@@ -43,17 +44,16 @@ def _env_for_clustering(config: dict, app_name: str) -> tuple:
         dict of clustering settings, varying the cluster name on the application name.
     """
     if not config.get("clustering"):
-        return ()
-    return (
-        ("MM_CLUSTERSETTINGS_ENABLE", "true"),
-        # 'JUJU_MODEL_UUID' is one of the env variables injected by juju
-        # https://juju.is/docs/sdk/charm-environment-variables
-        ("MM_CLUSTERSETTINGS_CLUSTERNAME", f"{app_name}-{os.environ.get('JUJU_MODEL_UUID')}"),
-        ("MM_CLUSTERSETTINGS_USEIPADDRESS", "true"),
-    )
+        return
+
+    yield ("MM_CLUSTERSETTINGS_ENABLE", "true")
+    # 'JUJU_MODEL_UUID' is one of the env variables injected by juju
+    # https://juju.is/docs/sdk/charm-environment-variables
+    yield ("MM_CLUSTERSETTINGS_CLUSTERNAME", f"{app_name}-{os.environ.get('JUJU_MODEL_UUID')}")
+    yield ("MM_CLUSTERSETTINGS_USEIPADDRESS", "true")
 
 
-def _env_for_performance_monitoring(config: dict) -> tuple:
+def _env_for_performance_monitoring(config: dict) -> Iterable[tuple[str, str]]:
     """Return settings for the Prometheus exporter.
 
     Args:
@@ -63,18 +63,16 @@ def _env_for_performance_monitoring(config: dict) -> tuple:
         dict of settings for the Prometheus exporter.
     """
     if not config.get("performance_monitoring_enabled"):
-        return ()
+        return
 
-    return (
-        (
-            "MM_METRICSSETTINGS_ENABLE",
-            "true" if config.get("performance_monitoring_enabled") else "false",
-        ),
-        ("MM_METRICSSETTINGS_LISTENADDRESS", f":{METRICS_PORT}"),
+    yield (
+        "MM_METRICSSETTINGS_ENABLE",
+        "true" if config.get("performance_monitoring_enabled") else "false",
     )
+    yield ("MM_METRICSSETTINGS_LISTENADDRESS", f":{METRICS_PORT}")
 
 
-def _env_for_push(config: dict) -> tuple:
+def _env_for_push(config: dict) -> Iterable[tuple[str, str]]:
     """Return settings for Mattermost HPNS (hosted push notification service).
 
     Args:
@@ -84,18 +82,16 @@ def _env_for_push(config: dict) -> tuple:
         dict of settings for Mattermost HPNS (hosted push notification service).
     """
     if not config.get("push_notification_server"):
-        return ()
+        return
 
     contents = "full" if config.get("push_notifications_include_message_snippet") else "id_loaded"
 
-    return (
-        ("MM_EMAILSETTINGS_SENDPUSHNOTIFICATIONS", "true"),
-        ("MM_EMAILSETTINGS_PUSHNOTIFICATIONCONTENTS", contents),
-        ("MM_EMAILSETTINGS_PUSHNOTIFICATIONSERVER", config.get("push_notification_server")),
-    )
+    yield ("MM_EMAILSETTINGS_SENDPUSHNOTIFICATIONS", "true")
+    yield ("MM_EMAILSETTINGS_PUSHNOTIFICATIONCONTENTS", contents)
+    yield ("MM_EMAILSETTINGS_PUSHNOTIFICATIONSERVER", config.get("push_notification_server"))
 
 
-def _env_for_sso(config: dict, site_url: str) -> tuple:
+def _env_for_sso(config: dict, site_url: str) -> Iterable[tuple[str, str]]:
     """Return settings to use login.ubuntu.com via SAML for single sign-on.
 
     SAML_IDP_CRT must be generated and installed manually by a human (see README.md).
@@ -108,37 +104,38 @@ def _env_for_sso(config: dict, site_url: str) -> tuple:
         dict of settings to use login.ubuntu.com via SAML for single sign-on.
     """
     if not config.get("sso") or any(not config.get(setting) for setting in REQUIRED_SSO_SETTINGS):
-        return ()
+        return
     site_hostname = urlparse(site_url).hostname
     use_experimental_saml_library = (
         "true" if config.get("use_experimental_saml_library") else "false"
     )
 
-    return (
-        ("MM_EMAILSETTINGS_ENABLESIGNINWITHEMAIL", "false"),
-        ("MM_EMAILSETTINGS_ENABLESIGNINWITHUSERNAME", "false"),
-        ("MM_EMAILSETTINGS_ENABLESIGNUPWITHEMAIL", "false"),
-        ("MM_SAMLSETTINGS_ENABLE", "true"),
-        ("MM_SAMLSETTINGS_IDPURL", "https://login.ubuntu.com/saml/"),
-        ("MM_SAMLSETTINGS_VERIFY", "true"),
-        ("MM_SAMLSETTINGS_ENCRYPT", "false"),  # per POC
-        ("MM_SAMLSETTINGS_IDPDESCRIPTORURL", "https://login.ubuntu.com"),
-        ("MM_SAMLSETTINGS_SERVICEPROVIDERIDENTIFIER", "https://login.ubuntu.com"),
-        ("MM_SAMLSETTINGS_IDPMETADATAURL", "https://login.ubuntu.com/+saml/metadata"),
-        ("MM_SAMLSETTINGS_ASSERTIONCONSUMERSERVICEURL", f"https://{site_hostname}/login/sso/saml"),
-        ("MM_SAMLSETTINGS_LOGINBUTTONTEXT", "Ubuntu SSO"),
-        ("MM_SAMLSETTINGS_EMAILATTRIBUTE", "email"),
-        ("MM_SAMLSETTINGS_USERNAMEATTRIBUTE", "username"),
-        ("MM_SAMLSETTINGS_IDATTRIBUTE", "openid"),
-        ("MM_SAMLSETTINGS_FIRSTNAMEATTRIBUTE", "fullname"),
-        ("MM_SAMLSETTINGS_LASTNAMEATTRIBUTE", ""),
-        ("MM_SAMLSETTINGS_IDPCERTIFICATEFILE", SAML_IDP_CRT),
-        # If not set, we have to install xmlsec1, and Mattermost forks on every login(!).
-        ("MM_EXPERIMENTALSETTINGS_USENEWSAMLLIBRARY", use_experimental_saml_library),
+    yield ("MM_EMAILSETTINGS_ENABLESIGNINWITHEMAIL", "false")
+    yield ("MM_EMAILSETTINGS_ENABLESIGNINWITHUSERNAME", "false")
+    yield ("MM_EMAILSETTINGS_ENABLESIGNUPWITHEMAIL", "false")
+    yield ("MM_SAMLSETTINGS_ENABLE", "true")
+    yield ("MM_SAMLSETTINGS_IDPURL", "https://login.ubuntu.com/saml/")
+    yield ("MM_SAMLSETTINGS_VERIFY", "true")
+    yield ("MM_SAMLSETTINGS_ENCRYPT", "false")  # per POC
+    yield ("MM_SAMLSETTINGS_IDPDESCRIPTORURL", "https://login.ubuntu.com")
+    yield ("MM_SAMLSETTINGS_SERVICEPROVIDERIDENTIFIER", "https://login.ubuntu.com")
+    yield ("MM_SAMLSETTINGS_IDPMETADATAURL", "https://login.ubuntu.com/+saml/metadata")
+    yield (
+        "MM_SAMLSETTINGS_ASSERTIONCONSUMERSERVICEURL",
+        f"https://{site_hostname}/login/sso/saml",
     )
+    yield ("MM_SAMLSETTINGS_LOGINBUTTONTEXT", "Ubuntu SSO")
+    yield ("MM_SAMLSETTINGS_EMAILATTRIBUTE", "email")
+    yield ("MM_SAMLSETTINGS_USERNAMEATTRIBUTE", "username")
+    yield ("MM_SAMLSETTINGS_IDATTRIBUTE", "openid")
+    yield ("MM_SAMLSETTINGS_FIRSTNAMEATTRIBUTE", "fullname")
+    yield ("MM_SAMLSETTINGS_LASTNAMEATTRIBUTE", "")
+    yield ("MM_SAMLSETTINGS_IDPCERTIFICATEFILE", SAML_IDP_CRT)
+    # If not set, we have to install xmlsec1, and Mattermost forks on every login(!).
+    yield ("MM_EXPERIMENTALSETTINGS_USENEWSAMLLIBRARY", use_experimental_saml_library)
 
 
-def _env_for_smtp(config: dict) -> tuple:
+def _env_for_smtp(config: dict) -> Iterable[tuple[str, str]]:
     """Return settings for an outgoing SMTP relay.
 
     Args:
@@ -161,24 +158,22 @@ def _env_for_smtp(config: dict) -> tuple:
             )
         )
     ):
-        return ()
+        return
 
     if not config["smtp_host"]:
-        return ()
+        return
 
     enable_smtp_auth = "true" if config["smtp_user"] and config["smtp_password"] else "false"
 
     # https://github.com/mattermost/mattermost-server/blob/master/model/config.go#L1532
-    return (
-        ("MM_EMAILSETTINGS_CONNECTIONSECURITY", config["smtp_connection_security"]),
-        ("MM_EMAILSETTINGS_ENABLESMTPAUTH", enable_smtp_auth),
-        ("MM_EMAILSETTINGS_FEEDBACKEMAIL", config["smtp_from_address"]),
-        ("MM_EMAILSETTINGS_REPLYTOADDRESS", config["smtp_reply_to_address"]),
-        ("MM_EMAILSETTINGS_SMTPPASSWORD", config["smtp_password"]),
-        ("MM_EMAILSETTINGS_SMTPPORT", config["smtp_port"]),
-        ("MM_EMAILSETTINGS_SMTPSERVER", config["smtp_host"]),
-        ("MM_EMAILSETTINGS_SMTPUSERNAME", config["smtp_user"]),
-    )
+    yield ("MM_EMAILSETTINGS_CONNECTIONSECURITY", config["smtp_connection_security"])
+    yield ("MM_EMAILSETTINGS_ENABLESMTPAUTH", enable_smtp_auth)
+    yield ("MM_EMAILSETTINGS_FEEDBACKEMAIL", config["smtp_from_address"])
+    yield ("MM_EMAILSETTINGS_REPLYTOADDRESS", config["smtp_reply_to_address"])
+    yield ("MM_EMAILSETTINGS_SMTPPASSWORD", config["smtp_password"])
+    yield ("MM_EMAILSETTINGS_SMTPPORT", config["smtp_port"])
+    yield ("MM_EMAILSETTINGS_SMTPSERVER", config["smtp_host"])
+    yield ("MM_EMAILSETTINGS_SMTPUSERNAME", config["smtp_user"])
 
 
 def missing_config_settings(config: dict) -> list:

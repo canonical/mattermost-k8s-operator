@@ -56,7 +56,7 @@ def test_missing_config_settings(config, expected):
 )
 def test_env_for_smtp(config, expected):
     """Test output of env_for_smtp function."""
-    assert environment._env_for_smtp(config) == expected
+    assert tuple(environment._env_for_smtp(config)) == expected
 
 
 @pytest.mark.parametrize(
@@ -99,7 +99,7 @@ def test_env_for_smtp(config, expected):
 )
 def test_env_for_sso(config, site_url, expected):
     """Test output of env_for_sso function."""
-    assert environment._env_for_sso(config, site_url) == expected
+    assert tuple(environment._env_for_sso(config, site_url)) == expected
 
 
 @pytest.mark.parametrize(
@@ -121,7 +121,7 @@ def test_env_for_sso(config, site_url, expected):
 )
 def test_env_for_push(config, expected):
     """Test output of env_for_push function."""
-    assert environment._env_for_push(config) == expected
+    assert tuple(environment._env_for_push(config)) == expected
 
 
 @pytest.mark.parametrize(
@@ -141,7 +141,7 @@ def test_env_for_push(config, expected):
 )
 def test_env_for_performance_monitoring(config, expected):
     """Test output of env_for_performance_monitoring function."""
-    assert environment._env_for_performance_monitoring(config) == expected
+    assert tuple(environment._env_for_performance_monitoring(config)) == expected
 
 
 @pytest.mark.parametrize(
@@ -168,4 +168,4 @@ def test_env_for_performance_monitoring(config, expected):
 @mock.patch.dict(os.environ, {"JUJU_MODEL_UUID": "placeholder"}, clear=True)
 def test_env_for_clustering(config, app_name, expected):
     """Test output of env_for_clustering function."""
-    assert environment._env_for_clustering(config, app_name) == expected
+    assert tuple(environment._env_for_clustering(config, app_name)) == expected
