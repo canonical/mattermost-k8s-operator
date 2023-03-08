@@ -24,7 +24,7 @@ import environment
 )
 def test_missing_config_settings(config, expected):
     """Test output of missing_config_settings function."""
-    assert environment.missing_config_settings(config) == expected
+    assert sorted(environment.missing_config_settings(config)) == expected
 
 
 @pytest.mark.parametrize(

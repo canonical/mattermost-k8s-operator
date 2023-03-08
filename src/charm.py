@@ -172,7 +172,7 @@ class MattermostK8sCharm(CharmBase):
         """Check for simple configuration problems and return a string describing them, otherwise an empty string."""
         problems = []
 
-        missing = environment.missing_config_settings(self.config)
+        missing = sorted(environment.missing_config_settings(self.config))
         if missing:
             problems.append("required setting(s) empty: {}".format(", ".join(missing)))
 

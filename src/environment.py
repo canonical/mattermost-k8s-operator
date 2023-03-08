@@ -176,7 +176,7 @@ def _env_for_smtp(config: dict) -> Iterable[tuple[str, str]]:
     yield ("MM_EMAILSETTINGS_SMTPUSERNAME", config["smtp_user"])
 
 
-def missing_config_settings(config: dict) -> list:
+def missing_config_settings(config: dict) -> Iterable[str]:
     """Return a list of settings required to satisfy configuration dependencies.
 
     Args:
@@ -185,27 +185,23 @@ def missing_config_settings(config: dict) -> list:
     Returns:
         a list of settings required to satisfy configuration dependencies.
     """
-    missing = [setting for setting in REQUIRED_SETTINGS if not config.get(setting)]
+    yield from (setting for setting in REQUIRED_SETTINGS if not config.get(setting))
 
-    if config.get("clustering") and not config.get("licence"):
-        missing.append("licence")
+    if not config.get("licence") and (
+        config.get("performance_monitoring_enabled")
+        or config.get("clustering")
+        or config.get("s3_server_side_encryption")
+    ):
+        yield "licence"
 
     if config.get("mattermost_image_username") and not config.get("mattermost_image_password"):
-        missing.append("mattermost_image_password")
-
-    if config.get("performance_monitoring_enabled") and not config.get("licence"):
-        missing.append("licence")
+        yield "mattermost_image_password"
 
     if config.get("s3_enabled"):
-        missing += [setting for setting in REQUIRED_S3_SETTINGS if not config.get(setting)]
-
-    if config.get("s3_server_side_encryption") and not config.get("licence"):
-        missing.append("licence")
+        yield from (setting for setting in REQUIRED_S3_SETTINGS if not config.get(setting))
 
     if config.get("sso") == "true":
-        missing += [setting for setting in REQUIRED_SSO_SETTINGS if not config.get(setting)]
-
-    return sorted(missing)
+        yield from (setting for setting in REQUIRED_SSO_SETTINGS if not config.get(setting))
 
 
 def generate(config: dict, app_name: str, site_url: str, db_uri: str) -> dict:
