@@ -3,7 +3,7 @@
 # See LICENSE file for licensing details.
 
 import os
-from typing import Iterable
+from typing import Iterable, Tuple
 from urllib.parse import urlparse
 
 # Mattermost's default port, and what we expect the image to use
@@ -31,7 +31,7 @@ CANONICAL_DEFAULTS = (
 )
 
 
-def _env_for_clustering(config: dict, app_name: str) -> Iterable[tuple[str, str]]:
+def _env_for_clustering(config: dict, app_name: str) -> Iterable[Tuple[str, str]]:
     """Return clustering settings, varying the cluster name on the application name.
 
     This is done so that blue/green deployments in the same model won't talk to each other.
@@ -53,7 +53,7 @@ def _env_for_clustering(config: dict, app_name: str) -> Iterable[tuple[str, str]
     yield ("MM_CLUSTERSETTINGS_USEIPADDRESS", "true")
 
 
-def _env_for_performance_monitoring(config: dict) -> Iterable[tuple[str, str]]:
+def _env_for_performance_monitoring(config: dict) -> Iterable[Tuple[str, str]]:
     """Return settings for the Prometheus exporter.
 
     Args:
@@ -72,7 +72,7 @@ def _env_for_performance_monitoring(config: dict) -> Iterable[tuple[str, str]]:
     yield ("MM_METRICSSETTINGS_LISTENADDRESS", f":{METRICS_PORT}")
 
 
-def _env_for_push(config: dict) -> Iterable[tuple[str, str]]:
+def _env_for_push(config: dict) -> Iterable[Tuple[str, str]]:
     """Return settings for Mattermost HPNS (hosted push notification service).
 
     Args:
@@ -91,7 +91,7 @@ def _env_for_push(config: dict) -> Iterable[tuple[str, str]]:
     yield ("MM_EMAILSETTINGS_PUSHNOTIFICATIONSERVER", config.get("push_notification_server"))
 
 
-def _env_for_sso(config: dict, site_url: str) -> Iterable[tuple[str, str]]:
+def _env_for_sso(config: dict, site_url: str) -> Iterable[Tuple[str, str]]:
     """Return settings to use login.ubuntu.com via SAML for single sign-on.
 
     SAML_IDP_CRT must be generated and installed manually by a human (see README.md).
@@ -135,7 +135,7 @@ def _env_for_sso(config: dict, site_url: str) -> Iterable[tuple[str, str]]:
     yield ("MM_EXPERIMENTALSETTINGS_USENEWSAMLLIBRARY", use_experimental_saml_library)
 
 
-def _env_for_smtp(config: dict) -> Iterable[tuple[str, str]]:
+def _env_for_smtp(config: dict) -> Iterable[Tuple[str, str]]:
     """Return settings for an outgoing SMTP relay.
 
     Args:
