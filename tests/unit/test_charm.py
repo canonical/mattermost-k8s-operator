@@ -1,5 +1,5 @@
-# Copyright 2020 Canonical Ltd.
-# Licensed under the GPLv3, see LICENSE file for details.
+# Copyright 2023 Canonical Ltd.
+# See LICENSE file for licensing details.
 
 import unittest
 from unittest.mock import Mock
