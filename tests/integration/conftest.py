@@ -5,6 +5,7 @@
 
 import asyncio
 from pathlib import Path
+from urllib.parse import urlparse
 
 import pytest_asyncio
 import yaml
@@ -48,3 +49,42 @@ async def app(
     await ops_test.model.wait_for_idle(status=ActiveStatus.name, raise_on_error=False)  # type: ignore
 
     yield application
+
+
+@fixture(scope="module")
+def localstack_ip(request):
+    """Get the localstack IP from the --localstack-ip argument.
+
+    Return the IP address of a localstack instance
+    """
+    return request.config.getoption("--localstack-ip")
+
+
+@fixture(scope="module")
+def localstack_s3_config(localstack_ip: str) -> dict:
+    """Generate a s3_config dict.
+
+    Return a dict of s3 configurations
+    """
+    s3_config: dict = {
+        # Localstack doesn't require any specific value there, any random string will work
+        "credentials": {
+            "access-key": "my-lovely-key",
+            "secret-key": "this-is-very-secret",
+        },
+        # Localstack enforce to use this domain and it resolves to localhost
+        "domain": "localhost.localstack.cloud",
+        "bucket": "tests",
+        "region": "us-east-1",
+        "url": f"{localstack_ip}:4566",
+    }
+
+    # Parse URL to get the IP address and the port, and compose the required variables
+    parsed_s3_url = urlparse(f"http://{localstack_ip}:4566")
+    s3_ip_address = parsed_s3_url.hostname
+    s3_endpoint = f"{parsed_s3_url.scheme}://{s3_config['domain']}"
+    if parsed_s3_url:
+        s3_endpoint = f"{s3_endpoint}:{parsed_s3_url.port}"
+    s3_config["ip_address"] = s3_ip_address
+    s3_config["endpoint"] = s3_endpoint
+    return s3_config

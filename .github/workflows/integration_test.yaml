@@ -7,3 +7,6 @@ jobs:
   integration-tests:
     uses: canonical/operator-workflows/.github/workflows/integration_test.yaml@main
     secrets: inherit
+    with:
+      extra-arguments: --localstack-ip 172.17.0.1
+      pre-run-script: tests/integration/localstack-installation.sh
