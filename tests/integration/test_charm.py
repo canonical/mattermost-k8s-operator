@@ -1,3 +1,6 @@
+# Copyright 2020 Canonical Ltd.
+# Licensed under the GPLv3, see LICENCE file for details.
+
 import pytest
 from ops.model import Application
 from pytest_operator.plugin import OpsTest
