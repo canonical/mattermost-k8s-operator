@@ -183,6 +183,13 @@ options:
 
           This requires configuration on the S3 side, as well as a suitable Mattermost licence.
         default: false
+    s3_tls:
+        type: boolean
+        description: |
+          Whether to use TLS for S3
+
+          This should be only disable for testing environments.
+        default: true
     smtp_connection_security:
         type: string
         description: |

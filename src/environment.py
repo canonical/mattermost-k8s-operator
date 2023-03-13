@@ -88,7 +88,7 @@ def _env_for_push(config: dict) -> Iterable[Tuple[str, str]]:
 
     yield ("MM_EMAILSETTINGS_SENDPUSHNOTIFICATIONS", "true")
     yield ("MM_EMAILSETTINGS_PUSHNOTIFICATIONCONTENTS", contents)
-    yield ("MM_EMAILSETTINGS_PUSHNOTIFICATIONSERVER", config.get("push_notification_server"))
+    yield ("MM_EMAILSETTINGS_PUSHNOTIFICATIONSERVER", config.get("push_notification_server", ""))
 
 
 def _env_for_sso(config: dict, site_url: str) -> Iterable[Tuple[str, str]]:
@@ -248,7 +248,9 @@ def generate(config: dict, app_name: str, site_url: str, db_uri: str) -> dict:
             {
                 "MM_FILESETTINGS_DRIVERNAME": "amazons3",
                 "MM_FILESETTINGS_MAXFILESIZE": config["max_file_size"] * 1048576,  # LP:1881227
-                "MM_FILESETTINGS_AMAZONS3SSL": "true",  # defaults to true; belt and braces
+                "MM_FILESETTINGS_AMAZONS3SSL": "true"
+                if config.get("s3_tls", True)
+                else "false",  # defaults to true; belt and braces
                 "MM_FILESETTINGS_AMAZONS3ENDPOINT": config["s3_endpoint"],
                 "MM_FILESETTINGS_AMAZONS3BUCKET": config["s3_bucket"],
                 "MM_FILESETTINGS_AMAZONS3REGION": config["s3_region"],
