@@ -188,7 +188,7 @@ options:
         description: |
           Whether to use TLS for S3
 
-          This should be only disable for testing environments.
+          This should be only disabled for testing environments.
         default: true
     smtp_connection_security:
         type: string
