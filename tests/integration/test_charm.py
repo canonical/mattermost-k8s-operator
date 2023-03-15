@@ -1,7 +1,9 @@
 # Copyright 2023 Canonical Ltd.
 # See LICENSE file for licensing details.
 
+import json
 import logging
+import re
 
 import pytest
 from boto3 import client
@@ -58,8 +60,48 @@ async def test_s3_storage(
             "s3_tls": "false",
         }
     )
-
     await ops_test.model.wait_for_idle(status="active")
+
+    # create a user
+    cmd = "MMCTL_LOCAL_SOCKET_PATH=/mattermost/run/local.socket /mattermost/bin/mmctl --local user create --email test@test.test --username test --password thisisabadpassword"
+    output = await ops_test.juju("run", "--application", app.name, cmd)
+    print(output)
+
+    # login to the API
+    data = {"login_id": "test@test.test", "password": "thisisabadpassword"}
+    cmd = f"curl -sid '{json.dumps(data)}' http://localhost:8065/api/v4/users/login"
+    output = await ops_test.juju("run", "--application", app.name, cmd)
+    print(output)
+    token = ""
+    for line in output[1].splitlines():
+        if m := re.match(r"Token: (\w+)", line):
+            token = m.group(1)
+    print(token)
+
+    # create a team
+    data = {"name": "test", "display_name": "test", "type": "O"}
+    cmd = f"curl -XPOST -sd '{json.dumps(data)}' -H 'authorization: Bearer {token}' http://localhost:8065/api/v4/teams"
+    output = await ops_test.juju("run", "--application", app.name, cmd)
+    print(output)
+    team = json.loads(output[1])
+
+    # create a channel
+    data = {"team_id": team["id"], "name": "test", "display_name": "test", "type": "O"}
+    cmd = f"curl -XPOST -sd '{json.dumps(data)}' -H 'authorization: Bearer {token}' http://localhost:8065/api/v4/channels"
+    output = await ops_test.juju("run", "--application", app.name, cmd)
+    print(output)
+    channel = json.loads(output[1])
+
+    # upload a file
+    cmd = (
+        "curl -F 'files=@/etc/os-release' -F 'channel_id="
+        + channel["id"]
+        + "' -H 'authorization: Bearer "
+        + token
+        + "' http://localhost:8065/api/v4/files"
+    )
+    output = await ops_test.juju("run", "--application", app.name, cmd)
+    print(output)
 
     logger.info("Mattermost config updated, checking bucket content")
 

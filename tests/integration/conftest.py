@@ -4,14 +4,19 @@
 """Fixtures for Mattermost charm integration tests."""
 
 import asyncio
+import logging
+from datetime import datetime
 from pathlib import Path
 from urllib.parse import urlparse
 
+import docker
 import pytest_asyncio
 import yaml
 from ops.model import ActiveStatus
 from pytest import fixture
 from pytest_operator.plugin import OpsTest
+
+logger = logging.getLogger(__name__)
 
 
 @fixture(scope="module", name="metadata")
@@ -26,10 +31,29 @@ def app_name_fixture(metadata):
     yield metadata["name"]
 
 
+@fixture(scope="module", name="mattermost_image")
+def build_mattermost_image():
+    image_name = f"localhost:32000/mattermost:{datetime.now().hour}-{datetime.now().minute}-{datetime.now().second}"
+    client = docker.from_env()
+    logger.info("Start building mattermost image")
+    client.images.build(
+        path="./",
+        dockerfile="Dockerfile",
+        tag=image_name,
+        buildargs={"image_flavour": "canonical", "local_mode": "true"},
+    )
+    logger.info("Done.")
+    logger.info("Start pushing mattermost image")
+    client.images.push(image_name)
+    logger.info("Done.")
+    return image_name
+
+
 @pytest_asyncio.fixture(scope="module")
 async def app(
     ops_test: OpsTest,
     app_name: str,
+    mattermost_image: str,
 ):
     """Mattermost charm used for integration testing.
 
@@ -40,8 +64,16 @@ async def app(
 
     charm = await ops_test.build_charm(".")
     application = await ops_test.model.deploy(charm, application_name=app_name, series="focal")
-
     await ops_test.model.wait_for_idle()
+
+    # change the image that will be used for the mattermost container
+    await application.set_config(
+        {
+            "mattermost_image_path": mattermost_image,
+        }
+    )
+    await ops_test.model.wait_for_idle()
+
     await asyncio.gather(
         ops_test.model.add_relation(app_name, "postgresql-k8s:db"),
     )
