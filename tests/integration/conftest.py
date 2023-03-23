@@ -5,11 +5,9 @@
 
 import asyncio
 import logging
-from datetime import datetime
 from pathlib import Path
 from urllib.parse import urlparse
 
-import docker
 import pytest_asyncio
 import yaml
 from ops.model import ActiveStatus
@@ -31,22 +29,13 @@ def app_name_fixture(metadata):
     yield metadata["name"]
 
 
-@fixture(scope="module", name="mattermost_image")
-def build_mattermost_image():
-    image_name = f"localhost:32000/mattermost:{datetime.now().hour}-{datetime.now().minute}-{datetime.now().second}"
-    client = docker.from_env()
-    logger.info("Start building mattermost image")
-    client.images.build(
-        path="./",
-        dockerfile="Dockerfile",
-        tag=image_name,
-        buildargs={"image_flavour": "canonical", "local_mode": "true"},
-    )
-    logger.info("Done.")
-    logger.info("Start pushing mattermost image")
-    client.images.push(image_name)
-    logger.info("Done.")
-    return image_name
+@fixture(scope="module")
+def mattermost_image(request):
+    """Get the mattermost image name from the --mattermost-image argument.
+
+    Return a the mattermost image name
+    """
+    return request.config.getoption("--mattermost-image")
 
 
 @pytest_asyncio.fixture(scope="module")

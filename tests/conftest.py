@@ -15,3 +15,4 @@ def pytest_addoption(parser: pytest.Parser):
     # # https://docs.openstack.org/newton/user-guide/common/cli-set-environment-variables-using-openstack-rc.html
     # parser.addoption("--openstack-rc", action="store", default="")
     parser.addoption("--localstack-ip", action="store", default="")
+    parser.addoption("--mattermost-image", action="store", default="")
