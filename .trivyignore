@@ -1,0 +1,16 @@
+# All these issues are ignored for now (but should be fixed after the conversion to sidecar)
+# The list was made using the following report: https://github.com/canonical/mattermost-k8s-operator/actions/runs/4501288216/jobs/7921522043
+CVE-2020-26160
+CVE-2020-29652
+CVE-2020-7919
+CVE-2020-9283
+CVE-2021-33194
+CVE-2021-38561
+CVE-2021-43565
+CVE-2021-44716
+CVE-2022-27191
+CVE-2022-27664
+CVE-2022-28948
+CVE-2022-3064
+CVE-2022-32149
+CVE-2022-41723
