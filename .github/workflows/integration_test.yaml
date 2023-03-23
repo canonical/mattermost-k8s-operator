@@ -9,5 +9,7 @@ jobs:
     secrets: inherit
     with:
       pre-run-script: tests/integration/localstack-installation.sh
-      image-build-args: '["image_flavour=canonical", "local_mode=true"]'
+      image-build-args: |
+        image_flavour=canonical
+        local_mode=true
       extra-arguments: '---localstack-ip 172.17.0.1 --mattermost-image="localhost:32000/mattermost:test"'
