@@ -12,4 +12,4 @@ jobs:
       image-build-args: |
         image_flavour=canonical
         local_mode=true
-      extra-arguments: '---localstack-ip 172.17.0.1 --mattermost-image="localhost:32000/mattermost:test"'
+      extra-arguments: '--localstack-ip 172.17.0.1'
