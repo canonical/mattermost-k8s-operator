@@ -146,3 +146,22 @@ async def test_s3_storage(
     object_count = sum(1 for _ in response["Contents"])
 
     assert object_count > 0
+
+
+async def test_scale_workload(ops_test: OpsTest, app: Application):
+    """
+    arrange: after charm deployed and ready.
+    act: scale application to 3 units.
+    assert: the application should be reachable.
+    """
+    assert ops_test.model
+
+    await ops_test.juju("scale-application", "mattermost-k8s", "3")
+    await ops_test.model.wait_for_idle(status="active")
+
+    mmost_unit = app.units[0]
+    action = await mmost_unit.run("unit-get private-address")
+    curl_output = await juju_run(
+        mmost_unit, "curl {}:8065".format(action.results["Stdout"].replace("\n", ""))
+    )
+    assert "Mattermost" in curl_output
