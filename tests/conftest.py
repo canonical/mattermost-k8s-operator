@@ -16,3 +16,5 @@ def pytest_addoption(parser: pytest.Parser):
     # parser.addoption("--openstack-rc", action="store", default="")
     parser.addoption("--localstack-ip", action="store", default="")
     parser.addoption("--mattermost-image", action="store", default="")
+    # Kubernetes cluster configuration file
+    parser.addoption("--kube-config", action="store", default="")
