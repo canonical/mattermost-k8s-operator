@@ -11,8 +11,7 @@ def pytest_addoption(parser: pytest.Parser):
     Args:
         parser: Pytest parser used to add arguments to console commands
     """
-    # # --openstack-rc points to an openstack credential file in the "rc" file style
-    # # https://docs.openstack.org/newton/user-guide/common/cli-set-environment-variables-using-openstack-rc.html
-    # parser.addoption("--openstack-rc", action="store", default="")
+    # Localstack instance IP
     parser.addoption("--localstack-ip", action="store", default="")
+    # OCI image of mattermost
     parser.addoption("--mattermost-image", action="store", default="")

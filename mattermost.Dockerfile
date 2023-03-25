@@ -134,7 +134,8 @@ RUN if [ "$image_flavour" = canonical ]; then \
 
 RUN rm -rf /canonical_flavour_tmp
 
-# Enable local mode
+# Enable local mode (to enable mmctl CLI)
+# https://docs.mattermost.com/manage/mmctl-command-line-tool.html#local-mode
 ARG local_mode=false
 RUN if [ "$local_mode" = "true" ]; then \
       /usr/bin/sed -i \
