@@ -1,3 +1,6 @@
+[![CharmHub Badge](https://charmhub.io/mattermost-k8s/badge.svg)](https://charmhub.io/mattermost-k8s)
+[![Discourse Status](https://img.shields.io/discourse/status?server=https%3A%2F%2Fdiscourse.charmhub.io&style=flat&label=CharmHub%20Discourse)](https://discourse.charmhub.io)
+
 # Mattermost Operator
 
 A Juju charm deploying and managing Mattermost on Kubernetes. Mattermost is an
