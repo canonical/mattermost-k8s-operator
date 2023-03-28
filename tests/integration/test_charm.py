@@ -5,6 +5,7 @@ import json
 import logging
 import re
 
+import ops
 import requests
 from boto3 import client
 from botocore.config import Config
@@ -14,10 +15,10 @@ from pytest_operator.plugin import OpsTest
 logger = logging.getLogger(__name__)
 
 
-async def test_workload_online_default(ops_test: OpsTest, app: Application):
-    assert ops_test.model
-    # mmost_unit = app.units[0]
-    # action = await mmost_unit.run("unit-get private-address")
+async def test_workload_online_default(
+    ops_test: OpsTest,
+    app: Application,
+):
     unit_informations = json.loads(
         (await ops_test.juju("show-unit", app.units[0].name, "--format", "json"))[1]
     )
@@ -30,6 +31,7 @@ async def test_workload_online_default(ops_test: OpsTest, app: Application):
 
 async def test_s3_storage(
     ops_test: OpsTest,
+    model: ops.model.Model,
     app: Application,
     localstack_s3_config: dict,
 ):
@@ -38,8 +40,6 @@ async def test_s3_storage(
     act: update charm configuration for openstack object storage plugin.
     assert: a file should be uploaded to the openstack server and be accessible through it.
     """
-
-    assert ops_test.model
 
     await app.set_config(
         {
@@ -53,7 +53,7 @@ async def test_s3_storage(
             "extra_env": '{"MM_FILESETTINGS_AMAZONS3SSL": "false","MM_SERVICESETTINGS_ENABLELOCALMODE": "true","MM_SERVICESETTINGS_LOCALMODESOCKETLOCATION": "/tmp/mattermost.socket"}',
         }
     )
-    await ops_test.model.wait_for_idle(status="active")
+    await model.wait_for_idle(status="active")
 
     # create a user
     cmd = "MMCTL_LOCAL_SOCKET_PATH=/tmp/mattermost.socket /mattermost/bin/mmctl --local user create --email test@test.test --username test --password thisisabadpassword"

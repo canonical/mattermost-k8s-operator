@@ -8,6 +8,7 @@ import logging
 from pathlib import Path
 from urllib.parse import urlparse
 
+import ops
 import pytest_asyncio
 import yaml
 from ops.model import ActiveStatus
@@ -38,9 +39,17 @@ def mattermost_image(request):
     return request.config.getoption("--mattermost-image")
 
 
+@pytest_asyncio.fixture(scope="module", name="model")
+async def model_fixture(ops_test: OpsTest) -> ops.model.Model:
+    """The current test model."""
+    assert ops_test.model
+    return ops_test.model
+
+
 @pytest_asyncio.fixture(scope="module")
 async def app(
     ops_test: OpsTest,
+    model: ops.model.Model,
     app_name: str,
     mattermost_image: str,
 ):
@@ -48,12 +57,11 @@ async def app(
 
     Builds the charm and deploys it and the relations it depends on.
     """
-    assert ops_test.model
-    await ops_test.model.deploy("postgresql-k8s"),
+    await model.deploy("postgresql-k8s"),
 
     charm = await ops_test.build_charm(".")
-    application = await ops_test.model.deploy(charm, application_name=app_name, series="focal")
-    await ops_test.model.wait_for_idle()
+    application = await model.deploy(charm, application_name=app_name, series="focal")
+    await model.wait_for_idle()
 
     # change the image that will be used for the mattermost container
     await application.set_config(
@@ -61,13 +69,13 @@ async def app(
             "mattermost_image_path": mattermost_image,
         }
     )
-    await ops_test.model.wait_for_idle()
+    await model.wait_for_idle()
 
     await asyncio.gather(
-        ops_test.model.add_relation(app_name, "postgresql-k8s:db"),
+        model.add_relation(app_name, "postgresql-k8s:db"),
     )
     # mypy doesn't see that ActiveStatus has a name
-    await ops_test.model.wait_for_idle(status=ActiveStatus.name)  # type: ignore
+    await model.wait_for_idle(status=ActiveStatus.name)  # type: ignore
 
     yield application
 
