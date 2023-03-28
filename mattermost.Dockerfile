@@ -134,18 +134,6 @@ RUN if [ "$image_flavour" = canonical ]; then \
 
 RUN rm -rf /canonical_flavour_tmp
 
-# Enable local mode (to enable mmctl CLI)
-# https://docs.mattermost.com/manage/mmctl-command-line-tool.html#local-mode
-ARG local_mode=false
-RUN if [ "$local_mode" = "true" ]; then \
-      /usr/bin/sed -i \
-        -e 's|"EnableLocalMode": false,|"EnableLocalMode": true,|g' \
-        -e 's|"LocalModeSocketLocation": "/var/tmp/mattermost_local.socket"|"LocalModeSocketLocation": "/mattermost/run/local.socket"|g' \
-        /mattermost/config/config.json ; \
-      mkdir /mattermost/run ; \
-      chown mattermost: /mattermost/run ; \
-    fi
-
 HEALTHCHECK CMD curl --fail http://localhost:8065 || exit 1
 
 CMD ["/mattermost/bin/mattermost", "--config", "/mattermost/config/config.json"]
