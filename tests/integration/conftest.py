@@ -108,8 +108,8 @@ def localstack_s3_config(localstack_ip: str) -> dict:
     s3_config: dict = {
         # Localstack doesn't require any specific value there, any random string will work
         "credentials": {
-            "access-key": "my-lovely-key",
-            "secret-key": "this-is-very-secret",
+            "access-key": "test-access-key",
+            "secret-key": secrets.token_hex(),
         },
         # Localstack enforce to use this domain and it resolves to localhost
         "domain": "localhost.localstack.cloud",
