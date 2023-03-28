@@ -5,6 +5,7 @@
 
 import asyncio
 import logging
+import secrets
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -37,6 +38,15 @@ def mattermost_image(request):
     Return a the mattermost image name
     """
     return request.config.getoption("--mattermost-image")
+
+
+@fixture(scope="module")
+def test_user():
+    """Create login informations for a test user.
+
+    Return a dict with the users informations
+    """
+    return {"login_id": "test@test.test", "password": secrets.token_hex(), "username": "test"}
 
 
 @pytest_asyncio.fixture(scope="module", name="model")

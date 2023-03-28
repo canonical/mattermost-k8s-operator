@@ -34,6 +34,7 @@ async def test_s3_storage(
     model: ops.model.Model,
     app: Application,
     localstack_s3_config: dict,
+    test_user: dict,
 ):
     """
     arrange: after charm deployed and openstack swift server ready.
@@ -56,17 +57,16 @@ async def test_s3_storage(
     await model.wait_for_idle(status="active")
 
     # create a user
-    cmd = "MMCTL_LOCAL_SOCKET_PATH=/tmp/mattermost.socket /mattermost/bin/mmctl --local user create --email test@test.test --username test --password thisisabadpassword"
-    output = await ops_test.juju("run", "--application", app.name, cmd)
+    cmd = f"MMCTL_LOCAL_SOCKET_PATH=/tmp/mattermost.socket /mattermost/bin/mmctl --local user create --email {test_user['login_id']} --username {test_user['username']} --password {test_user['password']}"
+    await ops_test.juju("run", "--application", app.name, cmd)
 
     # login to the API
-    data = {"login_id": "test@test.test", "password": "thisisabadpassword"}
-    cmd = f"curl -sid '{json.dumps(data)}' http://localhost:8065/api/v4/users/login"
+    cmd = f"curl -sid '{json.dumps(test_user)}' http://localhost:8065/api/v4/users/login"
     output = await ops_test.juju("run", "--application", app.name, cmd)
     token = ""
     for line in output[1].splitlines():
-        if m := re.match(r"Token: (\w+)", line):
-            token = m.group(1)
+        if match := re.match(r"Token: (\w+)", line):
+            token = match.group(1)
 
     # create a team
     data = {"name": "test", "display_name": "test", "type": "O"}
@@ -88,7 +88,7 @@ async def test_s3_storage(
         + token
         + "' http://localhost:8065/api/v4/files"
     )
-    output = await ops_test.juju("run", "--application", app.name, cmd)
+    await ops_test.juju("run", "--application", app.name, cmd)
 
     logger.info("Mattermost config updated, checking bucket content")
 
