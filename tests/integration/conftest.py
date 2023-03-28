@@ -67,7 +67,7 @@ async def app(
         ops_test.model.add_relation(app_name, "postgresql-k8s:db"),
     )
     # mypy doesn't see that ActiveStatus has a name
-    await ops_test.model.wait_for_idle(status=ActiveStatus.name, raise_on_error=False)  # type: ignore
+    await ops_test.model.wait_for_idle(status=ActiveStatus.name)  # type: ignore
 
     yield application
 

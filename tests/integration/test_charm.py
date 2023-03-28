@@ -5,7 +5,7 @@ import json
 import logging
 import re
 
-import pytest
+import requests
 from boto3 import client
 from botocore.config import Config
 from ops.model import Application
@@ -14,25 +14,18 @@ from pytest_operator.plugin import OpsTest
 logger = logging.getLogger(__name__)
 
 
-@pytest.mark.abort_on_fail
-async def juju_run(unit, cmd):
-    """Helper function that runs a juju command"""
-    result = await unit.run(cmd)
-    code = result.results["Code"]
-    stdout = result.results.get("Stdout")
-    stderr = result.results.get("Stderr")
-    assert code == "0", f"{cmd} failed ({code}): {stderr or stdout}"
-    return stdout
-
-
 async def test_workload_online_default(ops_test: OpsTest, app: Application):
     assert ops_test.model
-    mmost_unit = app.units[0]
-    action = await mmost_unit.run("unit-get private-address")
-    curl_output = await juju_run(
-        mmost_unit, "curl {}:8065".format(action.results["Stdout"].replace("\n", ""))
+    # mmost_unit = app.units[0]
+    # action = await mmost_unit.run("unit-get private-address")
+    unit_informations = json.loads(
+        (await ops_test.juju("show-unit", app.units[0].name, "--format", "json"))[1]
     )
-    assert "Mattermost" in curl_output
+    response = requests.get(
+        f"http://{unit_informations[app.units[0].name]['address']}:8065", timeout=5
+    )
+    assert response.status_code == 200
+    assert "Mattermost" in response.text
 
 
 async def test_s3_storage(
@@ -57,39 +50,34 @@ async def test_s3_storage(
             "s3_access_key_id": localstack_s3_config["credentials"]["access-key"],
             "s3_secret_access_key": localstack_s3_config["credentials"]["secret-key"],
             "s3_server_side_encryption": "false",
-            "s3_tls": "false",
+            "extra_env": '{"MM_FILESETTINGS_AMAZONS3SSL": "false","MM_SERVICESETTINGS_ENABLELOCALMODE": "true","MM_SERVICESETTINGS_LOCALMODESOCKETLOCATION": "/tmp/mattermost.socket"}',
         }
     )
     await ops_test.model.wait_for_idle(status="active")
 
     # create a user
-    cmd = "MMCTL_LOCAL_SOCKET_PATH=/mattermost/run/local.socket /mattermost/bin/mmctl --local user create --email test@test.test --username test --password thisisabadpassword"
+    cmd = "MMCTL_LOCAL_SOCKET_PATH=/tmp/mattermost.socket /mattermost/bin/mmctl --local user create --email test@test.test --username test --password thisisabadpassword"
     output = await ops_test.juju("run", "--application", app.name, cmd)
-    print(output)
 
     # login to the API
     data = {"login_id": "test@test.test", "password": "thisisabadpassword"}
     cmd = f"curl -sid '{json.dumps(data)}' http://localhost:8065/api/v4/users/login"
     output = await ops_test.juju("run", "--application", app.name, cmd)
-    print(output)
     token = ""
     for line in output[1].splitlines():
         if m := re.match(r"Token: (\w+)", line):
             token = m.group(1)
-    print(token)
 
     # create a team
     data = {"name": "test", "display_name": "test", "type": "O"}
     cmd = f"curl -XPOST -sd '{json.dumps(data)}' -H 'authorization: Bearer {token}' http://localhost:8065/api/v4/teams"
     output = await ops_test.juju("run", "--application", app.name, cmd)
-    print(output)
     team = json.loads(output[1])
 
     # create a channel
     data = {"team_id": team["id"], "name": "test", "display_name": "test", "type": "O"}
     cmd = f"curl -XPOST -sd '{json.dumps(data)}' -H 'authorization: Bearer {token}' http://localhost:8065/api/v4/channels"
     output = await ops_test.juju("run", "--application", app.name, cmd)
-    print(output)
     channel = json.loads(output[1])
 
     # upload a file
@@ -101,7 +89,6 @@ async def test_s3_storage(
         + "' http://localhost:8065/api/v4/files"
     )
     output = await ops_test.juju("run", "--application", app.name, cmd)
-    print(output)
 
     logger.info("Mattermost config updated, checking bucket content")
 
