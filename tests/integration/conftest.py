@@ -4,6 +4,7 @@
 """Fixtures for Mattermost charm integration tests."""
 
 import asyncio
+import json
 import logging
 import secrets
 from pathlib import Path
@@ -12,7 +13,7 @@ from urllib.parse import urlparse
 import ops
 import pytest_asyncio
 import yaml
-from ops.model import ActiveStatus
+from ops.model import ActiveStatus, Application
 from pytest import fixture
 from pytest_operator.plugin import OpsTest
 
@@ -46,7 +47,7 @@ def test_user():
 
     Return a dict with the users informations
     """
-    return {"login_id": "test@test.test", "password": secrets.token_hex(), "username": "test"}
+    return {"login_id": "test@test.test", "password": secrets.token_hex()}
 
 
 @pytest_asyncio.fixture(scope="module", name="model")
@@ -88,6 +89,21 @@ async def app(
     await model.wait_for_idle(status=ActiveStatus.name)  # type: ignore
 
     yield application
+
+
+@pytest_asyncio.fixture(scope="module")
+async def mattermost_ip(
+    ops_test: OpsTest,
+    app: Application,
+):
+    """Get the IP address of the first unit of mattermost.
+
+    Return the IP address of a mattermost unit.
+    """
+    unit_informations = json.loads(
+        (await ops_test.juju("show-unit", app.units[0].name, "--format", "json"))[1]
+    )
+    return unit_informations[app.units[0].name]["address"]
 
 
 @fixture(scope="module")

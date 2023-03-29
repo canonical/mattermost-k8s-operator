@@ -3,7 +3,6 @@
 
 import json
 import logging
-import re
 
 import ops
 import requests
@@ -22,9 +21,8 @@ async def test_workload_online_default(
     unit_informations = json.loads(
         (await ops_test.juju("show-unit", app.units[0].name, "--format", "json"))[1]
     )
-    response = requests.get(
-        f"http://{unit_informations[app.units[0].name]['address']}:8065", timeout=5
-    )
+    mattermost_ip = unit_informations[app.units[0].name]["address"]
+    response = requests.get(f"http://{mattermost_ip}:8065", timeout=5)
     assert response.status_code == 200
     assert "Mattermost" in response.text
 
@@ -56,39 +54,44 @@ async def test_s3_storage(
     )
     await model.wait_for_idle(status="active")
 
+    unit_informations = json.loads(
+        (await ops_test.juju("show-unit", app.units[0].name, "--format", "json"))[1]
+    )
+    mattermost_ip = unit_informations[app.units[0].name]["address"]
+
     # create a user
-    cmd = f"MMCTL_LOCAL_SOCKET_PATH=/tmp/mattermost.socket /mattermost/bin/mmctl --local user create --email {test_user['login_id']} --username {test_user['username']} --password {test_user['password']}"
+    cmd = f"MMCTL_LOCAL_SOCKET_PATH=/tmp/mattermost.socket /mattermost/bin/mmctl --local user create --email {test_user['login_id']} --username test --password {test_user['password']}"
     await ops_test.juju("run", "--application", app.name, cmd)
 
     # login to the API
-    cmd = f"curl -sid '{json.dumps(test_user)}' http://localhost:8065/api/v4/users/login"
-    output = await ops_test.juju("run", "--application", app.name, cmd)
-    token = ""
-    for line in output[1].splitlines():
-        if match := re.match(r"Token: (\w+)", line):
-            token = match.group(1)
+    response = requests.post(
+        f"http://{mattermost_ip}:8065/api/v4/users/login", data=json.dumps(test_user)
+    )
+    headers = {"authorization": f"Bearer {response.headers['Token']}"}
 
     # create a team
     data = {"name": "test", "display_name": "test", "type": "O"}
-    cmd = f"curl -XPOST -sd '{json.dumps(data)}' -H 'authorization: Bearer {token}' http://localhost:8065/api/v4/teams"
-    output = await ops_test.juju("run", "--application", app.name, cmd)
-    team = json.loads(output[1])
+    response = requests.post(
+        f"http://{mattermost_ip}:8065/api/v4/teams", data=json.dumps(data), headers=headers
+    )
+    team = response.json()
 
     # create a channel
     data = {"team_id": team["id"], "name": "test", "display_name": "test", "type": "O"}
-    cmd = f"curl -XPOST -sd '{json.dumps(data)}' -H 'authorization: Bearer {token}' http://localhost:8065/api/v4/channels"
-    output = await ops_test.juju("run", "--application", app.name, cmd)
-    channel = json.loads(output[1])
+    response = requests.post(
+        f"http://{mattermost_ip}:8065/api/v4/channels", data=json.dumps(data), headers=headers
+    )
+    channel = response.json()
 
     # upload a file
-    cmd = (
-        "curl -F 'files=@/etc/os-release' -F 'channel_id="
-        + channel["id"]
-        + "' -H 'authorization: Bearer "
-        + token
-        + "' http://localhost:8065/api/v4/files"
-    )
     await ops_test.juju("run", "--application", app.name, cmd)
+    with open("tests/integration/test_file.txt", "r") as testfile:
+        response = requests.post(
+            f"http://{mattermost_ip}:8065/api/v4/files",
+            data={"channel_id": channel["id"]},
+            files={"file": testfile},
+            headers=headers,
+        )
 
     logger.info("Mattermost config updated, checking bucket content")
 
@@ -131,5 +134,8 @@ async def test_s3_storage(
     # Check content has been uploaded in the bucket
     response = s3_client.list_objects(Bucket=localstack_s3_config["bucket"])
     object_count = sum(1 for _ in response["Contents"])
-
     assert object_count > 0
+    test_file_key = next(x["Key"] for x in response["Contents"] if "test_file.txt" in x["Key"])
+    s3_client.download_file(localstack_s3_config["bucket"], test_file_key, "test_file2.txt")
+    with open("test_file2.txt", "r") as testfile:
+        assert "This is a test file for integration tests" in testfile.read()
