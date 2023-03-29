@@ -5,7 +5,8 @@ import json
 import logging
 import re
 
-import pytest
+import ops
+import requests
 from boto3 import client
 from botocore.config import Config
 from ops.model import Application
@@ -14,39 +15,31 @@ from pytest_operator.plugin import OpsTest
 logger = logging.getLogger(__name__)
 
 
-@pytest.mark.abort_on_fail
-async def juju_run(unit, cmd):
-    """Helper function that runs a juju command"""
-    result = await unit.run(cmd)
-    code = result.results["Code"]
-    stdout = result.results.get("Stdout")
-    stderr = result.results.get("Stderr")
-    assert code == "0", f"{cmd} failed ({code}): {stderr or stdout}"
-    return stdout
-
-
-async def test_workload_online_default(ops_test: OpsTest, app: Application):
-    assert ops_test.model
-    mmost_unit = app.units[0]
-    action = await mmost_unit.run("unit-get private-address")
-    curl_output = await juju_run(
-        mmost_unit, "curl {}:8065".format(action.results["Stdout"].replace("\n", ""))
+async def test_workload_online_default(
+    ops_test: OpsTest,
+    app: Application,
+):
+    unit_informations = json.loads(
+        (await ops_test.juju("show-unit", app.units[0].name, "--format", "json"))[1]
     )
-    assert "Mattermost" in curl_output
+    mattermost_ip = unit_informations[app.units[0].name]["address"]
+    response = requests.get(f"http://{mattermost_ip}:8065", timeout=5)
+    assert response.status_code == 200
+    assert "Mattermost" in response.text
 
 
 async def test_s3_storage(
     ops_test: OpsTest,
+    model: ops.model.Model,
     app: Application,
     localstack_s3_config: dict,
+    test_user: dict,
 ):
     """
     arrange: after charm deployed and openstack swift server ready.
     act: update charm configuration for openstack object storage plugin.
     assert: a file should be uploaded to the openstack server and be accessible through it.
     """
-
-    assert ops_test.model
 
     await app.set_config(
         {
@@ -57,51 +50,49 @@ async def test_s3_storage(
             "s3_access_key_id": localstack_s3_config["credentials"]["access-key"],
             "s3_secret_access_key": localstack_s3_config["credentials"]["secret-key"],
             "s3_server_side_encryption": "false",
-            "s3_tls": "false",
+            "extra_env": '{"MM_FILESETTINGS_AMAZONS3SSL": "false","MM_SERVICESETTINGS_ENABLELOCALMODE": "true","MM_SERVICESETTINGS_LOCALMODESOCKETLOCATION": "/tmp/mattermost.socket"}',
         }
     )
-    await ops_test.model.wait_for_idle(status="active")
+    await model.wait_for_idle(status="active")
+
+    unit_informations = json.loads(
+        (await ops_test.juju("show-unit", app.units[0].name, "--format", "json"))[1]
+    )
+    mattermost_ip = unit_informations[app.units[0].name]["address"]
 
     # create a user
-    cmd = "MMCTL_LOCAL_SOCKET_PATH=/mattermost/run/local.socket /mattermost/bin/mmctl --local user create --email test@test.test --username test --password thisisabadpassword"
-    output = await ops_test.juju("run", "--application", app.name, cmd)
-    print(output)
+    cmd = f"MMCTL_LOCAL_SOCKET_PATH=/tmp/mattermost.socket /mattermost/bin/mmctl --local user create --email {test_user['login_id']} --username test --password {test_user['password']}"
+    await ops_test.juju("run", "--application", app.name, cmd)
 
     # login to the API
-    data = {"login_id": "test@test.test", "password": "thisisabadpassword"}
-    cmd = f"curl -sid '{json.dumps(data)}' http://localhost:8065/api/v4/users/login"
-    output = await ops_test.juju("run", "--application", app.name, cmd)
-    print(output)
-    token = ""
-    for line in output[1].splitlines():
-        if m := re.match(r"Token: (\w+)", line):
-            token = m.group(1)
-    print(token)
+    response = requests.post(
+        f"http://{mattermost_ip}:8065/api/v4/users/login", data=json.dumps(test_user)
+    )
+    headers = {"authorization": f"Bearer {response.headers['Token']}"}
 
     # create a team
     data = {"name": "test", "display_name": "test", "type": "O"}
-    cmd = f"curl -XPOST -sd '{json.dumps(data)}' -H 'authorization: Bearer {token}' http://localhost:8065/api/v4/teams"
-    output = await ops_test.juju("run", "--application", app.name, cmd)
-    print(output)
-    team = json.loads(output[1])
+    response = requests.post(
+        f"http://{mattermost_ip}:8065/api/v4/teams", data=json.dumps(data), headers=headers
+    )
+    team = response.json()
 
     # create a channel
     data = {"team_id": team["id"], "name": "test", "display_name": "test", "type": "O"}
-    cmd = f"curl -XPOST -sd '{json.dumps(data)}' -H 'authorization: Bearer {token}' http://localhost:8065/api/v4/channels"
-    output = await ops_test.juju("run", "--application", app.name, cmd)
-    print(output)
-    channel = json.loads(output[1])
+    response = requests.post(
+        f"http://{mattermost_ip}:8065/api/v4/channels", data=json.dumps(data), headers=headers
+    )
+    channel = response.json()
 
     # upload a file
-    cmd = (
-        "curl -F 'files=@/etc/os-release' -F 'channel_id="
-        + channel["id"]
-        + "' -H 'authorization: Bearer "
-        + token
-        + "' http://localhost:8065/api/v4/files"
-    )
-    output = await ops_test.juju("run", "--application", app.name, cmd)
-    print(output)
+    await ops_test.juju("run", "--application", app.name, cmd)
+    with open("tests/integration/test_file.txt", "r") as testfile:
+        response = requests.post(
+            f"http://{mattermost_ip}:8065/api/v4/files",
+            data={"channel_id": channel["id"]},
+            files={"file": testfile},
+            headers=headers,
+        )
 
     logger.info("Mattermost config updated, checking bucket content")
 
@@ -144,8 +135,12 @@ async def test_s3_storage(
     # Check content has been uploaded in the bucket
     response = s3_client.list_objects(Bucket=localstack_s3_config["bucket"])
     object_count = sum(1 for _ in response["Contents"])
-
     assert object_count > 0
+
+    test_file_key = next(x["Key"] for x in response["Contents"] if "test_file.txt" in x["Key"])
+    s3_client.download_file(localstack_s3_config["bucket"], test_file_key, "test_file2.txt")
+    with open("test_file2.txt", "r") as testfile:
+        assert "This is a test file for integration tests" in testfile.read()
 
 
 async def test_scale_workload(
@@ -176,9 +171,10 @@ async def test_scale_workload(
     kube_core_client.delete_namespaced_pod(name=leader_pod, namespace=model_name)
     await ops_test.model.wait_for_idle(status="active")
 
-    mmost_unit = app.units[0]
-    action = await mmost_unit.run("unit-get private-address")
-    curl_output = await juju_run(
-        mmost_unit, "curl {}:8065".format(action.results["Stdout"].replace("\n", ""))
+    unit_informations = json.loads(
+        (await ops_test.juju("show-unit", app.units[0].name, "--format", "json"))[1]
     )
-    assert "Mattermost" in curl_output
+    mattermost_ip = unit_informations[app.units[0].name]["address"]
+    response = requests.get(f"http://{mattermost_ip}:8065", timeout=5)
+    assert response.status_code == 200
+    assert "Mattermost" in response.text

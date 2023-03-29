@@ -4,15 +4,19 @@
 """Fixtures for Mattermost charm integration tests."""
 
 import asyncio
+import json
 import logging
+import secrets
 from pathlib import Path
 from urllib.parse import urlparse
 
+from ops.model import ActiveStatus, Application
+from pytest import fixture
+from pytest import FixtureRequest
 import kubernetes
+import ops
 import pytest_asyncio
 import yaml
-from ops.model import ActiveStatus
-from pytest import FixtureRequest, fixture
 from pytest_operator.plugin import OpsTest
 
 logger = logging.getLogger(__name__)
@@ -39,9 +43,26 @@ def mattermost_image(request):
     return request.config.getoption("--mattermost-image")
 
 
+@fixture(scope="module")
+def test_user():
+    """Create login informations for a test user.
+
+    Return a dict with the users informations
+    """
+    return {"login_id": "test@test.test", "password": secrets.token_hex()}
+
+
+@pytest_asyncio.fixture(scope="module", name="model")
+async def model_fixture(ops_test: OpsTest) -> ops.model.Model:
+    """The current test model."""
+    assert ops_test.model
+    return ops_test.model
+
+
 @pytest_asyncio.fixture(scope="module")
 async def app(
     ops_test: OpsTest,
+    model: ops.model.Model,
     app_name: str,
     mattermost_image: str,
 ):
@@ -49,12 +70,11 @@ async def app(
 
     Builds the charm and deploys it and the relations it depends on.
     """
-    assert ops_test.model
-    await ops_test.model.deploy("postgresql-k8s"),
+    await model.deploy("postgresql-k8s"),
 
     charm = await ops_test.build_charm(".")
-    application = await ops_test.model.deploy(charm, application_name=app_name, series="focal")
-    await ops_test.model.wait_for_idle()
+    application = await model.deploy(charm, application_name=app_name, series="focal")
+    await model.wait_for_idle()
 
     # change the image that will be used for the mattermost container
     await application.set_config(
@@ -62,15 +82,30 @@ async def app(
             "mattermost_image_path": mattermost_image,
         }
     )
-    await ops_test.model.wait_for_idle()
+    await model.wait_for_idle()
 
     await asyncio.gather(
-        ops_test.model.add_relation(app_name, "postgresql-k8s:db"),
+        model.add_relation(app_name, "postgresql-k8s:db"),
     )
     # mypy doesn't see that ActiveStatus has a name
-    await ops_test.model.wait_for_idle(status=ActiveStatus.name, raise_on_error=False)  # type: ignore
+    await model.wait_for_idle(status=ActiveStatus.name)  # type: ignore
 
     yield application
+
+
+@pytest_asyncio.fixture(scope="module")
+async def mattermost_ip(
+    ops_test: OpsTest,
+    app: Application,
+):
+    """Get the IP address of the first unit of mattermost.
+
+    Return the IP address of a mattermost unit.
+    """
+    unit_informations = json.loads(
+        (await ops_test.juju("show-unit", app.units[0].name, "--format", "json"))[1]
+    )
+    return unit_informations[app.units[0].name]["address"]
 
 
 @fixture(scope="module")
@@ -91,8 +126,8 @@ def localstack_s3_config(localstack_ip: str) -> dict:
     s3_config: dict = {
         # Localstack doesn't require any specific value there, any random string will work
         "credentials": {
-            "access-key": "my-lovely-key",
-            "secret-key": "this-is-very-secret",
+            "access-key": "test-access-key",
+            "secret-key": secrets.token_hex(),
         },
         # Localstack enforce to use this domain and it resolves to localhost
         "domain": "localhost.localstack.cloud",

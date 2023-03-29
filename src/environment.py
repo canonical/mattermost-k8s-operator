@@ -2,6 +2,7 @@
 # Copyright 2023 Canonical Ltd.
 # See LICENSE file for licensing details.
 
+import json
 import os
 from typing import Iterable, Tuple
 from urllib.parse import urlparse
@@ -248,9 +249,7 @@ def generate(config: dict, app_name: str, site_url: str, db_uri: str) -> dict:
             {
                 "MM_FILESETTINGS_DRIVERNAME": "amazons3",
                 "MM_FILESETTINGS_MAXFILESIZE": config["max_file_size"] * 1048576,  # LP:1881227
-                "MM_FILESETTINGS_AMAZONS3SSL": "true"
-                if config.get("s3_tls", True)
-                else "false",  # defaults to true; belt and braces
+                "MM_FILESETTINGS_AMAZONS3SSL": "true",
                 "MM_FILESETTINGS_AMAZONS3ENDPOINT": config["s3_endpoint"],
                 "MM_FILESETTINGS_AMAZONS3BUCKET": config["s3_bucket"],
                 "MM_FILESETTINGS_AMAZONS3REGION": config["s3_region"],
@@ -271,6 +270,12 @@ def generate(config: dict, app_name: str, site_url: str, db_uri: str) -> dict:
     env.update(_env_for_push(config))
     env.update(_env_for_sso(config, site_url))
     env.update(_env_for_smtp(config))
+
+    # Update env with provided extra_env
+    try:
+        env.update(json.loads(config["extra_env"]))
+    except json.JSONDecodeError:
+        raise json.jSONDecodeError("extra_env is not valid JSON")
 
     # make sure to convert all values to str
     env = {env_name: str(env_value) for env_name, env_value in env.items()}

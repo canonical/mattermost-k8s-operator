@@ -1,9 +1,10 @@
 boto3
 botocore
 docker
-juju>=2,<3
+juju==3.0.4
 kubernetes
 ops >= 1.5.0
 ops-lib-pgsql
 pytest
 pytest_operator
+requests
