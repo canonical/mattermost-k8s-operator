@@ -153,15 +153,14 @@ async def test_scale_workload(
     act: scale application to 3 units and kill the current leader.
     assert: the application should be reachable.
     """
-    assert ops_test.model
 
     # get the pod name of the first unit (the leader)
     model_name = list(ops_test.models.values())[0].model_name
-    leader_pod = [
+    leader_pod = next(
         p.metadata.name
         for p in kube_core_client.list_namespaced_pod(namespace=model_name).items
         if re.match(r"mattermost-k8s-\w{10}-\w{5}", p.metadata.name)
-    ][0]
+    )
 
     # scale the application
     await ops_test.juju("scale-application", "mattermost-k8s", "3")
