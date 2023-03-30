@@ -54,6 +54,8 @@ def test_user():
 async def model_fixture(ops_test: OpsTest) -> ops.model.Model:
     """The current test model."""
     assert ops_test.model
+    MODEL_CONFIG = {"logging-config": "<root>=INFO;unit=DEBUG"}
+    await ops_test.model.set_config(MODEL_CONFIG)
     return ops_test.model
 
 
