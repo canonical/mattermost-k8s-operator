@@ -33,6 +33,7 @@ async def test_s3_storage(
     app: Application,
     localstack_s3_config: dict,
     test_user: dict,
+    tmp_path,
 ):
     """
     arrange: after charm deployed and openstack swift server ready.
@@ -83,13 +84,19 @@ async def test_s3_storage(
     )
     channel = response.json()
 
-    # upload a file
+    # create a test file
+    tmp_path.mkdir(exist_ok=True)
+    test_file = tmp_path / "test_file.txt"
+    test_content = "This is a test file."
+    test_file.write_text(test_content)
+
+    # upload the test file
     await ops_test.juju("run", "--application", app.name, cmd)
-    with open("tests/integration/test_file.txt", "r") as testfile:
+    with open(test_file, "r") as test_file:
         response = requests.post(
             f"http://{mattermost_ip}:8065/api/v4/files",
             data={"channel_id": channel["id"]},
-            files={"file": testfile},
+            files={"file": test_file},
             headers=headers,
         )
 
@@ -136,6 +143,7 @@ async def test_s3_storage(
     object_count = sum(1 for _ in response["Contents"])
     assert object_count > 0
     test_file_key = next(x["Key"] for x in response["Contents"] if "test_file.txt" in x["Key"])
-    s3_client.download_file(localstack_s3_config["bucket"], test_file_key, "test_file2.txt")
-    with open("test_file2.txt", "r") as testfile:
-        assert "This is a test file for integration tests" in testfile.read()
+    downloaded_test_file = tmp_path / "downloaded_test_file.txt"
+    s3_client.download_file(localstack_s3_config["bucket"], test_file_key, downloaded_test_file)
+    with open(downloaded_test_file, "r") as test_file:
+        assert test_content in test_file.read()
