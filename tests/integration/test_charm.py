@@ -113,7 +113,7 @@ async def test_s3_storage(
     # Trick to use when localstack is deployed on another location than locally
     if localstack_s3_config["ip_address"] != "127.0.0.1":
         proxy_definition = {
-            "http": localstack_s3_config["url"],
+            "http": f"http://{localstack_s3_config['url']}",
         }
         s3_client_config = s3_client_config.merge(
             Config(

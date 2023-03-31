@@ -129,7 +129,8 @@ def localstack_s3_config(localstack_ip: str) -> dict:
             "access-key": "test-access-key",
             "secret-key": secrets.token_hex(),
         },
-        "domain": f"{localstack_ip}",
+        # Localstack enforce to use this domain and it resolves to localhost
+        "domain": "localhost.localstack.cloud",
         "bucket": "tests",
         "region": "us-east-1",
         "url": f"{localstack_ip}:4566",
