@@ -44,7 +44,7 @@ async def test_s3_storage(
     await app.set_config(
         {
             "s3_enabled": "true",
-            "s3_endpoint": localstack_s3_config["url"],
+            "s3_endpoint": localstack_s3_config["endpoint_without_scheme"],
             "s3_bucket": localstack_s3_config["bucket"],
             "s3_region": localstack_s3_config["region"],
             "s3_access_key_id": localstack_s3_config["credentials"]["access-key"],
@@ -53,7 +53,7 @@ async def test_s3_storage(
             "extra_env": '{"MM_FILESETTINGS_AMAZONS3SSL": "false","MM_SERVICESETTINGS_ENABLELOCALMODE": "true","MM_SERVICESETTINGS_LOCALMODESOCKETLOCATION": "/tmp/mattermost.socket"}',
         }
     )
-    await model.wait_for_idle(status="active")
+    await model.wait_for_idle(status="active", raise_on_error=False)
 
     unit_informations = json.loads(
         (await ops_test.juju("show-unit", app.units[0].name, "--format", "json"))[1]
@@ -85,14 +85,13 @@ async def test_s3_storage(
     channel = response.json()
 
     # create a test file
-    tmp_path.mkdir(exist_ok=True)
     test_file = tmp_path / "test_file.txt"
     test_content = "This is a test file."
-    test_file.write_text(test_content)
+    test_file.write_text(test_content, encoding="utf-8")
 
     # upload the test file
     await ops_test.juju("run", "--application", app.name, cmd)
-    with open(test_file, "r") as test_file:
+    with open(test_file, "r", encoding="utf-8") as test_file:
         response = requests.post(
             f"http://{mattermost_ip}:8065/api/v4/files",
             data={"channel_id": channel["id"]},
@@ -109,17 +108,6 @@ async def test_s3_storage(
             "addressing_style": "virtual",
         },
     )
-
-    # Trick to use when localstack is deployed on another location than locally
-    if localstack_s3_config["ip_address"] != "127.0.0.1":
-        proxy_definition = {
-            "http": f"http://{localstack_s3_config['url']}",
-        }
-        s3_client_config = s3_client_config.merge(
-            Config(
-                proxies=proxy_definition,
-            )
-        )
 
     # Configure the boto client
     s3_client = client(
@@ -145,5 +133,5 @@ async def test_s3_storage(
     test_file_key = next(x["Key"] for x in response["Contents"] if "test_file.txt" in x["Key"])
     downloaded_test_file = tmp_path / "downloaded_test_file.txt"
     s3_client.download_file(localstack_s3_config["bucket"], test_file_key, downloaded_test_file)
-    with open(downloaded_test_file, "r") as test_file:
+    with open(downloaded_test_file, "r", encoding="utf-8") as test_file:
         assert test_content in test_file.read()

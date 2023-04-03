@@ -11,7 +11,7 @@ def pytest_addoption(parser: pytest.Parser):
     Args:
         parser: Pytest parser used to add arguments to console commands
     """
-    # Localstack instance IP
-    parser.addoption("--localstack-ip", action="store", default="")
+    # Localstack instance URL
+    parser.addoption("--localstack-url", action="store", default="")
     # OCI image of mattermost
     parser.addoption("--mattermost-image", action="store", default="")
