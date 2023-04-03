@@ -16,5 +16,5 @@ jobs:
         image_flavour=canonical
         local_mode=true
       extra-arguments: |
-        --localstack-ip 172.17.0.1 \
+        --localstack-url http://172.17.0.1:4566 \
         --kube-config ${GITHUB_WORKSPACE}/kube-config

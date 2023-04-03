@@ -24,13 +24,13 @@ logger = logging.getLogger(__name__)
 
 @fixture(scope="module", name="metadata")
 def metadata_fixture():
-    """Provides charm metadata."""
+    """Provide charm metadata."""
     yield yaml.safe_load(Path("./metadata.yaml").read_text("utf-8"))
 
 
 @fixture(scope="module", name="app_name")
 def app_name_fixture(metadata):
-    """Provides app name from the metadata."""
+    """Provide app name from the metadata."""
     yield metadata["name"]
 
 
@@ -54,8 +54,10 @@ def test_user():
 
 @pytest_asyncio.fixture(scope="module", name="model")
 async def model_fixture(ops_test: OpsTest) -> ops.model.Model:
-    """The current test model."""
+    """Provide current test model."""
     assert ops_test.model
+    MODEL_CONFIG = {"logging-config": "<root>=INFO;unit=DEBUG"}
+    await ops_test.model.set_config(MODEL_CONFIG)
     return ops_test.model
 
 
@@ -109,41 +111,41 @@ async def mattermost_ip(
 
 
 @fixture(scope="module")
-def localstack_ip(request):
-    """Get the localstack IP from the --localstack-ip argument.
+def localstack_url(request):
+    """Get the localstack URL from the --localstack-url argument.
 
-    Return the IP address of a localstack instance
+    Return the URL of a localstack instance
     """
-    return request.config.getoption("--localstack-ip")
+    return request.config.getoption("--localstack-url")
 
 
 @fixture(scope="module")
-def localstack_s3_config(localstack_ip: str) -> dict:
+def localstack_s3_config(localstack_url: str) -> dict:
     """Generate a s3_config dict.
 
     Return a dict of s3 configurations
     """
+    # Localstack enforce to use this domain and it resolves to localhost
+    localstack_domain = "localhost.localstack.cloud"
+
+    # Parse URL to get the IP address and the port, and compose the required variables
+    parsed_s3_url = urlparse(localstack_url)
+
     s3_config: dict = {
         # Localstack doesn't require any specific value there, any random string will work
         "credentials": {
             "access-key": "test-access-key",
             "secret-key": secrets.token_hex(),
         },
-        # Localstack enforce to use this domain and it resolves to localhost
-        "domain": "localhost.localstack.cloud",
+        "domain": localstack_domain,
         "bucket": "tests",
         "region": "us-east-1",
-        "url": f"{localstack_ip}:4566",
+        "url": localstack_url,
+        "ip_address": parsed_s3_url.hostname,
+        "endpoint": f"{parsed_s3_url.scheme}://{parsed_s3_url.hostname}:{parsed_s3_url.port}",
+        # mattermost doesn't want the scheme
+        "endpoint_without_scheme": f"{parsed_s3_url.hostname}:{parsed_s3_url.port}",
     }
-
-    # Parse URL to get the IP address and the port, and compose the required variables
-    parsed_s3_url = urlparse(f"http://{localstack_ip}:4566")
-    s3_ip_address = parsed_s3_url.hostname
-    s3_endpoint = f"{parsed_s3_url.scheme}://{s3_config['domain']}"
-    if parsed_s3_url:
-        s3_endpoint = f"{s3_endpoint}:{parsed_s3_url.port}"
-    s3_config["ip_address"] = s3_ip_address
-    s3_config["endpoint"] = s3_endpoint
     return s3_config
 
 
