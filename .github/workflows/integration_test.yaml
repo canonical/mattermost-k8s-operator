@@ -12,4 +12,4 @@ jobs:
       image-build-args: |
         image_flavour=canonical
         local_mode=true
-      extra-arguments: '--localstack-ip 172.17.0.1'
+      extra-arguments: '--localstack-url http://172.17.0.1:4566'
