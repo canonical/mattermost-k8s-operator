@@ -17,6 +17,10 @@ import kubernetes
 import ops
 import pytest_asyncio
 import yaml
+from boto3 import client
+from botocore.config import Config
+from ops.model import ActiveStatus, Application
+from pytest import fixture
 from pytest_operator.plugin import OpsTest
 
 logger = logging.getLogger(__name__)
@@ -147,6 +151,34 @@ def localstack_s3_config(localstack_url: str) -> dict:
         "endpoint_without_scheme": f"{parsed_s3_url.hostname}:{parsed_s3_url.port}",
     }
     return s3_config
+
+
+@fixture(scope="module")
+def localstack_s3_client(localstack_s3_config: dict) -> client:
+    """Generate a s3_client.
+
+    Return a s3_client based on the localstack s3 config
+    """
+    # Configuration for boto client
+    s3_client_config = Config(
+        region_name=localstack_s3_config["region"],
+        s3={
+            "addressing_style": "virtual",
+        },
+    )
+
+    # Configure the boto client
+    s3_client = client(
+        "s3",
+        localstack_s3_config["region"],
+        aws_access_key_id=localstack_s3_config["credentials"]["access-key"],
+        aws_secret_access_key=localstack_s3_config["credentials"]["secret-key"],
+        endpoint_url=localstack_s3_config["endpoint"],
+        use_ssl=False,
+        config=s3_client_config,
+    )
+
+    return s3_client
 
 
 @fixture(scope="module", name="kube_config")

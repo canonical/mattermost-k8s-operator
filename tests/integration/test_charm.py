@@ -4,11 +4,12 @@
 import json
 import logging
 import re
+import pathlib
+from typing import Dict
 
 import ops
 import requests
 from boto3 import client
-from botocore.config import Config
 from ops.model import Application
 from pytest_operator.plugin import OpsTest
 
@@ -33,8 +34,9 @@ async def test_s3_storage(
     model: ops.model.Model,
     app: Application,
     localstack_s3_config: dict,
-    test_user: dict,
-    tmp_path,
+    test_user: Dict[str, str],
+    tmp_path: pathlib.Path,
+    localstack_s3_client: client,
 ):
     """
     arrange: after charm deployed and openstack swift server ready.
@@ -51,9 +53,16 @@ async def test_s3_storage(
             "s3_access_key_id": localstack_s3_config["credentials"]["access-key"],
             "s3_secret_access_key": localstack_s3_config["credentials"]["secret-key"],
             "s3_server_side_encryption": "false",
-            "extra_env": '{"MM_FILESETTINGS_AMAZONS3SSL": "false","MM_SERVICESETTINGS_ENABLELOCALMODE": "true","MM_SERVICESETTINGS_LOCALMODESOCKETLOCATION": "/tmp/mattermost.socket"}',
+            "extra_env": json.dumps(
+                {
+                    "MM_FILESETTINGS_AMAZONS3SSL": "false",
+                    "MM_SERVICESETTINGS_ENABLELOCALMODE": "true",
+                    "MM_SERVICESETTINGS_LOCALMODESOCKETLOCATION": "/tmp/mattermost.socket",
+                }
+            ),
         }
     )
+    # An error state can sometimes be reached by Mattermost during s3 configuration
     await model.wait_for_idle(status="active", raise_on_error=False)
 
     unit_informations = json.loads(
@@ -62,81 +71,75 @@ async def test_s3_storage(
     mattermost_ip = unit_informations[app.units[0].name]["address"]
 
     # create a user
-    cmd = f"MMCTL_LOCAL_SOCKET_PATH=/tmp/mattermost.socket /mattermost/bin/mmctl --local user create --email {test_user['login_id']} --username test --password {test_user['password']}"
+    cmd = (
+        f"MMCTL_LOCAL_SOCKET_PATH=/tmp/mattermost.socket /mattermost/bin/mmctl"
+        f" --local user create --email {test_user['login_id']} --username test"
+        f" --password {test_user['password']}"
+    )
     await ops_test.juju("run", "--application", app.name, cmd)
 
     # login to the API
     response = requests.post(
-        f"http://{mattermost_ip}:8065/api/v4/users/login", data=json.dumps(test_user)
+        f"http://{mattermost_ip}:8065/api/v4/users/login", data=json.dumps(test_user), timeout=10
     )
     headers = {"authorization": f"Bearer {response.headers['Token']}"}
 
     # create a team
     data = {"name": "test", "display_name": "test", "type": "O"}
     response = requests.post(
-        f"http://{mattermost_ip}:8065/api/v4/teams", data=json.dumps(data), headers=headers
+        f"http://{mattermost_ip}:8065/api/v4/teams",
+        data=json.dumps(data),
+        headers=headers,
+        timeout=10,
     )
     team = response.json()
 
     # create a channel
     data = {"team_id": team["id"], "name": "test", "display_name": "test", "type": "O"}
     response = requests.post(
-        f"http://{mattermost_ip}:8065/api/v4/channels", data=json.dumps(data), headers=headers
+        f"http://{mattermost_ip}:8065/api/v4/channels",
+        data=json.dumps(data),
+        headers=headers,
+        timeout=10,
     )
     channel = response.json()
 
     # create a test file
-    test_file = tmp_path / "test_file.txt"
+    test_file_name = "test_file.txt"
+    test_file = tmp_path / test_file_name
     test_content = "This is a test file."
     test_file.write_text(test_content, encoding="utf-8")
 
     # upload the test file
     await ops_test.juju("run", "--application", app.name, cmd)
-    with open(test_file, "r", encoding="utf-8") as test_file:
+    with open(test_file, "r", encoding="utf-8") as test_fd:
         response = requests.post(
             f"http://{mattermost_ip}:8065/api/v4/files",
             data={"channel_id": channel["id"]},
-            files={"file": test_file},
+            files={"file": test_fd},
             headers=headers,
+            timeout=10,
         )
 
     logger.info("Mattermost config updated, checking bucket content")
 
-    # Configuration for boto client
-    s3_client_config = Config(
-        region_name=localstack_s3_config["region"],
-        s3={
-            "addressing_style": "virtual",
-        },
-    )
-
-    # Configure the boto client
-    s3_client = client(
-        "s3",
-        localstack_s3_config["region"],
-        aws_access_key_id=localstack_s3_config["credentials"]["access-key"],
-        aws_secret_access_key=localstack_s3_config["credentials"]["secret-key"],
-        endpoint_url=localstack_s3_config["endpoint"],
-        use_ssl=False,
-        config=s3_client_config,
-    )
-
     # Check the bucket has been created
-    response = s3_client.list_buckets()
+    response = localstack_s3_client.list_buckets()
     bucket_list = [*map(lambda a: a["Name"], response["Buckets"])]
 
     assert localstack_s3_config["bucket"] in bucket_list
 
     # Check content has been uploaded in the bucket
-    response = s3_client.list_objects(Bucket=localstack_s3_config["bucket"])
+    response = localstack_s3_client.list_objects(Bucket=localstack_s3_config["bucket"])
     object_count = sum(1 for _ in response["Contents"])
     assert object_count > 0
-
-    test_file_key = next(x["Key"] for x in response["Contents"] if "test_file.txt" in x["Key"])
+    test_file_key = next(x["Key"] for x in response["Contents"] if test_file_name in x["Key"])
     downloaded_test_file = tmp_path / "downloaded_test_file.txt"
-    s3_client.download_file(localstack_s3_config["bucket"], test_file_key, downloaded_test_file)
-    with open(downloaded_test_file, "r", encoding="utf-8") as test_file:
-        assert test_content in test_file.read()
+    localstack_s3_client.download_file(
+        localstack_s3_config["bucket"], test_file_key, downloaded_test_file
+    )
+    with open(downloaded_test_file, "r", encoding="utf-8") as test_fd:
+        assert test_content in test_fd.read()
 
 
 async def test_scale_workload(
