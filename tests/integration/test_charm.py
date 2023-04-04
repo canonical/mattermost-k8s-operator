@@ -4,10 +4,12 @@
 import json
 import logging
 
+import pathlib
 import ops
 import requests
 from ops.model import Application
 from pytest_operator.plugin import OpsTest
+from boto3 import client
 
 logger = logging.getLogger(__name__)
 
@@ -29,10 +31,10 @@ async def test_s3_storage(
     ops_test: OpsTest,
     model: ops.model.Model,
     app: Application,
-    localstack_s3_config: dict,
-    test_user: dict,
-    tmp_path,
-    localstack_s3_client,
+    localstack_s3_config: dict[str, str],
+    test_user: dict[str, str],
+    tmp_path: pathlib.Path,
+    localstack_s3_client: client,
 ):
     """
     arrange: after charm deployed and openstack swift server ready.
@@ -96,7 +98,8 @@ async def test_s3_storage(
     channel = response.json()
 
     # create a test file
-    test_file = tmp_path / "test_file.txt"
+    test_file_name = "test_file.txt"
+    test_file = tmp_path / test_file_name
     test_content = "This is a test file."
     test_file.write_text(test_content, encoding="utf-8")
 
@@ -123,7 +126,7 @@ async def test_s3_storage(
     response = localstack_s3_client.list_objects(Bucket=localstack_s3_config["bucket"])
     object_count = sum(1 for _ in response["Contents"])
     assert object_count > 0
-    test_file_key = next(x["Key"] for x in response["Contents"] if "test_file.txt" in x["Key"])
+    test_file_key = next(x["Key"] for x in response["Contents"] if test_file_name in x["Key"])
     downloaded_test_file = tmp_path / "downloaded_test_file.txt"
     localstack_s3_client.download_file(
         localstack_s3_config["bucket"],
