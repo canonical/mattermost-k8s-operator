@@ -7,3 +7,9 @@ jobs:
   integration-tests:
     uses: canonical/operator-workflows/.github/workflows/integration_test.yaml@main
     secrets: inherit
+    with:
+      pre-run-script: tests/integration/localstack-installation.sh
+      image-build-args: |
+        image_flavour=canonical
+        local_mode=true
+      extra-arguments: '--localstack-url http://172.17.0.1:4566'

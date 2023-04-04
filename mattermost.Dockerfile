@@ -136,7 +136,7 @@ RUN rm -rf /canonical_flavour_tmp
 
 HEALTHCHECK CMD curl --fail http://localhost:8065 || exit 1
 
-CMD ["/mattermost/bin/mattermost"]
+CMD ["/mattermost/bin/mattermost", "--config", "/mattermost/config/config.json"]
 WORKDIR /mattermost
 
 # The default port

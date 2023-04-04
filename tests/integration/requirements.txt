@@ -1,5 +1,9 @@
-juju>=2,<3
+boto3
+botocore
+docker
+juju==3.0.4
 ops >= 1.5.0
 ops-lib-pgsql
 pytest
 pytest_operator
+requests

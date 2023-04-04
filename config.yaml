@@ -10,6 +10,15 @@ options:
         type: boolean
         description: Set the Mattermost log level to DEBUG, otherwise INFO.
         default: false
+    extra_env:
+        type: string
+        description: |
+          Additional environment values for the Mattermost instance.
+          Those will override any previous configuration from this file.
+          They should be supplied as a valid JSON string.
+
+          Should be used for tests and debugging purposes.
+        default: '{}'
     image_proxy_enabled:
         type: boolean
         description: |
