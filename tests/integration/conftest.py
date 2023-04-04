@@ -13,11 +13,11 @@ from urllib.parse import urlparse
 import ops
 import pytest_asyncio
 import yaml
+from boto3 import client
+from botocore.config import Config
 from ops.model import ActiveStatus, Application
 from pytest import fixture
 from pytest_operator.plugin import OpsTest
-from boto3 import client
-from botocore.config import Config
 
 logger = logging.getLogger(__name__)
 
