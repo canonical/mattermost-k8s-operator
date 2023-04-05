@@ -3,8 +3,8 @@
 
 import json
 import logging
-import re
 import pathlib
+import re
 from typing import Dict
 
 import ops
@@ -155,10 +155,13 @@ async def test_scale_workload(
 
     # get the pod name of the first unit (the leader)
     model_name = list(ops_test.models.values())[0].model_name
+    pods = kube_core_client.list_namespaced_pod(namespace=model_name).items
+    # the alphabet used by k8s is restricted to avoid bad words
+    # https://github.com/kubernetes/kubernetes/blob/master/staging/src/k8s.io/apimachinery/pkg/util/rand/rand.go#L83
+    k8s_pod_ending_regex = '[bcdfghjklmnpqrstvwxz2456789]{9,10}-[bcdfghjklmnpqrstvwxz2456789]{5}'
+    mattermost_pod_regex = re.compile('mattermost-k8s-' + k8s_pod_ending_regex)
     leader_pod = next(
-        p.metadata.name
-        for p in kube_core_client.list_namespaced_pod(namespace=model_name).items
-        if re.match(r"mattermost-k8s-\w{10}-\w{5}", p.metadata.name)
+        p.metadata.name for p in pods if re.match(mattermost_pod_regex, p.metadata.name)
     )
 
     # scale the application

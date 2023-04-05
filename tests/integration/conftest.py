@@ -10,9 +10,6 @@ import secrets
 from pathlib import Path
 from urllib.parse import urlparse
 
-from ops.model import ActiveStatus, Application
-from pytest import fixture
-from pytest import FixtureRequest
 import kubernetes
 import ops
 import pytest_asyncio
@@ -20,7 +17,7 @@ import yaml
 from boto3 import client
 from botocore.config import Config
 from ops.model import ActiveStatus, Application
-from pytest import fixture
+from pytest import FixtureRequest, fixture
 from pytest_operator.plugin import OpsTest
 
 logger = logging.getLogger(__name__)
