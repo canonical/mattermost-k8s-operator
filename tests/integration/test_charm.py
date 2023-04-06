@@ -4,6 +4,7 @@
 import json
 import logging
 import pathlib
+import re
 from typing import Dict
 
 import ops
@@ -139,3 +140,41 @@ async def test_s3_storage(
     )
     with open(downloaded_test_file, "r", encoding="utf-8") as test_fd:
         assert test_content in test_fd.read()
+
+
+async def test_scale_workload(
+    ops_test: OpsTest,
+    app: Application,
+    kube_core_client,
+):
+    """
+    arrange: after charm is deployed and ready.
+    act: scale application to 3 units and kill the current leader.
+    assert: the application should be reachable.
+    """
+
+    # get the pod name of the first unit (the leader)
+    pods = kube_core_client.list_namespaced_pod(namespace=ops_test.model_name).items
+    # the alphabet used by k8s is restricted to avoid bad words
+    # https://github.com/kubernetes/kubernetes/blob/master/staging/src/k8s.io/apimachinery/pkg/util/rand/rand.go#L83
+    k8s_pod_ending_regex = "[bcdfghjklmnpqrstvwxz2456789]{9,10}-[bcdfghjklmnpqrstvwxz2456789]{5}"
+    mattermost_pod_regex = re.compile(f"mattermost-k8s-{k8s_pod_ending_regex}")
+    leader_pod = next(
+        p.metadata.name for p in pods if re.match(mattermost_pod_regex, p.metadata.name)
+    )
+
+    # scale the application
+    await app.scale(scale=3)
+    await ops_test.model.wait_for_idle(status="active")
+
+    # kill the leader
+    kube_core_client.delete_namespaced_pod(name=leader_pod, namespace=ops_test.model_name)
+    await ops_test.model.wait_for_idle(status="active")
+
+    unit_informations = json.loads(
+        (await ops_test.juju("show-unit", app.units[0].name, "--format", "json"))[1]
+    )
+    mattermost_ip = unit_informations[app.units[0].name]["address"]
+    response = requests.get(f"http://{mattermost_ip}:8065", timeout=5)
+    assert response.status_code == 200
+    assert "Mattermost" in response.text

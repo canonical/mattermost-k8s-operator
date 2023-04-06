@@ -10,13 +10,14 @@ import secrets
 from pathlib import Path
 from urllib.parse import urlparse
 
+import kubernetes
 import ops
 import pytest_asyncio
 import yaml
 from boto3 import client
 from botocore.config import Config
 from ops.model import ActiveStatus, Application
-from pytest import fixture
+from pytest import FixtureRequest, fixture
 from pytest_operator.plugin import OpsTest
 
 logger = logging.getLogger(__name__)
@@ -175,3 +176,22 @@ def localstack_s3_client(localstack_s3_config: dict) -> client:
     )
 
     return s3_client
+
+
+@fixture(scope="module", name="kube_config")
+def kube_config_fixture(request: FixtureRequest):
+    """The Kubernetes cluster configuration file."""
+    kube_config = request.config.getoption("--kube-config")
+    assert kube_config, (
+        "The Kubernetes config file path should not be empty, "
+        "please include it in the --kube-config parameter"
+    )
+    return kube_config
+
+
+@fixture(scope="module", name="kube_core_client")
+def kube_core_client_fixture(kube_config):
+    """Create a kubernetes client for core API v1."""
+    kubernetes.config.load_kube_config(config_file=kube_config)
+    kubernetes_client_v1 = kubernetes.client.CoreV1Api()
+    return kubernetes_client_v1

@@ -15,3 +15,5 @@ def pytest_addoption(parser: pytest.Parser):
     parser.addoption("--localstack-url", action="store", default="")
     # OCI image of mattermost
     parser.addoption("--mattermost-image", action="store", default="")
+    # Kubernetes cluster configuration file
+    parser.addoption("--kube-config", action="store", default="")
