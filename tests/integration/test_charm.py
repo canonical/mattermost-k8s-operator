@@ -148,28 +148,27 @@ async def test_scale_workload(
     kube_core_client,
 ):
     """
-    arrange: after charm deployed and ready.
+    arrange: after charm is deployed and ready.
     act: scale application to 3 units and kill the current leader.
     assert: the application should be reachable.
     """
 
     # get the pod name of the first unit (the leader)
-    model_name = list(ops_test.models.values())[0].model_name
-    pods = kube_core_client.list_namespaced_pod(namespace=model_name).items
+    pods = kube_core_client.list_namespaced_pod(namespace=ops_test.model_name).items
     # the alphabet used by k8s is restricted to avoid bad words
     # https://github.com/kubernetes/kubernetes/blob/master/staging/src/k8s.io/apimachinery/pkg/util/rand/rand.go#L83
-    k8s_pod_ending_regex = '[bcdfghjklmnpqrstvwxz2456789]{9,10}-[bcdfghjklmnpqrstvwxz2456789]{5}'
-    mattermost_pod_regex = re.compile('mattermost-k8s-' + k8s_pod_ending_regex)
+    k8s_pod_ending_regex = "[bcdfghjklmnpqrstvwxz2456789]{9,10}-[bcdfghjklmnpqrstvwxz2456789]{5}"
+    mattermost_pod_regex = re.compile(f"mattermost-k8s-{k8s_pod_ending_regex}")
     leader_pod = next(
         p.metadata.name for p in pods if re.match(mattermost_pod_regex, p.metadata.name)
     )
 
     # scale the application
-    await ops_test.juju("scale-application", "mattermost-k8s", "3")
+    await app.scale(scale=3)
     await ops_test.model.wait_for_idle(status="active")
 
     # kill the leader
-    kube_core_client.delete_namespaced_pod(name=leader_pod, namespace=model_name)
+    kube_core_client.delete_namespaced_pod(name=leader_pod, namespace=ops_test.model_name)
     await ops_test.model.wait_for_idle(status="active")
 
     unit_informations = json.loads(
