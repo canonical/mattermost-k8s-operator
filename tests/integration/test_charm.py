@@ -9,6 +9,7 @@ from typing import Dict
 
 import ops
 import requests
+import time
 from boto3 import client
 from ops.model import Application
 from pytest_operator.plugin import OpsTest
@@ -178,3 +179,116 @@ async def test_scale_workload(
     response = requests.get(f"http://{mattermost_ip}:8065", timeout=5)
     assert response.status_code == 200
     assert "Mattermost" in response.text
+
+
+async def test_remind_plugin(
+    ops_test: OpsTest,
+    app: Application,
+    model: ops.model.Model,
+    test_user: Dict[str, str],
+):
+    """
+    arrange: after charm is deployed and ready.
+    act:
+    assert: the plugin should be enabled.
+    """
+
+    await app.set_config(
+        {
+            "extra_env": json.dumps(
+                {
+                    "MM_FILESETTINGS_AMAZONS3SSL": "false",
+                    "MM_SERVICESETTINGS_ENABLELOCALMODE": "true",
+                    "MM_SERVICESETTINGS_LOCALMODESOCKETLOCATION": "/tmp/mattermost.socket",
+                }
+            ),
+        }
+    )
+    # An error state can sometimes be reached by Mattermost during s3 configuration
+    await model.wait_for_idle(status="active", raise_on_error=False)
+
+    plugin_name = "com.github.scottleedavis.mattermost-plugin-remind"
+    cmd = (
+        "MMCTL_LOCAL_SOCKET_PATH=/tmp/mattermost.socket /mattermost/bin/mmctl --local"
+        f" plugin enable {plugin_name}"
+    )
+    await ops_test.juju("run", "--application", app.name, cmd)
+
+    cmd = (
+        "MMCTL_LOCAL_SOCKET_PATH=/tmp/mattermost.socket /mattermost/bin/mmctl --local"
+        " plugin list"
+    )
+    output = await ops_test.juju("run", "--application", app.name, cmd)
+    for line in output[1].splitlines():
+        if line.startswith(plugin_name):
+            assert True, f"{plugin_name} is in enabled plugins."
+            break
+        if line == "Listing disabled plugins":
+            assert False, f"{plugin_name} is not in enabled plugins."
+            break
+
+    # create a user
+    cmd = (
+        f"MMCTL_LOCAL_SOCKET_PATH=/tmp/mattermost.socket /mattermost/bin/mmctl"
+        f" --local user create --email {test_user['login_id']} --username test"
+        f" --password {test_user['password']}"
+    )
+    await ops_test.juju("run", "--application", app.name, cmd)
+
+    unit_informations = json.loads(
+        (await ops_test.juju("show-unit", app.units[0].name, "--format", "json"))[1]
+    )
+    mattermost_ip = unit_informations[app.units[0].name]["address"]
+
+    # login to the API
+    response = requests.post(
+        f"http://{mattermost_ip}:8065/api/v4/users/login", data=json.dumps(test_user), timeout=10
+    )
+    headers = {"authorization": f"Bearer {response.headers['Token']}"}
+
+    # create a team
+    data = {"name": "test", "display_name": "test", "type": "O"}
+    response = requests.post(
+        f"http://{mattermost_ip}:8065/api/v4/teams",
+        data=json.dumps(data),
+        headers=headers,
+        timeout=10,
+    )
+    team = response.json()
+
+    # create a channel
+    data = {"team_id": team["id"], "name": "test", "display_name": "test", "type": "O"}
+    response = requests.post(
+        f"http://{mattermost_ip}:8065/api/v4/channels",
+        data=json.dumps(data),
+        headers=headers,
+        timeout=10,
+    )
+    channel = response.json()
+
+    # execute a command
+    reminder = "test01"
+    data = {
+        "channel_id": channel["id"],
+        "command": f"/remind ~{channel['name']} {reminder} in 1 minute"
+    }
+    response = requests.post(
+        f"http://{mattermost_ip}:8065/api/v4/commands/execute",
+        data=json.dumps(data),
+        headers=headers,
+        timeout=10,
+    )
+    print(response.json())
+
+    # wait for the reminder to trigger
+    time.sleep(120)
+
+    # execute a command
+    response = requests.get(
+        f"http://{mattermost_ip}:8065/api/v4/channels/{channel['id']}/posts",
+        headers=headers,
+        timeout=10,
+    )
+    posts = response.json()
+    print(posts)
+    assert any((x[1]['message'] == f"@test asked me to remind you \"{reminder}\"." for x in posts['posts'].items()))
