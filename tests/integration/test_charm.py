@@ -5,14 +5,14 @@ import json
 import logging
 import pathlib
 import re
-from typing import Dict
+import time
 
 import ops
 import requests
-import time
 from boto3 import client
 from ops.model import Application
 from pytest_operator.plugin import OpsTest
+from conftest import get_mattermost_ip
 
 logger = logging.getLogger(__name__)
 
@@ -21,11 +21,12 @@ async def test_workload_online_default(
     ops_test: OpsTest,
     app: Application,
 ):
-    unit_informations = json.loads(
-        (await ops_test.juju("show-unit", app.units[0].name, "--format", "json"))[1]
-    )
-    mattermost_ip = unit_informations[app.units[0].name]["address"]
-    response = requests.get(f"http://{mattermost_ip}:8065", timeout=5)
+    """
+    arrange: after charm deployed.
+    act: request the homepage of the application.
+    assert: the application should respond with 200 HTTP OK
+    """
+    response = requests.get(f"http://{await get_mattermost_ip(ops_test, app)}:8065", timeout=5)
     assert response.status_code == 200
     assert "Mattermost" in response.text
 
@@ -35,9 +36,9 @@ async def test_s3_storage(
     model: ops.model.Model,
     app: Application,
     localstack_s3_config: dict,
-    test_user: Dict[str, str],
     tmp_path: pathlib.Path,
     localstack_s3_client: client,
+    test_entities: dict,
 ):
     """
     arrange: after charm deployed and openstack swift server ready.
@@ -54,56 +55,12 @@ async def test_s3_storage(
             "s3_access_key_id": localstack_s3_config["credentials"]["access-key"],
             "s3_secret_access_key": localstack_s3_config["credentials"]["secret-key"],
             "s3_server_side_encryption": "false",
-            "extra_env": json.dumps(
-                {
-                    "MM_FILESETTINGS_AMAZONS3SSL": "false",
-                    "MM_SERVICESETTINGS_ENABLELOCALMODE": "true",
-                    "MM_SERVICESETTINGS_LOCALMODESOCKETLOCATION": "/tmp/mattermost.socket",
-                }
-            ),
         }
     )
     # An error state can sometimes be reached by Mattermost during s3 configuration
     await model.wait_for_idle(status="active", raise_on_error=False)
 
-    unit_informations = json.loads(
-        (await ops_test.juju("show-unit", app.units[0].name, "--format", "json"))[1]
-    )
-    mattermost_ip = unit_informations[app.units[0].name]["address"]
-
-    # create a user
-    cmd = (
-        f"MMCTL_LOCAL_SOCKET_PATH=/tmp/mattermost.socket /mattermost/bin/mmctl"
-        f" --local user create --email {test_user['login_id']} --username test"
-        f" --password {test_user['password']}"
-    )
-    await ops_test.juju("run", "--application", app.name, cmd)
-
-    # login to the API
-    response = requests.post(
-        f"http://{mattermost_ip}:8065/api/v4/users/login", data=json.dumps(test_user), timeout=10
-    )
-    headers = {"authorization": f"Bearer {response.headers['Token']}"}
-
-    # create a team
-    data = {"name": "test", "display_name": "test", "type": "O"}
-    response = requests.post(
-        f"http://{mattermost_ip}:8065/api/v4/teams",
-        data=json.dumps(data),
-        headers=headers,
-        timeout=10,
-    )
-    team = response.json()
-
-    # create a channel
-    data = {"team_id": team["id"], "name": "test", "display_name": "test", "type": "O"}
-    response = requests.post(
-        f"http://{mattermost_ip}:8065/api/v4/channels",
-        data=json.dumps(data),
-        headers=headers,
-        timeout=10,
-    )
-    channel = response.json()
+    mattermost_ip = await get_mattermost_ip(ops_test, app)
 
     # create a test file
     test_file_name = "test_file.txt"
@@ -112,13 +69,12 @@ async def test_s3_storage(
     test_file.write_text(test_content, encoding="utf-8")
 
     # upload the test file
-    await ops_test.juju("run", "--application", app.name, cmd)
     with open(test_file, "r", encoding="utf-8") as test_fd:
         response = requests.post(
             f"http://{mattermost_ip}:8065/api/v4/files",
-            data={"channel_id": channel["id"]},
+            data={"channel_id": test_entities["channel"]["id"]},
             files={"file": test_fd},
-            headers=headers,
+            headers=test_entities["headers"],
             timeout=10,
         )
 
@@ -172,11 +128,7 @@ async def test_scale_workload(
     kube_core_client.delete_namespaced_pod(name=leader_pod, namespace=ops_test.model_name)
     await ops_test.model.wait_for_idle(status="active")
 
-    unit_informations = json.loads(
-        (await ops_test.juju("show-unit", app.units[0].name, "--format", "json"))[1]
-    )
-    mattermost_ip = unit_informations[app.units[0].name]["address"]
-    response = requests.get(f"http://{mattermost_ip}:8065", timeout=5)
+    response = requests.get(f"http://{await get_mattermost_ip(ops_test, app)}:8065", timeout=5)
     assert response.status_code == 200
     assert "Mattermost" in response.text
 
@@ -184,28 +136,13 @@ async def test_scale_workload(
 async def test_remind_plugin(
     ops_test: OpsTest,
     app: Application,
-    model: ops.model.Model,
-    test_user: Dict[str, str],
+    test_entities,
 ):
     """
     arrange: after charm is deployed and ready.
     act:
     assert: the plugin should be enabled.
     """
-
-    await app.set_config(
-        {
-            "extra_env": json.dumps(
-                {
-                    "MM_FILESETTINGS_AMAZONS3SSL": "false",
-                    "MM_SERVICESETTINGS_ENABLELOCALMODE": "true",
-                    "MM_SERVICESETTINGS_LOCALMODESOCKETLOCATION": "/tmp/mattermost.socket",
-                }
-            ),
-        }
-    )
-    # An error state can sometimes be reached by Mattermost during s3 configuration
-    await model.wait_for_idle(status="active", raise_on_error=False)
 
     plugin_name = "com.github.scottleedavis.mattermost-plugin-remind"
     cmd = (
@@ -227,68 +164,34 @@ async def test_remind_plugin(
             assert False, f"{plugin_name} is not in enabled plugins."
             break
 
-    # create a user
-    cmd = (
-        f"MMCTL_LOCAL_SOCKET_PATH=/tmp/mattermost.socket /mattermost/bin/mmctl"
-        f" --local user create --email {test_user['login_id']} --username test"
-        f" --password {test_user['password']}"
-    )
-    await ops_test.juju("run", "--application", app.name, cmd)
-
-    unit_informations = json.loads(
-        (await ops_test.juju("show-unit", app.units[0].name, "--format", "json"))[1]
-    )
-    mattermost_ip = unit_informations[app.units[0].name]["address"]
-
-    # login to the API
-    response = requests.post(
-        f"http://{mattermost_ip}:8065/api/v4/users/login", data=json.dumps(test_user), timeout=10
-    )
-    headers = {"authorization": f"Bearer {response.headers['Token']}"}
-
-    # create a team
-    data = {"name": "test", "display_name": "test", "type": "O"}
-    response = requests.post(
-        f"http://{mattermost_ip}:8065/api/v4/teams",
-        data=json.dumps(data),
-        headers=headers,
-        timeout=10,
-    )
-    team = response.json()
-
-    # create a channel
-    data = {"team_id": team["id"], "name": "test", "display_name": "test", "type": "O"}
-    response = requests.post(
-        f"http://{mattermost_ip}:8065/api/v4/channels",
-        data=json.dumps(data),
-        headers=headers,
-        timeout=10,
-    )
-    channel = response.json()
+    mattermost_ip = await get_mattermost_ip(ops_test, app)
 
     # execute a command
     reminder = "test01"
     data = {
-        "channel_id": channel["id"],
-        "command": f"/remind ~{channel['name']} {reminder} in 1 minute"
+        "channel_id": test_entities["channel"]["id"],
+        "command": f"/remind ~{test_entities['channel']['name']} {reminder} in 1 minute",
     }
-    response = requests.post(
+    requests.post(
         f"http://{mattermost_ip}:8065/api/v4/commands/execute",
         data=json.dumps(data),
-        headers=headers,
+        headers=test_entities["headers"],
         timeout=10,
     )
-    print(response.json())
 
     # wait for the reminder to trigger
     time.sleep(120)
 
     # execute a command
     response = requests.get(
-        f"http://{mattermost_ip}:8065/api/v4/channels/{channel['id']}/posts",
-        headers=headers,
+        f"http://{mattermost_ip}:8065/api/v4/channels/{test_entities['channel']['id']}/posts",
+        headers=test_entities["headers"],
         timeout=10,
     )
     posts = response.json()
-    print(posts)
-    assert any((x[1]['message'] == f"@test asked me to remind you \"{reminder}\"." for x in posts['posts'].items()))
+    assert any(
+        (
+            x[1]["message"] == f'@test asked me to remind you "{reminder}".'
+            for x in posts["posts"].items()
+        )
+    )
