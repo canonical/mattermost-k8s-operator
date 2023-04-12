@@ -5,6 +5,7 @@ pip install pyopenssl --upgrade
 pip install --upgrade localstack # install LocalStack cli
 docker pull localstack/localstack # Make sure to pull the latest version of the image
 id
+mkdir -p /var/lib/localstack
 chmod 777 /var/lib/localstack
 ACTIVATE_PRO=0 \
   EDGE_BIND_HOST=0.0.0.0 \
