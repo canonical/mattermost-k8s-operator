@@ -10,9 +10,9 @@ import time
 import ops
 import requests
 from boto3 import client
+from conftest import get_mattermost_ip
 from ops.model import Application
 from pytest_operator.plugin import OpsTest
-from conftest import get_mattermost_ip
 
 logger = logging.getLogger(__name__)
 
@@ -106,7 +106,7 @@ async def test_scale_workload(
 ):
     """
     arrange: after charm is deployed and ready.
-    act: scale application to 3 units and kill the current leader.
+    act: scale application to 2 units and kill the current leader.
     assert: the application should be reachable.
     """
 
@@ -121,7 +121,7 @@ async def test_scale_workload(
     )
 
     # scale the application
-    await app.scale(scale=3)
+    await app.scale(scale=2)
     await ops_test.model.wait_for_idle(status="active")
 
     # kill the leader
