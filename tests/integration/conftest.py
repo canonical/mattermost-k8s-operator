@@ -9,6 +9,7 @@ import logging
 import secrets
 from pathlib import Path
 from urllib.parse import urlparse
+import time
 
 import kubernetes
 import ops
@@ -108,6 +109,20 @@ async def app(
     )
     # mypy doesn't see that ActiveStatus has a name
     await model.wait_for_idle(status=ActiveStatus.name)  # type: ignore
+
+    # test that the application is online
+    for _ in range(10):
+        try:
+            response = requests.get(
+                f"http://{await get_mattermost_ip(ops_test, application)}:8065",
+                timeout=5
+            )
+            if response.status_code == 200:
+                break
+        except:
+            pass
+        # wait a bit
+        time.sleep(10)
 
     yield application
 

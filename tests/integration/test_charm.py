@@ -121,7 +121,7 @@ async def test_scale_workload(
     )
 
     # scale the application
-    await app.scale(scale=2)
+    await app.scale(scale=3)
     await ops_test.model.wait_for_idle(status="active")
 
     # kill the leader
