@@ -10,9 +10,10 @@ import time
 import ops
 import requests
 from boto3 import client
-from conftest import get_mattermost_ip
 from ops.model import Application
 from pytest_operator.plugin import OpsTest
+
+import utils
 
 logger = logging.getLogger(__name__)
 
@@ -22,11 +23,13 @@ async def test_workload_online_default(
     app: Application,
 ):
     """
-    arrange: after charm deployed.
-    act: request the homepage of the application.
+    arrange: after charm deployed
+    act: request the homepage of the application
     assert: the application should respond with 200 HTTP OK
     """
-    response = requests.get(f"http://{await get_mattermost_ip(ops_test, app)}:8065", timeout=5)
+    response = requests.get(
+        f"http://{await utils.get_mattermost_ip(ops_test, app)}:8065", timeout=5
+    )
     assert response.status_code == 200
     assert "Mattermost" in response.text
 
@@ -41,9 +44,9 @@ async def test_s3_storage(
     test_entities: dict,
 ):
     """
-    arrange: after charm deployed and openstack swift server ready.
-    act: update charm configuration for openstack object storage plugin.
-    assert: a file should be uploaded to the openstack server and be accessible through it.
+    arrange: after charm deployed and openstack swift server ready
+    act: update charm configuration for openstack object storage plugin
+    assert: a file should be uploaded to the openstack server and be accessible through it
     """
 
     await app.set_config(
@@ -60,7 +63,7 @@ async def test_s3_storage(
     # An error state can sometimes be reached by Mattermost during s3 configuration
     await model.wait_for_idle(status="active", raise_on_error=False)
 
-    mattermost_ip = await get_mattermost_ip(ops_test, app)
+    mattermost_ip = await utils.get_mattermost_ip(ops_test, app)
 
     # create a test file
     test_file_name = "test_file.txt"
@@ -105,9 +108,9 @@ async def test_scale_workload(
     kube_core_client,
 ):
     """
-    arrange: after charm is deployed and ready.
-    act: scale application to 2 units and kill the current leader.
-    assert: the application should be reachable.
+    arrange: after charm is deployed and ready
+    act: scale application to 3 units and kill the current leader
+    assert: the application should be reachable
     """
 
     # get the pod name of the first unit (the leader)
@@ -128,7 +131,9 @@ async def test_scale_workload(
     kube_core_client.delete_namespaced_pod(name=leader_pod, namespace=ops_test.model_name)
     await ops_test.model.wait_for_idle(status="active")
 
-    response = requests.get(f"http://{await get_mattermost_ip(ops_test, app)}:8065", timeout=5)
+    response = requests.get(
+        f"http://{await utils.get_mattermost_ip(ops_test, app)}:8065", timeout=5
+    )
     assert response.status_code == 200
     assert "Mattermost" in response.text
 
@@ -139,9 +144,9 @@ async def test_remind_plugin(
     test_entities,
 ):
     """
-    arrange: after charm is deployed and ready.
-    act:
-    assert: the plugin should be enabled.
+    arrange: after charm is deployed and ready
+    act: enable the reminder plugin and execute a command to create a reminder
+    assert: the plugin should be enabled and the reminder should be produced
     """
 
     plugin_name = "com.github.scottleedavis.mattermost-plugin-remind"
@@ -149,13 +154,13 @@ async def test_remind_plugin(
         "MMCTL_LOCAL_SOCKET_PATH=/tmp/mattermost.socket /mattermost/bin/mmctl --local"
         f" plugin enable {plugin_name}"
     )
-    await ops_test.juju("run", "--application", app.name, cmd)
+    await app.run(cmd)
 
     cmd = (
         "MMCTL_LOCAL_SOCKET_PATH=/tmp/mattermost.socket /mattermost/bin/mmctl --local"
         " plugin list"
     )
-    output = await ops_test.juju("run", "--application", app.name, cmd)
+    output = await app.run(cmd)
     for line in output[1].splitlines():
         if line.startswith(plugin_name):
             assert True, f"{plugin_name} is in enabled plugins."
@@ -164,7 +169,7 @@ async def test_remind_plugin(
             assert False, f"{plugin_name} is not in enabled plugins."
             break
 
-    mattermost_ip = await get_mattermost_ip(ops_test, app)
+    mattermost_ip = await utils.get_mattermost_ip(ops_test, app)
 
     # execute a command
     reminder = "test01"
@@ -191,7 +196,7 @@ async def test_remind_plugin(
     posts = response.json()
     assert any(
         (
-            x[1]["message"] == f'@test asked me to remind you "{reminder}".'
-            for x in posts["posts"].items()
+            post[1]["message"] == f'@test asked me to remind you "{reminder}".'
+            for post in posts["posts"].items()
         )
-    )
+    ), "The reminder wasn't properly created."

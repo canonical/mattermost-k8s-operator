@@ -7,9 +7,9 @@ import asyncio
 import json
 import logging
 import secrets
+import time
 from pathlib import Path
 from urllib.parse import urlparse
-import time
 
 import kubernetes
 import ops
@@ -22,23 +22,9 @@ from ops.model import ActiveStatus, Application
 from pytest import FixtureRequest, fixture
 from pytest_operator.plugin import OpsTest
 
+import utils
+
 logger = logging.getLogger(__name__)
-
-
-async def get_mattermost_ip(
-    ops_test: OpsTest,
-    app: Application,
-):
-    """Get the IP address of the leader unit of mattermost.
-
-    Return the IP address of the leader mattermost unit.
-    """
-    for unit in app.units:
-        unit_informations = json.loads(
-            (await ops_test.juju("show-unit", unit.name, "--format", "json"))[1]
-        )
-        if unit_informations[unit.name]["leader"]:
-            return unit_informations[unit.name]["address"]
 
 
 @fixture(scope="module", name="metadata")
@@ -112,18 +98,15 @@ async def app(
 
     # test that the application is online
     for _ in range(10):
-        try:
-            response = requests.get(
-                f"http://{await get_mattermost_ip(ops_test, application)}:8065",
-                timeout=5
-            )
-            if response.status_code == 200:
-                break
-        except:
-            pass
-        # wait a bit
+        if await utils.is_mattermost_reachable(
+            await utils.get_mattermost_ip(ops_test, application)
+        ):
+            break
         time.sleep(10)
 
+    assert await utils.is_mattermost_reachable(
+        await utils.get_mattermost_ip(ops_test, application)
+    )
     yield application
 
 
@@ -132,7 +115,8 @@ async def test_entities(
     ops_test: OpsTest,
     app: Application,
 ):
-    mattermost_ip = await get_mattermost_ip(ops_test, app)
+    """Create some usual test entities to be used in integration tests."""
+    mattermost_ip = await utils.get_mattermost_ip(ops_test, app)
 
     test_user = {"login_id": "test@test.test", "password": secrets.token_hex()}
 
