@@ -138,7 +138,7 @@ async def test_scale_workload(
     assert "Mattermost" in response.text
 
 
-async def test_remind_plugin(
+async def test_reminder_plugin(
     ops_test: OpsTest,
     app: Application,
     test_entities,
@@ -154,13 +154,14 @@ async def test_remind_plugin(
         "MMCTL_LOCAL_SOCKET_PATH=/tmp/mattermost.socket /mattermost/bin/mmctl --local"
         f" plugin enable {plugin_name}"
     )
-    await app.run(cmd)
+    await ops_test.juju("run", "--application", app.name, cmd)
 
     cmd = (
         "MMCTL_LOCAL_SOCKET_PATH=/tmp/mattermost.socket /mattermost/bin/mmctl --local"
         " plugin list"
     )
-    output = await app.run(cmd)
+    output = await ops_test.juju("run", "--application", app.name, cmd)
+    print(output)
     for line in output[1].splitlines():
         if line.startswith(plugin_name):
             assert True, f"{plugin_name} is in enabled plugins."
