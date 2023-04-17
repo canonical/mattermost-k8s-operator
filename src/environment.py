@@ -275,8 +275,8 @@ def generate(config: dict, app_name: str, site_url: str, db_uri: str) -> dict:
     # Update env with provided extra_env
     try:
         env.update(json.loads(config["extra_env"]))
-    except json.JSONDecodeError as excpt:
-        raise json.JSONDecodeError("extra_env is not valid JSON", excpt.doc, excpt.pos)
+    except json.JSONDecodeError as exc:
+        raise json.JSONDecodeError("extra_env is not valid JSON", exc.doc, exc.pos)
 
     # make sure to convert all values to str
     env = {env_name: str(env_value) for env_name, env_value in env.items()}
