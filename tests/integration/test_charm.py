@@ -154,8 +154,7 @@ async def test_reminder_plugin(
         "MMCTL_LOCAL_SOCKET_PATH=/tmp/mattermost.socket /mattermost/bin/mmctl --local"
         f" plugin enable {plugin_name}"
     )
-    output = await ops_test.juju("run", "--application", app.name, cmd)
-    print(output)
+    await ops_test.juju("run", "--application", app.name, cmd)
 
     cmd = (
         "MMCTL_LOCAL_SOCKET_PATH=/tmp/mattermost.socket /mattermost/bin/mmctl --local"
@@ -164,8 +163,7 @@ async def test_reminder_plugin(
     output = await ops_test.juju("run", "--application", app.name, cmd)
     plugin_enabled = False
     for line in output[1].splitlines():
-        print(line)
-        if line.startswith(plugin_name):
+        if re.match(re.compile(plugin_name), line):
             plugin_enabled = True
             break
         if line == "Listing disabled plugins":
