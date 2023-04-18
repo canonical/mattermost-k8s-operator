@@ -161,14 +161,14 @@ async def test_reminder_plugin(
         " plugin list"
     )
     output = await ops_test.juju("run", "--application", app.name, cmd)
-    print(output)
+    plugin_enabled = False
     for line in output[1].splitlines():
         if line.startswith(plugin_name):
-            assert True, f"{plugin_name} is in enabled plugins."
+            plugin_enabled = True
             break
         if line == "Listing disabled plugins":
-            assert False, f"{plugin_name} is not in enabled plugins."
             break
+    assert plugin_enabled, f"{plugin_name} is not in enabled plugins."
 
     mattermost_ip = await utils.get_mattermost_ip(ops_test, app)
 
