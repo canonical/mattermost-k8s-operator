@@ -167,8 +167,8 @@ async def test_reminder_plugin(
     plugin_enabled = False
     for line in output[1].splitlines():
         print(f"'{line}'")
-        print(re.match(re.compile(plugin_name), line))
-        if re.match(re.compile(plugin_name), line):
+        print(plugin_name in line)
+        if plugin_name in line:
             plugin_enabled = True
             break
         if line == "Listing disabled plugins":
