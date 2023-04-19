@@ -5,10 +5,28 @@ docs: https://discourse.charmhub.io/t/mattermost-documentation-overview/3758
 maintainers:
   - launchpad.net/~canonical-is-devops
 issues: https://github.com/canonical/mattermost-k8s-operator/issues
+source: https://github.com/canonical/mattermost-k8s-operators
 description: |
-  Mattermost is a flexible, open source messaging platform that enables
-  secure team collaboration.
-  https://mattermost.com
+  A [Juju](https://juju.is/) [charm](https://juju.is/docs/olm/charmed-operators)
+  deploying and managing [Mattermost](https://mattermost.com/) on Kubernetes.
+  Mattermost is an open-source, self-hostable online chat service with file sharing,
+  search and integrations.
+
+  This charm simplifies initial deployment and “day N” operations of Mattermost
+  on Kubernetes, such as scaling the number of instances and clustering, access
+  to S3 and more. It allows for deployment on many different Kubernetes
+  platforms, from [MicroK8s](https://microk8s.io) to
+  [Charmed Kubernetes](https://ubuntu.com/kubernetes/charmed-k8s) to public cloud
+  Kubernetes offerings.
+
+  As such, the charm makes it easy for those looking to take control of their own
+  chat system whilst keeping operations simple, and gives them the freedom to
+  deploy on the Kubernetes platform of their choice.
+
+  For DevOps or SRE teams this charm will make operating Mattermost simple and
+  straightforward through Juju’s clean interface. It will allow easy deployment
+  into multiple environments for testing changes, and supports scaling out for
+  enterprise deployments.
 min-juju-version: 2.8.0  # charm storage in state
 version: 1
 series:
