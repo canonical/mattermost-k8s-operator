@@ -7,18 +7,22 @@ import asyncio
 import json
 import logging
 import secrets
+import time
 from pathlib import Path
 from urllib.parse import urlparse
 
 import kubernetes
 import ops
 import pytest_asyncio
+import requests
 import yaml
 from boto3 import client
 from botocore.config import Config
 from ops.model import ActiveStatus, Application
 from pytest import FixtureRequest, fixture
 from pytest_operator.plugin import OpsTest
+
+import utils
 
 logger = logging.getLogger(__name__)
 
@@ -42,15 +46,6 @@ def mattermost_image(request):
     Return a the mattermost image name
     """
     return request.config.getoption("--mattermost-image")
-
-
-@fixture(scope="module")
-def test_user():
-    """Create login informations for a test user.
-
-    Return a dict with the users informations
-    """
-    return {"login_id": "test@test.test", "password": secrets.token_hex()}
 
 
 @pytest_asyncio.fixture(scope="module", name="model")
@@ -79,10 +74,18 @@ async def app(
     application = await model.deploy(charm, application_name=app_name, series="focal")
     await model.wait_for_idle()
 
-    # change the image that will be used for the mattermost container
+    # Change the image that will be used for the mattermost container
+    # and use some common test configuration extra env variables
     await application.set_config(
         {
             "mattermost_image_path": mattermost_image,
+            "extra_env": json.dumps(
+                {
+                    "MM_FILESETTINGS_AMAZONS3SSL": "false",
+                    "MM_SERVICESETTINGS_ENABLELOCALMODE": "true",
+                    "MM_SERVICESETTINGS_LOCALMODESOCKETLOCATION": "/tmp/mattermost.socket",
+                }
+            ),
         }
     )
     await model.wait_for_idle()
@@ -93,22 +96,75 @@ async def app(
     # mypy doesn't see that ActiveStatus has a name
     await model.wait_for_idle(status=ActiveStatus.name)  # type: ignore
 
+    # test that the application is online
+    for _ in range(10):
+        if await utils.is_mattermost_reachable(
+            await utils.get_mattermost_ip(ops_test, application)
+        ):
+            break
+        time.sleep(10)
+
+    assert await utils.is_mattermost_reachable(
+        await utils.get_mattermost_ip(ops_test, application)
+    )
     yield application
 
 
 @pytest_asyncio.fixture(scope="module")
-async def mattermost_ip(
+async def test_entities(
     ops_test: OpsTest,
     app: Application,
 ):
-    """Get the IP address of the first unit of mattermost.
+    """Create some usual test entities to be used in integration tests."""
+    mattermost_ip = await utils.get_mattermost_ip(ops_test, app)
 
-    Return the IP address of a mattermost unit.
-    """
-    unit_informations = json.loads(
-        (await ops_test.juju("show-unit", app.units[0].name, "--format", "json"))[1]
+    test_user = {"login_id": "test@test.test", "password": secrets.token_hex()}
+
+    # create a user
+    cmd = (
+        f"MMCTL_LOCAL_SOCKET_PATH=/tmp/mattermost.socket /mattermost/bin/mmctl"
+        f" --local user create --email {test_user['login_id']} --username test"
+        f" --password {test_user['password']}"
     )
-    return unit_informations[app.units[0].name]["address"]
+    await ops_test.juju("run", "--application", app.name, cmd)
+
+    # login to the API
+    response = requests.post(
+        f"http://{mattermost_ip}:8065/api/v4/users/login", data=json.dumps(test_user), timeout=10
+    )
+    token = response.headers["Token"]
+    headers = {"authorization": f"Bearer {response.headers['Token']}"}
+
+    # create a team
+    data = {"name": "test", "display_name": "test", "type": "O"}
+    response = requests.post(
+        f"http://{mattermost_ip}:8065/api/v4/teams",
+        data=json.dumps(data),
+        headers=headers,
+        timeout=10,
+    )
+    team = response.json()
+
+    # create a channel
+    data = {"team_id": team["id"], "name": "test", "display_name": "test", "type": "O"}
+    response = requests.post(
+        f"http://{mattermost_ip}:8065/api/v4/channels",
+        data=json.dumps(data),
+        headers=headers,
+        timeout=10,
+    )
+    channel = response.json()
+
+    yield {
+        "token": token,
+        "headers": headers,
+        "user": {
+            "email": test_user["login_id"],
+            "password": test_user["password"],
+        },
+        "team": team,
+        "channel": channel,
+    }
 
 
 @fixture(scope="module")
@@ -180,7 +236,7 @@ def localstack_s3_client(localstack_s3_config: dict) -> client:
 
 @fixture(scope="module", name="kube_config")
 def kube_config_fixture(request: FixtureRequest):
-    """The Kubernetes cluster configuration file."""
+    """Return the Kubernetes cluster configuration file."""
     kube_config = request.config.getoption("--kube-config")
     assert kube_config, (
         "The Kubernetes config file path should not be empty, "

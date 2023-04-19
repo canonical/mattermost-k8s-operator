@@ -262,6 +262,7 @@ def generate(config: dict, app_name: str, site_url: str, db_uri: str) -> dict:
             }
         )
 
+    # replace some configurations with canonical defaults if chosen so
     if config["use_canonical_defaults"]:
         env.update(CANONICAL_DEFAULTS)
 
@@ -274,8 +275,8 @@ def generate(config: dict, app_name: str, site_url: str, db_uri: str) -> dict:
     # Update env with provided extra_env
     try:
         env.update(json.loads(config["extra_env"]))
-    except json.JSONDecodeError:
-        raise json.jSONDecodeError("extra_env is not valid JSON")
+    except json.JSONDecodeError as exc:
+        raise json.JSONDecodeError("extra_env is not valid JSON", exc.doc, exc.pos)
 
     # make sure to convert all values to str
     env = {env_name: str(env_value) for env_name, env_value in env.items()}

@@ -83,7 +83,7 @@ RUN mkdir -p /mattermost/data /mattermost/plugins /mattermost/client/plugins && 
         ;; \
     *) \
         echo "E: Unknown edition ${edition}!  Cannot continue." >&2 ; \
-	exit 1 ; \
+        exit 1 ; \
         ;; \
     esac && \
     addgroup --gid ${mattermost_gid} mattermost && \
@@ -106,30 +106,30 @@ RUN if [ "$image_flavour" = canonical ]; then \
 
 # Download and enable third-party plugin
 RUN if [ "$image_flavour" = canonical ]; then \
-	cd /mattermost/plugins && \
-	set -o pipefail && \
-	curl -L https://github.com/matterpoll/matterpoll/releases/download/v1.4.0/com.github.matterpoll.matterpoll-1.4.0.tar.gz | tar -xvz ; \
+        cd /mattermost/plugins && \
+        set -o pipefail && \
+        curl -L https://github.com/matterpoll/matterpoll/releases/download/v1.4.0/com.github.matterpoll.matterpoll-1.4.0.tar.gz | tar -xvz ; \
     fi
 
 # Download and enable third-party plugin
 RUN if [ "$image_flavour" = canonical ]; then \
-	cd /mattermost/plugins && \
-	set -o pipefail && \
-	curl -L https://github.com/moussetc/mattermost-plugin-giphy/releases/download/v2.1.1/com.github.moussetc.mattermost.plugin.giphy-2.1.1.tar.gz | tar -xvz ; \
+        cd /mattermost/plugins && \
+        set -o pipefail && \
+        curl -L https://github.com/moussetc/mattermost-plugin-giphy/releases/download/v2.1.1/com.github.moussetc.mattermost.plugin.giphy-2.1.1.tar.gz | tar -xvz ; \
     fi
 
 # Download and enable third-party plugin
 RUN if [ "$image_flavour" = canonical ]; then \
-	cd /mattermost/plugins && \
-	set -o pipefail && \
-	curl -L https://github.com/scottleedavis/mattermost-plugin-remind/releases/download/v0.4.5/com.github.scottleedavis.mattermost-plugin-remind-0.4.5.tar.gz | tar -xvz ; \
+        cd /mattermost/plugins && \
+        set -o pipefail && \
+        curl -L https://github.com/scottleedavis/mattermost-plugin-remind/releases/download/v1.0.0/com.github.scottleedavis.mattermost-plugin-remind-1.0.0.tar.gz | tar -xvz ; \
     fi
 
 # Canonical's custom webapp
 COPY --from=canonical_flavour_builder /mattermost-webapp/dist/. /canonical_flavour_tmp/ 
 RUN if [ "$image_flavour" = canonical ]; then \
-	rm -rf /mattermost/client && \
-	cp -r /canonical_flavour_tmp/. /mattermost/client ; \
+        rm -rf /mattermost/client && \
+        cp -r /canonical_flavour_tmp/. /mattermost/client ; \
     fi
 
 RUN rm -rf /canonical_flavour_tmp
