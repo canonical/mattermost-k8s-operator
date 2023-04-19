@@ -161,8 +161,13 @@ async def test_reminder_plugin(
         " plugin list"
     )
     output = await ops_test.juju("run", "--application", app.name, cmd)
+    print("")
+    print(plugin_name)
+    print(output)
     plugin_enabled = False
     for line in output[1].splitlines():
+        print(f"'{line}'")
+        print(re.match(re.compile(plugin_name), line))
         if re.match(re.compile(plugin_name), line):
             plugin_enabled = True
             break
