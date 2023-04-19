@@ -41,11 +41,6 @@ async def is_mattermost_reachable(mattermost_ip: str) -> bool:
         True if mattermost is reachable, False otherwise.
     """
     try:
-        response = requests.get(f"http://{mattermost_ip}:8065", timeout=5)
-        if response.status_code == 200:
-            return True
-    except requests.ConnectionError:
+        return requests.get(f"http://{mattermost_ip}:8065", timeout=5).ok
+    except (requests.ConnectionError, requests.Timeout):
         return False
-    except requests.Timeout:
-        return False
-    return False
