@@ -48,6 +48,15 @@ def mattermost_image(request):
     return request.config.getoption("--mattermost-image")
 
 
+@fixture(scope="module")
+def charm_file(request):
+    """Get the charm file from the --charm-file argument.
+
+    Return a the mattermost image name
+    """
+    return request.config.getoption("--charm-file")
+
+
 @pytest_asyncio.fixture(scope="module", name="model")
 async def model_fixture(ops_test: OpsTest) -> ops.model.Model:
     """Provide current test model."""
@@ -63,15 +72,14 @@ async def app(
     model: ops.model.Model,
     app_name: str,
     mattermost_image: str,
+    charm_file: str,
 ):
     """Mattermost charm used for integration testing.
 
     Builds the charm and deploys it and the relations it depends on.
     """
     await model.deploy("postgresql-k8s"),
-
-    charm = await ops_test.build_charm(".")
-    application = await model.deploy(charm, application_name=app_name, series="focal")
+    application = await model.deploy(charm_file, application_name=app_name, series="focal")
     await model.wait_for_idle()
 
     # Change the image that will be used for the mattermost container
