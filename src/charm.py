@@ -1,37 +1,21 @@
 #!/usr/bin/env python3
+# Copyright 2023 Canonical Ltd.
+# See LICENSE file for licensing details.
 
-# Copyright 2020 Canonical Ltd.
-# Licensed under the GPLv3, see LICENCE file for details.
-
-import os
+import logging
 import subprocess
-
 from ipaddress import ip_network
 from urllib.parse import urlparse
 from zlib import crc32
 
 import ops.lib
-from ops.charm import (
-    CharmBase,
-    CharmEvents,
-)
-from ops.framework import (
-    EventBase,
-    EventSource,
-    StoredState,
-)
+from ops.charm import CharmBase, CharmEvents
+from ops.framework import EventBase, EventSource, StoredState
 from ops.main import main
-from ops.model import (
-    ActiveStatus,
-    BlockedStatus,
-    MaintenanceStatus,
-    WaitingStatus,
-)
+from ops.model import ActiveStatus, BlockedStatus, MaintenanceStatus, WaitingStatus
 
+import environment
 from utils import extend_list_merging_dicts_matched_by_key
-
-import logging
-
 
 pgsql = ops.lib.use("pgsql", 1, "postgresql-charmers@lists.launchpad.net")
 
@@ -42,12 +26,12 @@ logger = logging.getLogger()
 CONTAINER_PORT = 8065
 # Default port, enforced via envConfig to prevent operator error
 METRICS_PORT = 8067
-DATABASE_NAME = 'mattermost'
-LICENCE_SECRET_KEY_NAME = 'licence'
-REQUIRED_S3_SETTINGS = ['s3_bucket', 's3_region', 's3_access_key_id', 's3_secret_access_key']
-REQUIRED_SETTINGS = ['mattermost_image_path']
-REQUIRED_SSO_SETTINGS = ['licence', 'site_url']
-SAML_IDP_CRT = 'saml-idp.crt'
+DATABASE_NAME = "mattermost"
+LICENSE_SECRET_KEY_NAME = "licence"
+REQUIRED_S3_SETTINGS = ["s3_bucket", "s3_region", "s3_access_key_id", "s3_secret_access_key"]
+REQUIRED_SETTINGS = ["mattermost_image_path"]
+REQUIRED_SSO_SETTINGS = ["licence", "site_url"]
+SAML_IDP_CRT = "saml-idp.crt"
 
 
 class MattermostDBMasterAvailableEvent(EventBase):
@@ -65,7 +49,7 @@ def check_ranges(ranges, name):
 
     ranges is a string containing a comma-separated list of CIDRs, a CIDR being the only kind of valid element.
     """
-    networks = ranges.split(',')
+    networks = ranges.split(",")
     invalid_networks = []
     for network in networks:
         try:
@@ -73,13 +57,13 @@ def check_ranges(ranges, name):
         except ValueError:
             invalid_networks.append(network)
     if invalid_networks:
-        return '{}: invalid network(s): {}'.format(name, ', '.join(invalid_networks))
+        return "{}: invalid network(s): {}".format(name, ", ".join(invalid_networks))
 
 
 def get_container(pod_spec, container_name):
     """Find and return the first container in pod_spec whose name is container_name, otherwise return None."""
-    for container in pod_spec['containers']:
-        if container['name'] == container_name:
+    for container in pod_spec["containers"]:
+        if container["name"] == container_name:
             return container
     raise ValueError("Unable to find container named '{}' in pod spec".format(container_name))
 
@@ -90,14 +74,15 @@ def get_env_config(pod_spec, container_name):
     If the container exists but has no envConfig, raise KeyError.
     """
     container = get_container(pod_spec, container_name)
-    if 'envConfig' in container:
-        return container['envConfig']
+    if "envConfig" in container:
+        return container["envConfig"]
     else:
-        raise ValueError("Unable to find envConfig for container named '{}'".format(container_name))
+        raise ValueError(
+            "Unable to find envConfig for container named '{}'".format(container_name)
+        )
 
 
 class MattermostK8sCharm(CharmBase):
-
     state = StoredState()
     on = MattermostCharmEvents()
 
@@ -114,16 +99,36 @@ class MattermostK8sCharm(CharmBase):
 
         # database
         self.state.set_default(db_conn_str=None, db_uri=None, db_ro_uris=[])
-        self.db = pgsql.PostgreSQLClient(self, 'db')
-        self.framework.observe(self.db.on.database_relation_joined, self._on_database_relation_joined)
+        self.db = pgsql.PostgreSQLClient(self, "db")
+        self.framework.observe(
+            self.db.on.database_relation_joined, self._on_database_relation_joined
+        )
         self.framework.observe(self.db.on.master_changed, self._on_master_changed)
         self.framework.observe(self.db.on.standby_changed, self._on_standby_changed)
         self.framework.observe(self.on.db_master_available, self.configure_pod)
 
+    def _on_grant_admin_role_action(self, event):
+        """Handle the grant-admin-role action."""
+        user = event.params["user"]
+        cmd = ["/mattermost/bin/mattermost", "roles", "system_admin", user]
+        granted = subprocess.run(cmd, capture_output=True)
+        if granted.returncode != 0:
+            event.fail(
+                "Failed to run '{}'. Output was:\n{}".format(
+                    " ".join(cmd), granted.stderr.decode("utf-8")
+                )
+            )
+        else:
+            msg = (
+                "Ran grant-admin-role for user '{}'. They will need to log out and log back in "
+                "to Mattermost to fully receive their permissions upgrade.".format(user)
+            )
+            event.set_results({"info": msg})
+
     @property
     def _site_url(self):
         """Return our site URL, defaulting to the deployed juju application name."""
-        return self.config['site_url'] or 'http://{}'.format(self.app.name)
+        return self.config["site_url"] or "http://{}".format(self.app.name)
 
     def _on_database_relation_joined(self, event: pgsql.DatabaseRelationJoinedEvent):
         """Handle db-relation-joined."""
@@ -132,7 +137,7 @@ class MattermostK8sCharm(CharmBase):
             event.database = DATABASE_NAME  # Request database named mydbname
             # event.extensions = ['citext']  # Request the citext extension installed
         elif event.database != DATABASE_NAME:
-            # Leader has not yet set requirements. Defer, incase this unit
+            # Leader has not yet set requirements. Defer, in case this unit
             # becomes leader and needs to perform that operation.
             event.defer()
             return
@@ -167,130 +172,62 @@ class MattermostK8sCharm(CharmBase):
         """Check for simple configuration problems and return a string describing them, otherwise an empty string."""
         problems = []
 
-        missing = self._missing_charm_settings()
+        missing = sorted(environment.missing_config_settings(self.config))
         if missing:
-            problems.append('required setting(s) empty: {}'.format(', '.join(missing)))
+            problems.append("required setting(s) empty: {}".format(", ".join(missing)))
 
-        ranges = self.model.config['ingress_whitelist_source_range']
+        ranges = self.model.config["ingress_whitelist_source_range"]
         if ranges:
-            problems.append(check_ranges(ranges, 'ingress_whitelist_source_range'))
+            problems.append(check_ranges(ranges, "ingress_whitelist_source_range"))
 
-        return '; '.join(filter(None, problems))
+        return "; ".join(filter(None, problems))
 
     def _make_pod_spec(self):
         """Return a pod spec with some core configuration."""
-        config = self.model.config
+        pod_config = environment.generate(
+            self.model.config, self.app.name, self._site_url, self.state.db_uri
+        )
+
         mattermost_image_details = {
-            'imagePath': config['mattermost_image_path'],
+            "imagePath": self.model.config["mattermost_image_path"],
         }
-        if config['mattermost_image_username']:
+        if self.model.config["mattermost_image_username"]:
             mattermost_image_details.update(
-                {'username': config['mattermost_image_username'], 'password': config['mattermost_image_password']}
+                {
+                    "username": self.model.config["mattermost_image_username"],
+                    "password": self.model.config["mattermost_image_password"],
+                }
             )
-        pod_config = self._make_pod_config()
-        pod_config.update(self._make_s3_pod_config())
 
         return {
-            'version': 3,  # otherwise resources are ignored
-            'containers': [
+            "version": 3,  # otherwise resources are ignored
+            "containers": [
                 {
-                    'name': self.app.name,
-                    'imageDetails': mattermost_image_details,
-                    'ports': [{'containerPort': CONTAINER_PORT, 'protocol': 'TCP'}],
-                    'envConfig': pod_config,
-                    'kubernetes': {
-                        'readinessProbe': {'httpGet': {'path': '/api/v4/system/ping', 'port': CONTAINER_PORT}},
+                    "name": self.app.name,
+                    "imageDetails": mattermost_image_details,
+                    "ports": [{"containerPort": CONTAINER_PORT, "protocol": "TCP"}],
+                    "envConfig": pod_config,
+                    "kubernetes": {
+                        "readinessProbe": {
+                            "httpGet": {"path": "/api/v4/system/ping", "port": CONTAINER_PORT}
+                        },
                     },
                 }
             ],
-        }
-
-    def _make_pod_config(self):
-        """Return an envConfig with some core configuration."""
-        config = self.model.config
-        # https://github.com/mattermost/mattermost-server/pull/14666
-        db_uri = self.state.db_uri.replace('postgresql://', 'postgres://')
-        pod_config = {
-            'MATTERMOST_HTTPD_LISTEN_PORT': CONTAINER_PORT,
-            'MM_CONFIG': db_uri,
-            'MM_SQLSETTINGS_DATASOURCE': db_uri,
-            # image proxy
-            'MM_IMAGEPROXYSETTINGS_ENABLE': 'true' if config['image_proxy_enabled'] else 'false',
-            'MM_IMAGEPROXYSETTINGS_IMAGEPROXYTYPE': 'local',
-            # logging
-            'MM_LOGSETTINGS_CONSOLELEVEL': 'DEBUG' if config['debug'] else 'INFO',
-            'MM_LOGSETTINGS_ENABLECONSOLE': 'true',
-            'MM_LOGSETTINGS_ENABLEFILE': 'false',
-            'MM_TEAMSETTINGS_MAXCHANNELSPERTEAM': config['max_channels_per_team'],
-            'MM_TEAMSETTINGS_MAXUSERSPERTEAM': config['max_users_per_team'],
-        }
-
-        if config['primary_team']:
-            pod_config['MM_TEAMSETTINGS_EXPERIMENTALPRIMARYTEAM'] = config['primary_team']
-
-        pod_config['MM_SERVICESETTINGS_SITEURL'] = self._site_url
-
-        if config['outbound_proxy']:
-            pod_config['HTTP_PROXY'] = config['outbound_proxy']
-            pod_config['HTTPS_PROXY'] = config['outbound_proxy']
-            if config['outbound_proxy_exceptions']:
-                pod_config['NO_PROXY'] = config['outbound_proxy_exceptions']
-
-        return pod_config
-
-    def _missing_charm_settings(self):
-        """Return a list of settings required to satisfy configuration dependencies, or else an empty list."""
-        config = self.model.config
-
-        missing = {setting for setting in REQUIRED_SETTINGS if not config[setting]}
-
-        if config['clustering'] and not config['licence']:
-            missing.add('licence')
-
-        if config['mattermost_image_username'] and not config['mattermost_image_password']:
-            missing.add('mattermost_image_password')
-
-        if config['performance_monitoring_enabled'] and not config['licence']:
-            missing.add('licence')
-
-        if config['s3_enabled']:
-            missing.update({setting for setting in REQUIRED_S3_SETTINGS if not config[setting]})
-
-        if config['s3_server_side_encryption'] and not config['licence']:
-            missing.add('licence')
-
-        if config['sso']:
-            missing.update({setting for setting in REQUIRED_SSO_SETTINGS if not config[setting]})
-
-        return sorted(missing)
-
-    def _make_s3_pod_config(self):
-        """Return an envConfig of S3 settings, if any."""
-        config = self.model.config
-        if not config['s3_enabled']:
-            return {}
-
-        return {
-            'MM_FILESETTINGS_DRIVERNAME': 'amazons3',
-            'MM_FILESETTINGS_MAXFILESIZE': str(config['max_file_size'] * 1048576),  # LP:1881227
-            'MM_FILESETTINGS_AMAZONS3SSL': 'true',  # defaults to true; belt and braces
-            'MM_FILESETTINGS_AMAZONS3ENDPOINT': config['s3_endpoint'],
-            'MM_FILESETTINGS_AMAZONS3BUCKET': config['s3_bucket'],
-            'MM_FILESETTINGS_AMAZONS3REGION': config['s3_region'],
-            'MM_FILESETTINGS_AMAZONS3ACCESSKEYID': config['s3_access_key_id'],
-            'MM_FILESETTINGS_AMAZONS3SECRETACCESSKEY': config['s3_secret_access_key'],
-            'MM_FILESETTINGS_AMAZONS3SSE': 'true' if config['s3_server_side_encryption'] else 'false',
-            'MM_FILESETTINGS_AMAZONS3TRACE': 'true' if config['debug'] else 'false',
         }
 
     def _update_pod_spec_for_k8s_ingress(self, pod_spec):
         """Add resources to pod_spec configuring site ingress, if needed."""
         parsed = urlparse(self._site_url)
 
-        if not parsed.scheme.startswith('http'):
+        if not parsed.scheme.startswith("http"):
             return
 
-        annotations = {'nginx.ingress.kubernetes.io/proxy-body-size': '{}m'.format(self.model.config['max_file_size'])}
+        annotations = {
+            "nginx.ingress.kubernetes.io/proxy-body-size": "{}m".format(
+                self.model.config["max_file_size"]
+            )
+        }
         ingress = {
             "name": "{}-ingress".format(self.app.name),
             "spec": {
@@ -299,32 +236,40 @@ class MattermostK8sCharm(CharmBase):
                         "host": parsed.hostname,
                         "http": {
                             "paths": [
-                                {"path": "/", "backend": {"serviceName": self.app.name, "servicePort": CONTAINER_PORT}}
+                                {
+                                    "path": "/",
+                                    "backend": {
+                                        "serviceName": self.app.name,
+                                        "servicePort": CONTAINER_PORT,
+                                    },
+                                }
                             ]
                         },
                     }
                 ]
             },
         }
-        if parsed.scheme == 'https':
-            ingress['spec']['tls'] = [{'hosts': [parsed.hostname]}]
-            tls_secret_name = self.model.config['tls_secret_name']
+        if parsed.scheme == "https":
+            ingress["spec"]["tls"] = [{"hosts": [parsed.hostname]}]
+            tls_secret_name = self.model.config["tls_secret_name"]
             if tls_secret_name:
-                ingress['spec']['tls'][0]['secretName'] = tls_secret_name
+                ingress["spec"]["tls"][0]["secretName"] = tls_secret_name
         else:
-            annotations['nginx.ingress.kubernetes.io/ssl-redirect'] = 'false'
+            annotations["nginx.ingress.kubernetes.io/ssl-redirect"] = "false"
 
-        ingress_whitelist_source_range = self.model.config['ingress_whitelist_source_range']
+        ingress_whitelist_source_range = self.model.config["ingress_whitelist_source_range"]
         if ingress_whitelist_source_range:
-            annotations['nginx.ingress.kubernetes.io/whitelist-source-range'] = ingress_whitelist_source_range
+            annotations[
+                "nginx.ingress.kubernetes.io/whitelist-source-range"
+            ] = ingress_whitelist_source_range
 
-        ingress['annotations'] = annotations
+        ingress["annotations"] = annotations
 
         # Due to https://github.com/canonical/operator/issues/293 we
         # can't use pod.set_spec's k8s_resources argument.
-        resources = pod_spec.get('kubernetesResources', {})
-        resources['ingressResources'] = [ingress]
-        pod_spec['kubernetesResources'] = resources
+        resources = pod_spec.get("kubernetesResources", {})
+        resources["ingressResources"] = [ingress]
+        pod_spec["kubernetesResources"] = resources
 
     def _get_licence_secret_name(self):
         """Compute a content-dependent name for the licence secret.
@@ -333,21 +278,23 @@ class MattermostK8sCharm(CharmBase):
         be respawned.  Mattermost reads the licence file on startup
         and updates the copy in the database, if necessary.
         """
-        crc = '{:08x}'.format(crc32(self.model.config['licence'].encode('utf-8')))
-        return '{}-licence-{}'.format(self.app.name, crc)
+        crc = "{:08x}".format(crc32(self.model.config["licence"].encode("utf-8")))
+        return "{}-licence-{}".format(self.app.name, crc)
 
     def _make_licence_volume_configs(self):
         """Return volume config for the licence secret."""
         config = self.model.config
-        if not config['licence']:
+        if not config["licence"]:
             return []
         return [
             {
-                'name': 'licence',
-                'mountPath': '/secrets',
-                'secret': {
-                    'name': self._get_licence_secret_name(),
-                    'files': [{'key': LICENCE_SECRET_KEY_NAME, 'path': 'licence.txt', 'mode': 0o444}],
+                "name": "licence",
+                "mountPath": "/secrets",
+                "secret": {
+                    "name": self._get_licence_secret_name(),
+                    "files": [
+                        {"key": LICENSE_SECRET_KEY_NAME, "path": "licence.txt", "mode": 0o444}
+                    ],
                 },
             }
         ]
@@ -355,186 +302,43 @@ class MattermostK8sCharm(CharmBase):
     def _make_licence_k8s_secrets(self):
         """Return secret for the licence."""
         config = self.model.config
-        if not config['licence']:
+        if not config["licence"]:
             return []
         return [
             {
-                'name': self._get_licence_secret_name(),
-                'type': 'Opaque',
-                'stringData': {LICENCE_SECRET_KEY_NAME: config['licence']},
+                "name": self._get_licence_secret_name(),
+                "type": "Opaque",
+                "stringData": {LICENSE_SECRET_KEY_NAME: config["licence"]},
             }
         ]
 
     def _update_pod_spec_for_licence(self, pod_spec):
         """Update pod_spec to make the licence, if configured, available to Mattermost."""
         config = self.model.config
-        if not config['licence']:
+        if not config["licence"]:
             return
 
-        secrets = pod_spec['kubernetesResources'].get('secrets', [])
-        secrets = extend_list_merging_dicts_matched_by_key(secrets, self._make_licence_k8s_secrets(), key='name')
-        pod_spec['kubernetesResources']['secrets'] = secrets
+        secrets = pod_spec["kubernetesResources"].get("secrets", [])
+        secrets = extend_list_merging_dicts_matched_by_key(
+            secrets, self._make_licence_k8s_secrets(), key="name"
+        )
+        pod_spec["kubernetesResources"]["secrets"] = secrets
 
         container = get_container(pod_spec, self.app.name)
-        volume_config = container.get('volumeConfig', [])
+        volume_config = container.get("volumeConfig", [])
         volume_config = extend_list_merging_dicts_matched_by_key(
-            volume_config, self._make_licence_volume_configs(), key='name'
+            volume_config, self._make_licence_volume_configs(), key="name"
         )
-        container['volumeConfig'] = volume_config
+        container["volumeConfig"] = volume_config
 
         get_env_config(pod_spec, self.app.name).update(
-            {'MM_SERVICESETTINGS_LICENSEFILELOCATION': '/secrets/licence.txt'},
-        )
-
-    def _update_pod_spec_for_canonical_defaults(self, pod_spec):
-        """Update pod_spec with various Mattermost settings particular to Canonical's deployment.
-
-        These settings may be less generally useful, and so they are controlled here as a unit.
-        """
-        config = self.model.config
-        if not config['use_canonical_defaults']:
-            return
-
-        get_env_config(pod_spec, self.app.name).update(
-            {
-                # If this is off, users can't turn it on themselves.
-                'MM_SERVICESETTINGS_CLOSEUNUSEDDIRECTMESSAGES': 'true',
-                # This allows Matterhorn to use emoji and react to messages.
-                'MM_SERVICESETTINGS_ENABLECUSTOMEMOJI': 'true',
-                # If this is off, users can't turn it on themselves.
-                'MM_SERVICESETTINGS_ENABLELINKPREVIEWS': 'true',
-                # Matterhorn recommends the use of Personal Access Tokens.
-                'MM_SERVICESETTINGS_ENABLEUSERACCESSTOKENS': 'true',
-                # We'll use one large team.  Create and invite are
-                # disabled in the System Scheme, found in the Permissions
-                # section of the System Console.
-                'MM_TEAMSETTINGS_MAXUSERSPERTEAM': '1000',
-            }
-        )
-
-    def _update_pod_spec_for_clustering(self, pod_spec):
-        """Update pod_spec with clustering settings, varying the cluster name on the application name.
-
-        This is done so that blue/green deployments in the same model won't talk to each other.
-        """
-        config = self.model.config
-        if not config['clustering']:
-            return
-
-        get_env_config(pod_spec, self.app.name).update(
-            {
-                "MM_CLUSTERSETTINGS_ENABLE": "true",
-                "MM_CLUSTERSETTINGS_CLUSTERNAME": '{}-{}'.format(self.app.name, os.environ['JUJU_MODEL_UUID']),
-                "MM_CLUSTERSETTINGS_USEIPADDRESS": "true",
-            }
-        )
-
-    def _update_pod_spec_for_sso(self, pod_spec):
-        """Update pod_spec with settings to use login.ubuntu.com via SAML for single sign-on.
-
-        SAML_IDP_CRT must be generated and installed manually by a human (see README.md).
-        """
-        config = self.model.config
-        if not config['sso'] or [setting for setting in REQUIRED_SSO_SETTINGS if not config[setting]]:
-            return
-        site_hostname = urlparse(self._site_url).hostname
-        use_experimental_saml_library = 'true' if config['use_experimental_saml_library'] else 'false'
-
-        get_env_config(pod_spec, self.app.name).update(
-            {
-                'MM_EMAILSETTINGS_ENABLESIGNINWITHEMAIL': 'false',
-                'MM_EMAILSETTINGS_ENABLESIGNINWITHUSERNAME': 'false',
-                'MM_EMAILSETTINGS_ENABLESIGNUPWITHEMAIL': 'false',
-                'MM_SAMLSETTINGS_ENABLE': 'true',
-                'MM_SAMLSETTINGS_IDPURL': 'https://login.ubuntu.com/saml/',
-                'MM_SAMLSETTINGS_VERIFY': 'true',
-                'MM_SAMLSETTINGS_ENCRYPT': 'false',  # per POC
-                'MM_SAMLSETTINGS_IDPDESCRIPTORURL': 'https://login.ubuntu.com',
-                'MM_SAMLSETTINGS_SERVICEPROVIDERIDENTIFIER': 'https://login.ubuntu.com',
-                'MM_SAMLSETTINGS_IDPMETADATAURL': 'https://login.ubuntu.com/+saml/metadata',
-                'MM_SAMLSETTINGS_ASSERTIONCONSUMERSERVICEURL': 'https://{}/login/sso/saml'.format(site_hostname),
-                'MM_SAMLSETTINGS_LOGINBUTTONTEXT': 'Ubuntu SSO',
-                'MM_SAMLSETTINGS_EMAILATTRIBUTE': 'email',
-                'MM_SAMLSETTINGS_USERNAMEATTRIBUTE': 'username',
-                'MM_SAMLSETTINGS_IDATTRIBUTE': 'openid',
-                'MM_SAMLSETTINGS_FIRSTNAMEATTRIBUTE': 'fullname',
-                'MM_SAMLSETTINGS_LASTNAMEATTRIBUTE': '',
-                'MM_SAMLSETTINGS_IDPCERTIFICATEFILE': SAML_IDP_CRT,
-                # If not set, we have to install xmlsec1, and Mattermost forks on every login(!).
-                'MM_EXPERIMENTALSETTINGS_USENEWSAMLLIBRARY': use_experimental_saml_library,
-            }
-        )
-
-    def _update_pod_spec_for_performance_monitoring(self, pod_spec):
-        """Update pod_spec with settings for the Prometheus exporter."""
-        config = self.model.config
-        if not config['performance_monitoring_enabled']:
-            return
-
-        get_env_config(pod_spec, self.app.name).update(
-            {
-                'MM_METRICSSETTINGS_ENABLE': 'true' if config['performance_monitoring_enabled'] else 'false',
-                'MM_METRICSSETTINGS_LISTENADDRESS': ':{}'.format(METRICS_PORT),
-            }
-        )
-
-        # Ordinarily pods are selected for scraping by the in-cluster
-        # Prometheus based on their annotations.  Unfortunately Juju
-        # doesn't support pod annotations yet (LP:1884177).  When it
-        # does, here are the annotations we'll need to add:
-
-        # [ fetch or create annotations dict ]
-        # annotations.update({
-        #     # This is the prefix Canonical uses for Prometheus.
-        #     # Upstream's position is that there is no default.
-        #     'prometheus.io/port': str(METRICS_PORT),  # annotation values are strings
-        #     'prometheus.io/scrape': 'true',
-        # })
-        # [ store annotations in pod_spec ]
-
-    def _update_pod_spec_for_push(self, pod_spec):
-        """Update pod_spec with settings for Mattermost HPNS (hosted push notification service)."""
-        config = self.model.config
-        if not config['push_notification_server']:
-            return
-        contents = 'full' if config['push_notifications_include_message_snippet'] else 'id_loaded'
-
-        get_env_config(pod_spec, self.app.name).update(
-            {
-                'MM_EMAILSETTINGS_SENDPUSHNOTIFICATIONS': 'true',
-                'MM_EMAILSETTINGS_PUSHNOTIFICATIONCONTENTS': contents,
-                'MM_EMAILSETTINGS_PUSHNOTIFICATIONSERVER': config['push_notification_server'],
-            }
-        )
-
-    def _update_pod_spec_for_smtp(self, pod_spec):
-        """Update pod_spec with settings for an outgoing SMTP relay."""
-        config = self.model.config
-        if not config['smtp_host']:
-            return
-
-        enable_smtp_auth = 'false'
-        if config['smtp_user'] and config['smtp_password']:
-            enable_smtp_auth = 'true'
-
-        # https://github.com/mattermost/mattermost-server/blob/master/model/config.go#L1532
-        get_env_config(pod_spec, self.app.name).update(
-            {
-                'MM_EMAILSETTINGS_CONNECTIONSECURITY': config['smtp_connection_security'],
-                'MM_EMAILSETTINGS_ENABLESMTPAUTH': enable_smtp_auth,
-                'MM_EMAILSETTINGS_FEEDBACKEMAIL': config['smtp_from_address'],
-                'MM_EMAILSETTINGS_REPLYTOADDRESS': config['smtp_reply_to_address'],
-                'MM_EMAILSETTINGS_SMTPPASSWORD': config['smtp_password'],
-                'MM_EMAILSETTINGS_SMTPPORT': config['smtp_port'],
-                'MM_EMAILSETTINGS_SMTPSERVER': config['smtp_host'],
-                'MM_EMAILSETTINGS_SMTPUSERNAME': config['smtp_user'],
-            }
+            {"MM_SERVICESETTINGS_LICENSEFILELOCATION": "/secrets/licence.txt"},
         )
 
     def configure_pod(self, event):
         """Assemble the pod spec and apply it, if possible."""
         if not self.state.db_uri:
-            self.unit.status = WaitingStatus('Waiting for database relation')
+            self.unit.status = WaitingStatus("Waiting for database relation")
             event.defer()
             return
 
@@ -547,35 +351,28 @@ class MattermostK8sCharm(CharmBase):
             self.unit.status = BlockedStatus(problems)
             return
 
-        self.unit.status = MaintenanceStatus('Assembling pod spec')
+        self.unit.status = MaintenanceStatus("Assembling pod spec")
         pod_spec = self._make_pod_spec()
-        self._update_pod_spec_for_canonical_defaults(pod_spec)
-        self._update_pod_spec_for_clustering(pod_spec)
+
+        get_env_config(pod_spec, self.app.name).update(
+            environment.generate(
+                self.model.config, self.app.name, self._site_url, self.state.db_uri
+            )
+        )
+
         self._update_pod_spec_for_k8s_ingress(pod_spec)
         self._update_pod_spec_for_licence(pod_spec)
-        self._update_pod_spec_for_performance_monitoring(pod_spec)
-        self._update_pod_spec_for_push(pod_spec)
-        self._update_pod_spec_for_sso(pod_spec)
-        self._update_pod_spec_for_smtp(pod_spec)
 
-        self.unit.status = MaintenanceStatus('Setting pod spec')
+        self.unit.status = MaintenanceStatus("Setting pod spec")
         self.model.pod.set_spec(pod_spec)
         self.unit.status = ActiveStatus()
 
-    def _on_grant_admin_role_action(self, event):
-        """Handle the grant-admin-role action."""
-        user = event.params["user"]
-        cmd = ["/mattermost/bin/mattermost", "roles", "system_admin", user]
-        granted = subprocess.run(cmd, capture_output=True)
-        if granted.returncode != 0:
-            event.fail("Failed to run '{}'. Output was:\n{}".format(" ".join(cmd), granted.stderr.decode("utf-8")))
-        else:
-            msg = (
-                "Ran grant-admin-role for user '{}'. They will need to log out and log back in "
-                "to Mattermost to fully receive their permissions upgrade.".format(user)
-            )
-            event.set_results({"info": msg})
+    # This function was kept here to keep some older tests for now
+    def _make_pod_config(self):
+        return environment.generate(
+            self.model.config, self.app.name, self._site_url, self.state.db_uri
+        )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main(MattermostK8sCharm, use_juju_for_storage=True)
