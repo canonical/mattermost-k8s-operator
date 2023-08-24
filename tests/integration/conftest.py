@@ -79,7 +79,7 @@ async def app(
     Builds the charm and deploys it and the relations it depends on.
     """
     await model.deploy("postgresql-k8s"),
-    application = await model.deploy(charm_file, application_name=app_name, series="focal")
+    application = await model.deploy(f".{charm_file}", application_name=app_name, series="focal")
     await model.wait_for_idle()
 
     # Change the image that will be used for the mattermost container
