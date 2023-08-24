@@ -15,11 +15,11 @@ RUN apt-get -y update && \
     apt-get -y --no-install-recommends install \
         git \
         curl \
-        make \
-        && \
-    curl -s https://deb.nodesource.com/setup_16.x | bash && \
-    apt-get -y update && \
-    apt-get -y --no-install-recommends install nodejs
+        make && \
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash && \
+    bash -c "source /root/.nvm/nvm.sh && nvm install v16.14.0"
+
+ENV PATH="$PATH:/root/.nvm/versions/node/v16.14.0/bin"
 
 # Patch the https-proxy-agent library used by npm to limit the open socket
 # number connected to proxy server.
@@ -31,16 +31,19 @@ RUN apt-get -y update && \
 COPY files/canonical_flavour/https-proxy-agent.patch patch/https-proxy-agent.patch
 
 RUN curl -sSL https://github.com/TooTallNate/node-https-proxy-agent/archive/refs/tags/5.0.1.tar.gz -o node-https-proxy-agent.tar.gz && \
-    echo "1afed785d8d9deadac371824d6622aeabc7919ed6db3b3a6ad0033bd1105d2f4  node-https-proxy-agent.tar.gz" | shasum -c && \
-    tar -xf node-https-proxy-agent.tar.gz && \
-    cd node-https-proxy-agent-5.0.1 && \
-    git apply /patch/https-proxy-agent.patch && \
-    npm config set progress=false loglevel=info && \
-    npm install && \
+    echo "36ee41503f9245b2b8ce3e4725ac966cf9a391f4  node-https-proxy-agent.tar.gz" | shasum -c && \
+    tar -xf node-https-proxy-agent.tar.gz
+
+WORKDIR proxy-agents-5.0.1
+RUN git apply /patch/https-proxy-agent.patch && \
+    npm config set progress=false loglevel=info
+
+RUN npm install && \
     npm run build && \
     rm -rf /usr/lib/node_modules/npm/node_modules/https-proxy-agent/ && \
-    mv ./dist /usr/lib/node_modules/npm/node_modules/https-proxy-agent && \
-    cd ..
+    mv ./dist /root/.nvm/versions/node/v16.14.0/lib/node_modules/https-proxy-agent
+
+WORKDIR /
 
 COPY files/canonical_flavour/themes.patch patch/themes.patch
 
@@ -66,10 +69,10 @@ LABEL com.canonical.mattermost-edition=${edition}
 # We use "set -o pipefail"
 SHELL ["/bin/bash", "-c"]
 
-# python3-yaml needed to run juju actions, xmlsec1 needed if UseNewSAMLLibrary is set to false (the default)
+# xmlsec1 needed if UseNewSAMLLibrary is set to false (the default)
 RUN apt-get -qy update && \
     apt-get -qy upgrade && \
-    apt-get -qy install curl python3-yaml xmlsec1 && \
+    apt-get -qy install curl xmlsec1 && \
     rm -f /var/lib/apt/lists/*_*
 
 RUN mkdir -p /mattermost/data /mattermost/plugins /mattermost/client/plugins && \
