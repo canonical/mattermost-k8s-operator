@@ -38,10 +38,8 @@ WORKDIR proxy-agents-5.0.1
 RUN git apply /patch/https-proxy-agent.patch && \
     npm config set progress=false loglevel=info
 
-RUN npm install --loglevel verbose
-RUN npm list -g
-RUN npm run build && \
-    ls /root/.nvm/versions/node/v16.14.0/lib/node_modules/ && \
+RUN npm install && \
+    npm run build && \
     rm -rf /usr/lib/node_modules/npm/node_modules/https-proxy-agent/ && \
     mv ./dist /root/.nvm/versions/node/v16.14.0/lib/node_modules/https-proxy-agent
 
