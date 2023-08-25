@@ -1,0 +1,4 @@
+rules:
+  # Ignore "whitelist" and "master".
+  - name: whitelist
+  - name: master
