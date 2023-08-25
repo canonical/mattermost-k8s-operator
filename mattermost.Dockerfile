@@ -1,3 +1,5 @@
+# Copyright 2023 Canonical Ltd.
+# See LICENSE file for licensing details.
 FROM ubuntu:focal AS canonical_flavour_builder
 
 # Avoid needing any input from package installs.

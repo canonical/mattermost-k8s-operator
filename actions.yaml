@@ -1,3 +1,5 @@
+# Copyright 2023 Canonical Ltd.
+# See LICENSE file for licensing details.
 grant-admin-role:
   description: >
     Grant the "system_admin" role to a user. The user will need to log out and

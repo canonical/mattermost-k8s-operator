@@ -1,5 +1,5 @@
 # Copyright 2023 Canonical Ltd.
-# see LICENCE file for details.
+# See LICENSE file for licensing details.
 
 """General configuration module for tests."""
 import pytest
