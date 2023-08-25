@@ -1,3 +1,5 @@
+# Copyright 2023 Canonical Ltd.
+# See LICENSE file for licensing details.
 name: mattermost-k8s
 display-name: Mattermost
 summary: Messaging platform for team collaboration.
