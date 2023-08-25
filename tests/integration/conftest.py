@@ -91,7 +91,7 @@ async def app(
                 {
                     "MM_FILESETTINGS_AMAZONS3SSL": "false",
                     "MM_SERVICESETTINGS_ENABLELOCALMODE": "true",
-                    "MM_SERVICESETTINGS_LOCALMODESOCKETLOCATION": "/tmp/mattermost.socket",
+                    "MM_SERVICESETTINGS_LOCALMODESOCKETLOCATION": "/tmp/mattermost.socket",  # nosec
                 }
             ),
         }

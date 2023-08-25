@@ -3,7 +3,7 @@
 # See LICENSE file for licensing details.
 
 import logging
-import subprocess
+import subprocess  # nosec
 from ipaddress import ip_network
 from urllib.parse import urlparse
 from zlib import crc32
@@ -27,7 +27,7 @@ CONTAINER_PORT = 8065
 # Default port, enforced via envConfig to prevent operator error
 METRICS_PORT = 8067
 DATABASE_NAME = "mattermost"
-LICENSE_SECRET_KEY_NAME = "licence"
+LICENSE_SECRET_KEY_NAME = "licence"  # nosec
 REQUIRED_S3_SETTINGS = ["s3_bucket", "s3_region", "s3_access_key_id", "s3_secret_access_key"]
 REQUIRED_SETTINGS = ["mattermost_image_path"]
 REQUIRED_SSO_SETTINGS = ["licence", "site_url"]
@@ -111,7 +111,7 @@ class MattermostK8sCharm(CharmBase):
         """Handle the grant-admin-role action."""
         user = event.params["user"]
         cmd = ["/mattermost/bin/mattermost", "roles", "system_admin", user]
-        granted = subprocess.run(cmd, capture_output=True)
+        granted = subprocess.run(cmd, capture_output=True)  # nosec
         if granted.returncode != 0:
             event.fail(
                 "Failed to run '{}'. Output was:\n{}".format(
