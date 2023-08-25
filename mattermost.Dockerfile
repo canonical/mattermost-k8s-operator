@@ -36,7 +36,7 @@ RUN curl -sSL https://github.com/TooTallNate/node-https-proxy-agent/archive/refs
     echo "36ee41503f9245b2b8ce3e4725ac966cf9a391f4  node-https-proxy-agent.tar.gz" | shasum -c && \
     tar -xf node-https-proxy-agent.tar.gz
 
-WORKDIR proxy-agents-5.0.1
+WORKDIR /proxy-agents-5.0.1
 RUN git apply /patch/https-proxy-agent.patch && \
     npm config set progress=false loglevel=info
 
