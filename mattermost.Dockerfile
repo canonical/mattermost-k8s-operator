@@ -1,6 +1,6 @@
 # Copyright 2023 Canonical Ltd.
 # See LICENSE file for licensing details.
-FROM ubuntu:focal AS canonical_flavour_builder
+FROM ubuntu:jammy AS canonical_flavour_builder
 
 # Avoid needing any input from package installs.
 ENV DEBIAN_FRONTEND=noninteractive
@@ -56,7 +56,7 @@ RUN cd mattermost-webapp && \
     npm config set progress=false loglevel=info && \
     make dist
 
-FROM ubuntu:focal
+FROM ubuntu:jammy
 
 ARG edition=enterprise
 ARG image_flavour=default
