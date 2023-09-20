@@ -18,6 +18,7 @@ import requests
 import yaml
 from boto3 import client
 from botocore.config import Config
+from juju.model import Model
 from ops.model import ActiveStatus, Application
 from pytest import FixtureRequest, fixture
 from pytest_operator.plugin import OpsTest
@@ -58,7 +59,7 @@ def charm_file(request):
 
 
 @pytest_asyncio.fixture(scope="module", name="model")
-async def model_fixture(ops_test: OpsTest) -> ops.model.Model:
+async def model_fixture(ops_test: OpsTest) -> Model:
     """Provide current test model."""
     assert ops_test.model
     MODEL_CONFIG = {"logging-config": "<root>=INFO;unit=DEBUG"}
