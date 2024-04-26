@@ -1,6 +1,6 @@
 # Copyright 2023 Canonical Ltd.
 # See LICENSE file for licensing details.
-FROM ubuntu:focal@sha256:ed4a42283d9943135ed87d4ee34e542f7f5ad9ecf2f244870e23122f703f91c2 AS canonical_flavour_builder
+FROM ubuntu:noble@sha256:562456a05a0dbd62a671c1854868862a4687bf979a96d48ae8e766642cd911e8 AS canonical_flavour_builder
 
 # Avoid needing any input from package installs.
 ENV DEBIAN_FRONTEND=noninteractive
@@ -56,7 +56,7 @@ RUN cd mattermost-webapp && \
     npm config set progress=false loglevel=info && \
     make dist
 
-FROM ubuntu:focal@sha256:ed4a42283d9943135ed87d4ee34e542f7f5ad9ecf2f244870e23122f703f91c2
+FROM ubuntu:noble@sha256:562456a05a0dbd62a671c1854868862a4687bf979a96d48ae8e766642cd911e8
 
 ARG edition=enterprise
 ARG image_flavour=default
