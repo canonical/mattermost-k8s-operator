@@ -140,7 +140,6 @@ class MattermostK8sCharm(CharmBase):
             # Leader has not yet set requirements. Defer, in case this unit
             # becomes leader and needs to perform that operation.
             event.defer()
-            return
 
     def _on_master_changed(self, event: pgsql.MasterChangedEvent):
         """Handle changes in the primary database unit."""
@@ -259,9 +258,9 @@ class MattermostK8sCharm(CharmBase):
 
         ingress_whitelist_source_range = self.model.config["ingress_whitelist_source_range"]
         if ingress_whitelist_source_range:
-            annotations[
-                "nginx.ingress.kubernetes.io/whitelist-source-range"
-            ] = ingress_whitelist_source_range
+            annotations["nginx.ingress.kubernetes.io/whitelist-source-range"] = (
+                ingress_whitelist_source_range
+            )
 
         ingress["annotations"] = annotations
 
