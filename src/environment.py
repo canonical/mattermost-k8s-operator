@@ -1,4 +1,5 @@
 """Generate container app environment based on charm configuration."""
+
 # Copyright 2024 Canonical Ltd.
 # See LICENSE file for licensing details.
 
@@ -255,9 +256,9 @@ def generate(config: dict, app_name: str, site_url: str, db_uri: str) -> dict:
                 "MM_FILESETTINGS_AMAZONS3REGION": config["s3_region"],
                 "MM_FILESETTINGS_AMAZONS3ACCESSKEYID": config["s3_access_key_id"],
                 "MM_FILESETTINGS_AMAZONS3SECRETACCESSKEY": config["s3_secret_access_key"],
-                "MM_FILESETTINGS_AMAZONS3SSE": "true"
-                if config["s3_server_side_encryption"]
-                else "false",
+                "MM_FILESETTINGS_AMAZONS3SSE": (
+                    "true" if config["s3_server_side_encryption"] else "false"
+                ),
                 "MM_FILESETTINGS_AMAZONS3TRACE": "true" if config["debug"] else "false",
             }
         )
