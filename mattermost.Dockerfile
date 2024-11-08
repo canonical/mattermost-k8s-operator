@@ -1,4 +1,4 @@
-# Copyright 2023 Canonical Ltd.
+# Copyright 2024 Canonical Ltd.
 # See LICENSE file for licensing details.
 FROM ubuntu:focal@sha256:8517db592129015f59735a921fa1780d2775ba7dc4353e306d344a6308480154 AS canonical_flavour_builder
 
