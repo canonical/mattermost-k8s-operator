@@ -65,7 +65,6 @@ ARG mattermost_uid=2000
 ARG mattermost_version=7.8.0
 
 LABEL org.label-schema.version=${mattermost_version}
-LABEL com.canonical.image-flavour=${image_flavour}
 LABEL com.canonical.mattermost-edition=${edition}
 
 # We use "set -o pipefail"
@@ -120,8 +119,8 @@ RUN cd /mattermost/plugins && \
 
 # Canonical's custom webapp
 COPY --from=canonical_flavour_builder /mattermost-webapp/dist/. /canonical_flavour_tmp/ 
-rm -rf /mattermost/client && \
-cp -r /canonical_flavour_tmp/. /mattermost/client ;
+RUN rm -rf /mattermost/client && \
+    cp -r /canonical_flavour_tmp/. /mattermost/client ;
 
 RUN rm -rf /canonical_flavour_tmp
 
