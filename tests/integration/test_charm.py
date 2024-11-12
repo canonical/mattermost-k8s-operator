@@ -38,9 +38,7 @@ async def test_s3_storage(
     ops_test: OpsTest,
     model: ops.model.Model,
     app: Application,
-    localstack_s3_config: dict,
     tmp_path: pathlib.Path,
-    localstack_s3_client: client,
     test_entities: dict,
 ):
     """
