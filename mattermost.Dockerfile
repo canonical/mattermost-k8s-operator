@@ -95,28 +95,28 @@ RUN mkdir -p /mattermost/data /mattermost/plugins /mattermost/client/plugins && 
     adduser --no-create-home --disabled-password --gecos "" --uid ${mattermost_uid} --gid ${mattermost_gid} --home /mattermost mattermost
 
 # Enable prepackaged plugin
-tar -C /mattermost/plugins -xvzf /mattermost/prepackaged_plugins/mattermost-plugin-autolink-v1.2.2-linux-amd64.tar.gz ; 
+RUN tar -C /mattermost/plugins -xvzf /mattermost/prepackaged_plugins/mattermost-plugin-autolink-v1.2.2-linux-amd64.tar.gz ; 
 
 # Enable prepackaged plugin
-tar -C /mattermost/plugins -xvzf /mattermost/prepackaged_plugins/mattermost-plugin-github-v2.1.4-linux-amd64.tar.gz ;
+RUN tar -C /mattermost/plugins -xvzf /mattermost/prepackaged_plugins/mattermost-plugin-github-v2.1.4-linux-amd64.tar.gz ;
 
 # Enable prepackaged plugin
-tar -C /mattermost/plugins -xvzf /mattermost/prepackaged_plugins/mattermost-plugin-gitlab-v1.6.0-linux-amd64.tar.gz ;
+RUN tar -C /mattermost/plugins -xvzf /mattermost/prepackaged_plugins/mattermost-plugin-gitlab-v1.6.0-linux-amd64.tar.gz ;
 
 # Download and enable third-party plugin
-cd /mattermost/plugins && \
-set -o pipefail && \
-curl -L https://github.com/matterpoll/matterpoll/releases/download/v1.4.0/com.github.matterpoll.matterpoll-1.4.0.tar.gz | tar -xvz ;
+RUN cd /mattermost/plugins && \
+    set -o pipefail && \
+    curl -L https://github.com/matterpoll/matterpoll/releases/download/v1.4.0/com.github.matterpoll.matterpoll-1.4.0.tar.gz | tar -xvz ;
 
 # Download and enable third-party plugin
-cd /mattermost/plugins && \
-set -o pipefail && \
-curl -L https://github.com/moussetc/mattermost-plugin-giphy/releases/download/v2.1.1/com.github.moussetc.mattermost.plugin.giphy-2.1.1.tar.gz | tar -xvz ;
+RUN cd /mattermost/plugins && \
+    set -o pipefail && \
+    curl -L https://github.com/moussetc/mattermost-plugin-giphy/releases/download/v2.1.1/com.github.moussetc.mattermost.plugin.giphy-2.1.1.tar.gz | tar -xvz ;
 
 # Download and enable third-party plugin
-cd /mattermost/plugins && \
-set -o pipefail && \
-curl -L https://github.com/scottleedavis/mattermost-plugin-remind/releases/download/v1.0.0/com.github.scottleedavis.mattermost-plugin-remind-1.0.0.tar.gz | tar -xvz ;
+RUN cd /mattermost/plugins && \
+    set -o pipefail && \
+    curl -L https://github.com/scottleedavis/mattermost-plugin-remind/releases/download/v1.0.0/com.github.scottleedavis.mattermost-plugin-remind-1.0.0.tar.gz | tar -xvz ;
 
 # Canonical's custom webapp
 COPY --from=canonical_flavour_builder /mattermost-webapp/dist/. /canonical_flavour_tmp/ 
