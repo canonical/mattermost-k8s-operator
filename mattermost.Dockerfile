@@ -65,7 +65,6 @@ ARG mattermost_uid=2000
 ARG mattermost_version=7.8.0
 
 LABEL org.label-schema.version=${mattermost_version}
-LABEL com.canonical.image-flavour=${image_flavour}
 LABEL com.canonical.mattermost-edition=${edition}
 
 # We use "set -o pipefail"
@@ -95,47 +94,33 @@ RUN mkdir -p /mattermost/data /mattermost/plugins /mattermost/client/plugins && 
     adduser --no-create-home --disabled-password --gecos "" --uid ${mattermost_uid} --gid ${mattermost_gid} --home /mattermost mattermost
 
 # Enable prepackaged plugin
-RUN if [ "$image_flavour" = canonical ]; then \
-        tar -C /mattermost/plugins -xvzf /mattermost/prepackaged_plugins/mattermost-plugin-autolink-v1.2.2-linux-amd64.tar.gz ; \
-    fi
+RUN tar -C /mattermost/plugins -xvzf /mattermost/prepackaged_plugins/mattermost-plugin-autolink-v1.2.2-linux-amd64.tar.gz 
 
 # Enable prepackaged plugin
-RUN if [ "$image_flavour" = canonical ]; then \
-        tar -C /mattermost/plugins -xvzf /mattermost/prepackaged_plugins/mattermost-plugin-github-v2.1.4-linux-amd64.tar.gz ; \
-    fi
+RUN tar -C /mattermost/plugins -xvzf /mattermost/prepackaged_plugins/mattermost-plugin-github-v2.1.4-linux-amd64.tar.gz 
 
 # Enable prepackaged plugin
-RUN if [ "$image_flavour" = canonical ]; then \
-        tar -C /mattermost/plugins -xvzf /mattermost/prepackaged_plugins/mattermost-plugin-gitlab-v1.6.0-linux-amd64.tar.gz ; \
-    fi
+RUN tar -C /mattermost/plugins -xvzf /mattermost/prepackaged_plugins/mattermost-plugin-gitlab-v1.6.0-linux-amd64.tar.gz 
 
 # Download and enable third-party plugin
-RUN if [ "$image_flavour" = canonical ]; then \
-        cd /mattermost/plugins && \
-        set -o pipefail && \
-        curl -L https://github.com/matterpoll/matterpoll/releases/download/v1.4.0/com.github.matterpoll.matterpoll-1.4.0.tar.gz | tar -xvz ; \
-    fi
+RUN cd /mattermost/plugins && \
+    set -o pipefail && \
+    curl -L https://github.com/matterpoll/matterpoll/releases/download/v1.4.0/com.github.matterpoll.matterpoll-1.4.0.tar.gz | tar -xvz ;
 
 # Download and enable third-party plugin
-RUN if [ "$image_flavour" = canonical ]; then \
-        cd /mattermost/plugins && \
-        set -o pipefail && \
-        curl -L https://github.com/moussetc/mattermost-plugin-giphy/releases/download/v2.1.1/com.github.moussetc.mattermost.plugin.giphy-2.1.1.tar.gz | tar -xvz ; \
-    fi
+RUN cd /mattermost/plugins && \
+    set -o pipefail && \
+    curl -L https://github.com/moussetc/mattermost-plugin-giphy/releases/download/v2.1.1/com.github.moussetc.mattermost.plugin.giphy-2.1.1.tar.gz | tar -xvz ;
 
 # Download and enable third-party plugin
-RUN if [ "$image_flavour" = canonical ]; then \
-        cd /mattermost/plugins && \
-        set -o pipefail && \
-        curl -L https://github.com/scottleedavis/mattermost-plugin-remind/releases/download/v1.0.0/com.github.scottleedavis.mattermost-plugin-remind-1.0.0.tar.gz | tar -xvz ; \
-    fi
+RUN cd /mattermost/plugins && \
+    set -o pipefail && \
+    curl -L https://github.com/scottleedavis/mattermost-plugin-remind/releases/download/v1.0.0/com.github.scottleedavis.mattermost-plugin-remind-1.0.0.tar.gz | tar -xvz ;
 
 # Canonical's custom webapp
 COPY --from=canonical_flavour_builder /mattermost-webapp/dist/. /canonical_flavour_tmp/ 
-RUN if [ "$image_flavour" = canonical ]; then \
-        rm -rf /mattermost/client && \
-        cp -r /canonical_flavour_tmp/. /mattermost/client ; \
-    fi
+RUN rm -rf /mattermost/client && \
+    cp -r /canonical_flavour_tmp/. /mattermost/client ;
 
 RUN rm -rf /canonical_flavour_tmp
 
