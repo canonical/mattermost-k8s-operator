@@ -95,13 +95,13 @@ RUN mkdir -p /mattermost/data /mattermost/plugins /mattermost/client/plugins && 
     adduser --no-create-home --disabled-password --gecos "" --uid ${mattermost_uid} --gid ${mattermost_gid} --home /mattermost mattermost
 
 # Enable prepackaged plugin
-RUN tar -C /mattermost/plugins -xvzf /mattermost/prepackaged_plugins/mattermost-plugin-autolink-v1.2.2-linux-amd64.tar.gz ; 
+RUN tar -C /mattermost/plugins -xvzf /mattermost/prepackaged_plugins/mattermost-plugin-autolink-v1.2.2-linux-amd64.tar.gz 
 
 # Enable prepackaged plugin
-RUN tar -C /mattermost/plugins -xvzf /mattermost/prepackaged_plugins/mattermost-plugin-github-v2.1.4-linux-amd64.tar.gz ;
+RUN tar -C /mattermost/plugins -xvzf /mattermost/prepackaged_plugins/mattermost-plugin-github-v2.1.4-linux-amd64.tar.gz 
 
 # Enable prepackaged plugin
-RUN tar -C /mattermost/plugins -xvzf /mattermost/prepackaged_plugins/mattermost-plugin-gitlab-v1.6.0-linux-amd64.tar.gz ;
+RUN tar -C /mattermost/plugins -xvzf /mattermost/prepackaged_plugins/mattermost-plugin-gitlab-v1.6.0-linux-amd64.tar.gz 
 
 # Download and enable third-party plugin
 RUN cd /mattermost/plugins && \
