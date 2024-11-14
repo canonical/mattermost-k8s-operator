@@ -7,7 +7,7 @@ docs: https://discourse.charmhub.io/t/mattermost-documentation-overview/3758
 maintainers:
   - https://launchpad.net/~canonical-is-devops
 issues: https://github.com/canonical/mattermost-k8s-operator/issues
-source: https://github.com/canonical/mattermost-k8s-operators
+source: https://github.com/canonical/mattermost-k8s-operator
 description: |
   A [Juju](https://juju.is/) [charm](https://juju.is/docs/olm/charmed-operators)
   deploying and managing [Mattermost](https://mattermost.com/) on Kubernetes.
