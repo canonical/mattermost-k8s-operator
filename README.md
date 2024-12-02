@@ -57,7 +57,7 @@ for step-by-step instructions.
 
 ## Integrations
 
-- [Postgresql](https://charmhub.io/postgresql-k8s) (required): PostgreSQL is a
+- [PostgreSQL](https://charmhub.io/postgresql-k8s) (required): PostgreSQL is a
 powerful, open source object-relational database system. This is the default and
 recommended database for all Mattermost installations.
 
