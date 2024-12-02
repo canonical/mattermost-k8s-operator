@@ -55,6 +55,15 @@ for step-by-step instructions.
 Refer to [How to authenticate](https://charmhub.io/mattermost-k8s/docs/authenticate)
 for step-by-step instructions.
 
+## Integrations
+
+- [Postgresql](https://charmhub.io/postgresql-k8s)(required): PostgreSQL is a
+powerful, open source object-relational database system. This is the default and
+recommended database for all Mattermost installations.
+
+Refer to [Integrations](https://charmhub.io/mattermost-k8s/) for a full list of
+integrations.
+
 ## Learn more
 * [Read more](https://charmhub.io/mattermost-k8s)
 * [Developer documentation](https://developers.mattermost.com/)
