@@ -1,4 +1,4 @@
-# Copyright 2024 Canonical Ltd.
+# Copyright 2025 Canonical Ltd.
 # See LICENSE file for licensing details.
 
 import unittest
@@ -325,12 +325,12 @@ class TestMattermostK8sCharmHooksEnabled(unittest.TestCase):
             "Ran grant-admin-role for user 'baron_von_whatsit'. They will need to log out and log back in "
             "to Mattermost to fully receive their permissions upgrade."
         )
-        self.assertTrue(action_event.set_results.called_with({"info": expected_msg}))
+        action_event.set_results.assert_called_with({"info": expected_msg})
         # Now set the return code to 1, and include some stderr.
         _run.return_value = PlaceholderSubProcess(1, b"Terrible news!")
         expected_msg = (
             "Failed to run '/mattermost/bin/mattermost roles system_admin baron_von_whatsit'. Output was:\n"
-            "Terrible News!"
+            "Terrible news!"
         )
         self.harness.charm._on_grant_admin_role_action(action_event)
-        self.assertTrue(action_event.fail.called_with(expected_msg))
+        action_event.fail.assert_called_with(expected_msg)
