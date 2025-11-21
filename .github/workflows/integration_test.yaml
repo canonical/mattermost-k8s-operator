@@ -18,7 +18,7 @@ jobs:
         --localstack-url http://172.17.0.1:4566 \
         --kube-config ${GITHUB_WORKSPACE}/kube-config
   allure-report:
-    if: ${{ (success() || failure()) && github.event_name == 'schedule' }}
+    if: ${{ !cancelled() && github.event_name == 'schedule' }}
     needs:
     - integration-tests
     uses: canonical/operator-workflows/.github/workflows/allure_report.yaml@main
