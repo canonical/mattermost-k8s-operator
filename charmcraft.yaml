@@ -1,0 +1,65 @@
+# Copyright 2025 Canonical Ltd.
+# See LICENSE file for licensing details.
+# This file configures Charmcraft.
+# See https://canonical-charmcraft.readthedocs-hosted.com/stable/howto/manage-charmcraft/ 
+# for guidance.
+
+type: charm
+name: platform-engineering-charm-template
+title: Charm Template
+summary: A very short one-line summary of the charm.
+links:
+  documentation: https://discourse.charmhub.io
+  issues: 
+    https://github.com/canonical/platform-engineering-charm-template/issues
+  source: https://github.com/canonical/platform-engineering-charm-template
+  contact: https://launchpad.net/~canonical-is-devops
+
+description: |
+  A single sentence that says what the charm is, concisely and memorably.
+
+  A paragraph of one to three short sentences, that describe what the charm does.
+
+  A third paragraph that explains what need the charm meets.
+
+  Finally, a paragraph that describes whom the charm is useful for.
+
+
+base: ubuntu@24.04
+platforms:
+  amd64:
+
+parts:
+  charm:
+    source: .
+    plugin: uv
+    build-snaps:
+    - astral-uv
+containers:
+  httpbin:
+    resource: httpbin-image
+
+# This field populates the Resources tab on Charmhub.
+resources:
+  # An OCI image resource for each container listed above.
+  # You may remove this if your charm will run without a workload sidecar container.
+  httpbin-image:
+    type: oci-image
+    description: OCI image for httpbin
+    # The upstream-source field is ignored by Juju. It is included here as a reference
+    # so the integration testing suite knows which image to deploy during testing. This field
+    # is also used by the 'canonical/charming-actions' Github action for automated releasing.
+    upstream-source: kennethreitz/httpbin
+
+# See https://canonical-charmcraft.readthedocs-hosted.com/stable/reference/files/config-yaml-file/
+# for guidance.
+config:
+  options:
+    # An example config option to customise the log level of the workload
+    log-level:
+      description: |
+        Configures the log level of gunicorn. 
+
+        Acceptable values are: "info", "debug", "warning", "error" and "critical"
+      default: "info"
+      type: string
