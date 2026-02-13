@@ -58,7 +58,7 @@ Otherwise, include a link the Charmhub documentation on integrations.
 
 ## Project and community 
 * [Issues](https://github.com/canonical/mattermost-k8s-operator/issues) 
-* [Contributing](https://charmhub.io/mattermost-k8s/docs/contribute) 
+* [Contributing](https://github.com/canonical/mattermost-k8s-operator/blob/main/CONTRIBUTING.md) 
 * [Matrix](https://matrix.to/#/#charmhub-charmdev:ubuntu.com) 
 
 
