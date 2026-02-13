@@ -1,23 +1,18 @@
-<!--
-Avoid using this README file for information that is maintained or published elsewhere, e.g.:
-
-* metadata.yaml > published on Charmhub
-* documentation > published on (or linked to from) Charmhub
-* detailed contribution guide > documentation or CONTRIBUTING.md
-
-Use links instead.
--->
-# Platform engineering charm template
+# Mattermost operator
 <!-- Use this space for badges -->
+<!-- TODO: Badges -->
 
-Describe your charm in 1-2 sentences. Include the software that the charm deploys (if applicable), and the substrate (VM/K8s).
+A Juju charm deploying and managing Mattermost on Kubernetes. Mattermost is an open-source, self-hostable online chat service with file sharing, search, and integrations. It allows for deployment on many different Kubernetes platforms, from [MicroK8s](https://microk8s.io/) to [Charmed Kubernetes](https://ubuntu.com/kubernetes) to public cloud Kubernetes offerings.
 
-Like any Juju charm, this charm supports one-line deployment, configuration, integration, scaling, and more. For Charmed {Name}, this includes:
-* list or summary of app-specific features
+Like any Juju charm, this charm supports one-line deployment, configuration, integration, scaling, and more. For Charmed Mattermost, this includes:
+* Scaling
+* Integration with SSO
+* Integration with S3 for redundant file storage
 
-For information about how to deploy, integrate, and manage this charm, see the Official [platform-engineering-charm-template Documentation](external link).
+For information about how to deploy, integrate, and manage this charm, see the Official [Mattermost Operator Documentation](https://charmhub.io/mattermost-k8s/docs).
 
 ## Get started
+To be added.
 <!--If the charm already contains a relevant how-to guide or tutorial in its documentation,
 use this section to link the documentation. You don’t need to duplicate documentation here.
 If the tutorial is more complex than getting started, then provide brief descriptions of the
@@ -35,6 +30,7 @@ This section could be structured in the following way:
 -->
 
 ### Basic operations
+To be added.
 <!--Brief walkthrough of performing standard configurations or operations.
 
 Use this section is to emphasize features or capabilities of the charm.
@@ -48,6 +44,7 @@ You may also want to link to the `charmcraft.yaml` file here.
 -->
 
 ## Integrations (optional)
+To be added.
 <!-- Information about particularly relevant interfaces, endpoints or libraries related to the
 charm. For example, peer relation endpoints required by other charms for integration.
 
@@ -55,23 +52,13 @@ Otherwise, include a link the Charmhub documentation on integrations.
 --> 
 
 ## Learn more
-<!-- 
-Provide a list of resources, including the official documentation, developer documentation,
-an official website for the software and a troubleshooting guide. Note that this list is not
-exhaustive or always relevant for every charm. If there is no official troubleshooting guide,
-include a link to the relevant Matrix channel.
--->
+* [Read more](https://charmhub.io/mattermost-k8s/docs) 
+* [Developer documentation](https://docs.mattermost.com/index.html) 
+* [Official webpage](https://mattermost.com/) 
 
-* [Read more]() <!--Link to the charm's official documentation-->
-* [Developer documentation]() <!--Link to any developer documentation (could be upstream)-->
-* [Official webpage]() <!--(Optional) Link to official upstream webpage/blog/marketing content--> 
-* [Troubleshooting]() <!--(Optional) Link to a page or section about troubleshooting/FAQ-->
+## Project and community 
+* [Issues](https://github.com/canonical/mattermost-k8s-operator/issues) 
+* [Contributing](https://charmhub.io/mattermost-k8s/docs/contribute) 
+* [Matrix](https://matrix.to/#/#charmhub-charmdev:ubuntu.com) 
 
-## Project and community
-* [Issues]() <!--Link to GitHub issues (if applicable)-->
-* [Contributing]() <!--Link to any contribution guides, preferably for the source code--> 
-* [Matrix]() <!--Link to contact info (if applicable), e.g. Matrix channel-->
-* [Launchpad]() <!--Link to Launchpad (if applicable)-->
-
-## Licensing and trademark (optional)
 
