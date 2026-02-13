@@ -2,7 +2,7 @@
 <!-- Use this space for badges -->
 <!-- TODO: Badges -->
 
-A Juju charm deploying and managing Mattermost on Kubernetes. Mattermost is an open-source, self-hostable online chat service with file sharing, search, and integrations. It allows for deployment on many different Kubernetes platforms, from [MicroK8s](https://microk8s.io/) to [Charmed Kubernetes](https://ubuntu.com/kubernetes) to public cloud Kubernetes offerings.
+A Juju charm deploying and managing Mattermost on Kubernetes. [Mattermost](https://mattermost.com/) is an open-source, self-hostable online chat service with file sharing, search, and integrations. It allows for deployment on many different Kubernetes platforms, from [MicroK8s](https://microk8s.io/) to [Charmed Kubernetes](https://ubuntu.com/kubernetes) to public cloud Kubernetes offerings.
 
 Like any Juju charm, this charm supports one-line deployment, configuration, integration, scaling, and more. For Charmed Mattermost, this includes:
 * Scaling
