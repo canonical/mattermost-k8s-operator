@@ -1,0 +1,185 @@
+name: mattermost
+base: ubuntu@24.04
+version: '10.11.6'
+summary: Mattermost is an open source, self-hosted Slack-alternative.
+description: |
+  Mattermost offers secure, flexible, and integrated messaging 
+  for technical teams.
+license: AGPL-3.0
+platforms:
+  amd64:
+run-user: _daemon_
+
+services:
+  go:
+    override: replace
+    command: bash -c 'export MM_SQLSETTINGS_DRIVERNAME=postgres; export MM_SQLSETTINGS_DATASOURCE="postgres://${POSTGRESQL_DB_CONNECT_STRING#postgresql://}"; export MM_CONFIG="$MM_SQLSETTINGS_DATASOURCE"; export MM_SERVICESETTINGS_LISTENADDRESS=:8080; exec /app/bin/mattermost'
+    startup: enabled
+    working-dir: /app
+    user: _daemon_
+
+parts:
+  # ---------------------------------------------------------
+  # Part A: Local Patches (Helper)
+  # Moves local files into the staging area so other parts can use them.
+  # ---------------------------------------------------------
+  build-patches:
+    plugin: dump
+    source: ./canonical_flavour
+    organize:
+      themes.patch: patches/themes.patch
+      https-proxy-agent.patch: patches/https-proxy-agent.patch
+    stage:
+      - patches
+
+  # ---------------------------------------------------------
+  # Part B: Backend Server
+  # ---------------------------------------------------------
+  backend:
+    plugin: dump
+    source: https://releases.mattermost.com/10.11.6/mattermost-10.11.6-linux-amd64.tar.gz
+    source-type: tar
+    organize:
+      bin: app/bin
+      config: app/config
+      logs: app/logs
+      prepackaged_plugins: app/prepackaged_plugins
+      templates: app/templates
+      i18n: app/i18n
+      manifest.txt: app/manifest.txt
+    override-build: |
+      craftctl default
+      rm -rf $CRAFT_PART_INSTALL/fonts
+    stage:
+      - app/*
+    permissions:
+      - owner: 584792
+        group: 584792
+
+  # ---------------------------------------------------------
+  # Part C: Frontend Builder
+  # ---------------------------------------------------------
+  webapp:
+    plugin: nil
+    # Run AFTER patches so we can access $CRAFT_STAGE/patches
+    after: [build-patches]
+    build-packages: [git, make, curl, python3]
+    source: https://github.com/mattermost/mattermost.git
+    source-tag: v10.11.6
+    source-depth: 1
+    build-environment:
+        - NODE_VERSION: '20.11.1'
+    override-build: |
+      set -e
+      curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
+      source /root/.nvm/nvm.sh
+      nvm install $NODE_VERSION
+      nvm use $NODE_VERSION
+      nvm alias default $NODE_VERSION
+
+      # --------------------------------------------------------
+      # 1. PROXY AGENT SURGERY (Restored from Dockerfile)
+      # --------------------------------------------------------
+      echo "Patching NPM https-proxy-agent..."
+      
+      # Prepare workspace
+      mkdir -p temp_proxy_build
+      cd temp_proxy_build
+
+      curl -sSL https://github.com/TooTallNate/node-https-proxy-agent/archive/refs/tags/5.0.1.tar.gz -o node-https-proxy-agent.tar.gz
+      echo "531523e64c0429178a887649140c2c40d9c647e37f2f5cc945ab4be0e502432a  node-https-proxy-agent.tar.gz" | shasum -c
+      tar -xf node-https-proxy-agent.tar.gz
+      cd proxy-agents-5.0.1
+
+      # Apply the patch from the previous part
+      patch -p1 < $CRAFT_STAGE/patches/https-proxy-agent.patch
+      
+      cat src/agent.ts
+      # Build the patched library
+      npm config set progress=false loglevel=info
+      npm ci
+      npm run build
+
+      # Find where the system NPM lives
+      NPM_ROOT=$(npm root -g)
+      echo "System NPM located at: $NPM_ROOT"
+
+      # Replace the library
+      rm -rf $NPM_ROOT/npm/node_modules/https-proxy-agent/
+      # We move 'dist' to where the code expects it 
+      # Since we are hacking the system npm, we place our built files there.
+      mkdir -p $NPM_ROOT/npm/node_modules/https-proxy-agent
+      cp -r ./dist/* $NPM_ROOT/npm/node_modules/https-proxy-agent/
+      
+      # Cleanup proxy build area
+      cd ../..
+      rm -rf temp_proxy_build
+
+      # --------------------------------------------------------
+      # 2. MATTERMOST WEBAPP BUILD
+      # --------------------------------------------------------
+      cd webapp
+      git apply -v $CRAFT_STAGE/patches/themes.patch
+      
+      npm config set progress=false loglevel=info
+      npm ci
+      make dist
+
+      # Output
+      mkdir -p $CRAFT_PART_INSTALL/app/client
+      cp -r channels/dist/* $CRAFT_PART_INSTALL/app/client/
+    
+    permissions:
+      - owner: 584792
+        group: 584792
+
+  # ---------------------------------------------------------
+  # Part D: Plugins
+  # ---------------------------------------------------------
+  plugins:
+    plugin: nil
+    after: [backend, webapp]
+    build-packages: [curl, tar]
+    override-build: |
+      mkdir -p $CRAFT_PART_INSTALL/app/plugins
+      cd $CRAFT_PART_INSTALL/app/plugins
+      
+      download_plugin() {
+        curl -L -s "$1" | tar -xz
+      }
+      # 3rd Party
+      download_plugin "https://github.com/mattermost-community/mattermost-plugin-autolink/releases/download/v1.4.1/mattermost-autolink-1.4.1.tar.gz"
+      download_plugin "https://github.com/matterpoll/matterpoll/releases/download/v1.8.0/com.github.matterpoll.matterpoll-1.8.0.tar.gz"
+      download_plugin "https://github.com/moussetc/mattermost-plugin-giphy/releases/download/v4.0.0/com.github.moussetc.mattermost.plugin.giphy-4.0.0.tar.gz"
+      download_plugin "https://github.com/scottleedavis/mattermost-plugin-remind/releases/download/v1.0.0/com.github.scottleedavis.mattermost-plugin-remind-1.0.0.tar.gz"
+    permissions:
+      - owner: 584792
+        group: 584792
+
+  # ---------------------------------------------------------
+  # Part E: Runtime Dependencies
+  # ---------------------------------------------------------
+  dependencies:
+    plugin: nil
+    stage-packages:
+      - curl
+      - python3-yaml
+      - xmlsec1
+      - ca-certificates
+      - openssl
+
+  # ---------------------------------------------------------
+  # Part F: Directory Setup
+  # ---------------------------------------------------------
+  setup-dirs:
+    plugin: nil
+    after: [backend, webapp, plugins]
+    override-build: |
+      mkdir -p $CRAFT_PART_INSTALL/app/data
+      mkdir -p $CRAFT_PART_INSTALL/app/logs
+      mkdir -p $CRAFT_PART_INSTALL/app/config
+      mkdir -p $CRAFT_PART_INSTALL/app/plugins
+      mkdir -p $CRAFT_PART_INSTALL/app/client/plugins
+    permissions:
+      - owner: 584792
+        group: 584792
