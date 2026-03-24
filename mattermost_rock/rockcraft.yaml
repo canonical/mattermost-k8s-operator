@@ -1,6 +1,6 @@
 name: mattermost
 base: ubuntu@24.04
-version: '10.11.6'
+version: '10.11.6-1'
 summary: Mattermost is an open source, self-hosted Slack-alternative.
 description: |
   Mattermost offers secure, flexible, and integrated messaging 
