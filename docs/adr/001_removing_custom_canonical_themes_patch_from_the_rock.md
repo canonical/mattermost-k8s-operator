@@ -56,3 +56,7 @@ the standard themes. This might create an initial discomfort for those who are
 used to the color of the Canonical themes. However, Mattermost allows 
 customizing theme colors, and to compensate, we can show users how to
 customize their Mattermost to use the old custom themes.
+
+Additionally, a part of `rockcraft.yaml` responsible for rebuilding webapp is
+removed, making the file shorter and cleaner. This also results in quicker
+rock-packing. 
