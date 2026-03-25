@@ -17,7 +17,7 @@ This way, the rock is more generic, and the webapp does not need to be rebuilt.
 
 ## Context
 
-In the old, podspec Mattermost charm, the Mattermost image was created with a
+In the old podspec Mattermost charm, the Mattermost image was created with a
 Dockerfile, and it included a patch that adds custom Canonical themes to the Mattermost webapp. This meant that a certain part of the Dockerfile was
 dedicated to downloading Mattermost's webapp files directly from its GitHub
 repository, applying the patch to the files, rebuilding the webapp, and adding the new
