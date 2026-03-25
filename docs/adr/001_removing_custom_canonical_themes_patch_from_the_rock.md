@@ -23,7 +23,7 @@ dedicated to downloading Mattermost's webapp files directly from its GitHub
 repository, applying the patch to the files, rebuilding the webapp, and adding the new
 client to the existing Mattermost release. Subsequently, a `https-proxy-agent`
 patch was also applied to throttle concurrent proxy sockets to avoid
-overwhelming the proxy server in case `npm`, the package manager for JavaScript,
+overwhelming the proxy server in case `npm`
 tries to open a large number of connections when installing dependencies, which
 would be the case in our company environments.
 
