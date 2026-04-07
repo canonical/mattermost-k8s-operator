@@ -20,7 +20,7 @@ To be able to work inside the Multipass VM first you need to log in with the fol
 multipass shell mattermost-tutorial-vm
 ```
 
-### Install and bootstrap Juju and MicroK8s
+### Install and prepare Juju and MicroK8s
 
 This tutorial requires the following software to be installed on your working station
 (either locally or in the Multipass VM):
