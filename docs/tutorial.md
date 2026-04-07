@@ -51,7 +51,7 @@ juju bootstrap microk8s tutorial-controller
 ## What you'll do
 
 1. Deploy the Mattermost charm
-2. Integrate with `postgresql-k8s`charm
+2. Integrate with the PostgreSQL charm
 3. Inspect the Kubernetes resources created
 4. Access the Mattermost app and bootstrap
 5. Clean up the environment
