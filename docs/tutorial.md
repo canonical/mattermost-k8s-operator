@@ -143,7 +143,7 @@ model environment that you've created using the following command:
 ```
 juju destroy-model mattermost-tutorial --destroy-storage
 ```
-If you used Multipass, to remove the Multipass instance you created for this tutorial, use the following command.
+If you used Multipass, to remove the Multipass instance you created for this tutorial, use the following command on your host machine.
 ```
 multipass delete --purge mattermost-tutorial-vm
 ```
