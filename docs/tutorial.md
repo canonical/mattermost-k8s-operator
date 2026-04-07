@@ -7,20 +7,17 @@ In this tutorial, we'll go through each step of the process to get a basic Matte
 You will need a working station, e.g., a laptop, with AMD64 architecture. Your working station
 should have at least 4 CPU cores, 8 GB of RAM, and 50 GB of disk space.
 
-> Tip: You can use Multipass to create an isolated environment by running:
+> Tip: You can use Multipass to create a virtual machine(VM) and work in an isolated environment by running:
 > ```
 > multipass launch 24.04 --name mattermost-tutorial-vm --cpus 4 --memory 8G --disk 50G
 > ```
-> When using a Multipass VM, make sure to replace `127.0.0.1` IP addresses with the
-> VM IP in steps that assume you're running locally. To get the IP address of the
-> Multipass instance run ```multipass info mattermost-tutorial-vm```.
 
 ### Shell into the Multipass VM
 > NOTE: If you're working locally, you don't need to do this step.
 
 To be able to work inside the Multipass VM first you need to log in with the following command:
 ```
-multipass shell charm-tutorial-vm
+multipass shell mattermost-tutorial-vm
 ```
 
 ### Install and bootstrap Juju and MicroK8s
@@ -40,14 +37,6 @@ sudo concierge prepare -p microk8s
 
 This first command installs Concierge, and the second command uses Concierge to install
 and configure Juju and MicroK8s.
-
-MicroK8s must have an NGINX ingress controller enabled. Complete this requirement by running:
-
-```
-microk8s enable ingress
-```
-
-For more details, see [Add-on: Ingress](https://microk8s.io/docs/addon-ingress).
 
 For this tutorial, Juju must be bootstrapped to a MicroK8s controller. Concierge should
 complete this step for you, and you can verify by checking for `msg="Bootstrapped Juju" provider=microk8s`
@@ -80,7 +69,6 @@ juju add-model mattermost-tutorial
 
 Mattermost requires connections to PostgreSQL. For more information, see the [Charm Integrations](https://charmhub.io/mattermost-k8s/docs/reference-integrations).
 
-> NOTE: Discourse requires PostgreSQL extensions to be available in the relation.
 
 Deploy the charms:
 ```
@@ -88,126 +76,74 @@ juju deploy postgresql-k8s --channel 14/stable --trust
 juju deploy mattermost-k8s
 ```
 
-Enable the required PostgreSQL extensions:
+The Mattermost database driver requires a secure SSL/TLS connection by default. For this tutorial, we will use `self-signed-certificates` to provision a local Certificate Authority(CA) for `postgresql`:
 ```
-juju config postgresql-k8s plugin_hstore_enable=True plugin_pg_trgm_enable=True
+juju deploy self-signed-certificates
+juju integrate postgresql-k8s self-signed-certificates:certificates
+
 ```
 
 ### Integrate with the PostgreSQL k8s charm
 
-Integrate `postgresql-k8s` to `discourse-k8s`:
+Integrate `postgresql-k8s` to `mattermost-k8s`:
 ```
-juju integrate discourse-k8s postgresql-k8s
+juju integrate mattermost-k8s postgresql-k8s
 ```
 
 By running `juju status --relations` the current state of the deployment can be queried:
 ```
-Model               Controller  Cloud/Region        Version  SLA          Timestamp
-discourse-tutorial  microk8s    microk8s/localhost  3.5.4    unsupported  14:07:18+03:00
+Model                Controller           Cloud/Region        Version  SLA          Timestamp
+mattermost-tutorial  microk8s-controller  microk8s/localhost  3.6.11   unsupported  22:25:22+01:00
 
-App             Version  Status  Scale  Charm           Channel        Rev  Address         Exposed  Message
-discourse-k8s   3.3.0    active      1  discourse-k8s   latest/stable  173  10.152.183.231  no
-postgresql-k8s  14.12    active      1  postgresql-k8s  14/stable      381  10.152.183.143  no
-redis-k8s       7.2.5    active      1  redis-k8s       latest/edge     36  10.152.183.188  no
+App                       Version  Status  Scale  Charm                     Channel    Rev  Address         Exposed  Message
+mattermost-k8s                     active      1  mattermost-k8s                         0  10.152.183.239  no       
+postgresql-k8s            14.20    active      1  postgresql-k8s            14/stable  774  10.152.183.92   no       
+self-signed-certificates           active      1  self-signed-certificates  1/stable   586  10.152.183.47   no       
 
-Unit               Workload  Agent  Address      Ports  Message
-discourse-k8s/0*   active    idle   10.1.32.182
-postgresql-k8s/0*  active    idle   10.1.32.184         Primary
-redis-k8s/0*       active    idle   10.1.32.181
+Unit                         Workload  Agent  Address     Ports  Message
+mattermost-k8s/0*            active    idle   10.1.1.170         
+postgresql-k8s/0*            active    idle   10.1.1.180         Primary
+self-signed-certificates/0*  active    idle   10.1.1.145         
 
-Integration provider           Requirer                       Interface          Type     Message
-discourse-k8s:restart          discourse-k8s:restart          rolling_op         peer
-postgresql-k8s:database        discourse-k8s:database         postgresql_client  regular
-postgresql-k8s:database-peers  postgresql-k8s:database-peers  postgresql_peers   peer
-postgresql-k8s:restart         postgresql-k8s:restart         rolling_op         peer
-postgresql-k8s:upgrade         postgresql-k8s:upgrade         upgrade            peer
-redis-k8s:redis                discourse-k8s:redis            redis              regular
-redis-k8s:redis-peers          redis-k8s:redis-peers          redis-peers        peer
+Integration provider                   Requirer                       Interface          Type     Message
+mattermost-k8s:secret-storage          mattermost-k8s:secret-storage  secret-storage     peer     
+postgresql-k8s:database                mattermost-k8s:postgresql      postgresql_client  regular  
+postgresql-k8s:database-peers          postgresql-k8s:database-peers  postgresql_peers   peer     
+postgresql-k8s:restart                 postgresql-k8s:restart         rolling_op         peer     
+postgresql-k8s:upgrade                 postgresql-k8s:upgrade         upgrade            peer     
+self-signed-certificates:certificates  postgresql-k8s:certificates    tls-certificates   regular 
 ```
 The deployment finishes when all the charms show `Active` states.
 
-Run `kubectl get pods -n mattermost-tutorial` to see the pods that are being created by the charms:
+Run `microk8s kubectl get pods -n mattermost-tutorial` to see the pods that are being created by the charms:
 ```
-NAME                             READY   STATUS    RESTARTS   AGE
-modeloperator-c584f6f9f-qf9gr    1/1     Running   0          5m30s
-redis-k8s-0                      3/3     Running   0          5m22s
-discourse-k8s-0                  2/2     Running   0          5m1s
-postgresql-k8s-0                 2/2     Running   0          5m9s
-```
-
-### Provide ingress capabilities
-
-In order to expose the charm, the Gateway API Integrator needs to be deployed and integrated with Discourse:
-
-```
-juju deploy nginx-ingress-integrator
-```
-To check if RBAC is enabled run the following command:
-```
-microk8s status | grep rbac
-```
-If it is enabled, then the output should be like the following:
-```
-rbac                 # (core) Role-Based Access Control for authorisation
-```
-If the output is empty then RBAC is not enabled.
-
-If your cluster has RBAC enabled, you'll be prompted to run the following command:
-```
-juju trust nginx-ingress-integrator --scope=cluster
-```
-Then you need to integrate the charm with Nginx Ingress Integrator:
-```
-juju integrate discourse-k8s nginx-ingress-integrator
+NAME                            READY   STATUS    RESTARTS   AGE
+mattermost-k8s-0                2/2     Running   0          10m
+modeloperator-64cb49db9-8cvpv   1/1     Running   0          15m
+postgresql-k8s-0                2/2     Running   0          13m
+self-signed-certificates-0      1/1     Running   0          13m
 ```
 
-### Validate workload is reachable
+### Access `Mattermost` for the first time 
 
-To validate that you can successfully reach the deployed workload, run the following command:
-```
-curl http://discourse-k8s --resolve discourse-k8s:80:127.0.0.1
-```
+By default, `mattermost` is exposed on the port 8080. To find the internal IP address assigned to `mattermost`, check the application address in the `juju status` output. For our example, this is `10.152.183.239`. Open a web browser, navigate to `10.152.183.239:8080` and follow the steps to set up your Mattermost server.
 
-### Create an admin user and log in
+> If you are using `multipass`, you need to forward the port to access the application from a web browser:
+> ```
+> microk8s kubectl port-forward --address 0.0.0.0 service/mattermost-k8s 8080:8080 -n mattermost-tutorial
+> ```
+> Then, in a seperate terminal in your host machine, you can find your VM's address by running `multipass info mattermost-tutorial-vm`. Now, you can navigate to `<your-multipass-vm-ip>:8080` to access Mattermost
 
-To create an admin user, use the `create-user` action:
-```
-juju run discourse-k8s/0 create-user admin=true email=email@example.com
-```
-The command will return the password of the created user. Discourse will be deployed with `discourse-k8s` as default hostname.
-
-If you are following the tutorial in your local machine, modify your `/etc/hosts` file so that it points to `127.0.0.1`:
-
-```
-echo "127.0.0.1 discourse-k8s" | sudo tee -a /etc/hosts
-```
-
-After that, visit `http://discourse-k8s` to reach Discourse, using the credentials returned from the `create-user` action to login.
 
 ### Clean up the environment
 
-Congratulations! You have successfully finished the Discourse tutorial. You can now remove the
+Congratulations! You have successfully finished the Mattermost tutorial. You can now remove the
 model environment that you've created using the following command:
 
 ```
-juju destroy-model discourse-tutorial --destroy-storage
+juju destroy-model mattermost-tutorial --destroy-storage
 ```
 If you used Multipass, to remove the Multipass instance you created for this tutorial, use the following command.
 ```
-multipass delete --purge charm-tutorial-vm
+multipass delete --purge mattermost-tutorial-vm
 ```
-Finally, remove the `127.0.0.1 discourse-k8s` line from the `/etc/hosts` file.
-
-## Next steps
-
-You achieved a basic deployment of the Discourse charm. If you want to go further in your deployment
-or learn more about the charm, check out these pages:
-
-- Perform basic operations with your deployment like
-  [configuring S3](https://charmhub.io/discourse-k8s/docs/how-to-configure-s3)
-  or [SMTP](https://charmhub.io/discourse-k8s/docs/how-to-configure-smtp).
-- Make your deployment more secure by [configuring SAML](https://charmhub.io/discourse-k8s/docs/how-to-configure-saml),
-  and learn more about the charm's security in
-  [Security overview](https://charmhub.io/discourse-k8s/docs/explanation-security).
-- Learn more about the available [relation endpoints](https://charmhub.io/discourse-k8s/docs/reference-integrations)
-  for the Discourse charm.
