@@ -2,7 +2,7 @@
 
 <!-- Use the template below to add information about integrations supported by this charm. -->
 
-### postgresql
+### `postgresql`
 
 _Interface_: `postgresql_client`
 _Supported charms_: [`postgresql-k8s`](https://charmhub.io/postgresql-k8s),
