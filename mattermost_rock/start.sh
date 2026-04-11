@@ -1,7 +1,8 @@
+#!/bin/bash
+
 # Copyright 2026 Canonical Ltd.
 # See LICENSE file for licensing details.
 
-#!/bin/bash
 set -e
 
 export MM_SQLSETTINGS_DRIVERNAME=postgres
