@@ -47,7 +47,9 @@ def charm_resources() -> dict[str, str]:
 
 
 @pytest.fixture(scope="session", name="juju")
-def juju_fixture(request: pytest.FixtureRequest) -> Generator[jubilant.Juju, None, None]:
+def juju_fixture(
+    request: pytest.FixtureRequest,
+) -> Generator[jubilant.Juju, None, None]:
     """Pytest fixture that wraps :meth:`jubilant.with_model`."""
 
     def show_debug_log(juju: jubilant.Juju):
@@ -94,11 +96,6 @@ def app_fixture(
     Deploys postgresql-k8s, the mattermost-k8s charm, integrates them,
     and waits for all units to become active.
     """
-    use_existing = pytestconfig.getoption("--use-existing", default=False)
-    if use_existing:
-        yield APP_NAME
-        return
-
     # Deploy PostgreSQL
     juju.deploy(
         "postgresql-k8s",

@@ -6,10 +6,10 @@ version_schema: 2
 
 # The key holding the change(s)
 changes:
-- title: Readded workflows and wrote basic integration tests
+- title: Re-added workflows and wrote basic integration tests
   author: DeeKay3
   type: minor
-  description: During the first rewrite of Mattermost charm, we removed all the workflows and tests to unblock us from merging PRs. Now, to setup the repository properly, this PR readded the workflows and wrote basic integration tests for the charm.
+  description: During the first rewrite of Mattermost charm, we removed all the workflows and tests to unblock us from merging PRs. Now, to setup the repository properly, this PR re-added the workflows and wrote basic integration tests for the charm.
   urls:
     pr: 
       - "https://github.com/canonical/mattermost-k8s-operator/pull/53"
