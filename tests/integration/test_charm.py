@@ -28,14 +28,25 @@ def test_active(app: str, juju: jubilant.Juju):
 
 
 @pytest.mark.abort_on_fail
-def test_workload_online(mattermost_address: str):
+def test_workload_online(mattermost_address: str, juju: jubilant.Juju):
     """Check that the Mattermost workload is responding to HTTP requests.
 
     arrange: The charm has been deployed and is active.
     act: Send an HTTP request to the Mattermost unit.
     assert: The response contains 'Mattermost'.
     """
-    response = requests.get(mattermost_address, timeout=30)
+
+    def is_mattermost_up(status):
+        """Return True when all apps are active and Mattermost HTTP responds 200."""
+        if not jubilant.all_active(status):
+            return False
+        try:
+            return requests.get(mattermost_address, timeout=10).status_code == 200
+        except requests.ConnectionError:
+            return False
+
+    juju.wait(is_mattermost_up)
+    response = requests.get(mattermost_address, timeout=10)
     assert response.status_code == 200
     assert "Mattermost" in response.text
 
