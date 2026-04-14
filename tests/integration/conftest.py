@@ -4,7 +4,6 @@
 """Fixtures for charm integration tests."""
 
 import logging
-import os
 import typing
 from collections.abc import Generator
 
@@ -33,17 +32,13 @@ def charm_fixture(pytestconfig: pytest.Config):
 
 
 @pytest.fixture(scope="module")
-def charm_resources() -> dict[str, str]:
-    """The OCI resources for the charm, read from env vars."""
-    resource_name = os.environ.get("OCI_RESOURCE_NAME")
-    rock_image_uri = os.environ.get("ROCK_IMAGE")
+def charm_resources(pytestconfig: pytest.Config) -> dict[str, str]:
+    """The OCI resources for the charm."""
+    rock_image_uri = pytestconfig.getoption("--mattermost-image")
+    if not rock_image_uri:
+        pytest.fail("--mattermost-image must be set")
 
-    if not resource_name or not rock_image_uri:
-        pytest.fail(
-            "Environment variables OCI_RESOURCE_NAME and/or ROCK_IMAGE are not set."
-        )
-
-    return {resource_name: rock_image_uri}
+    return {"app-image": rock_image_uri}
 
 
 @pytest.fixture(scope="session", name="juju")
