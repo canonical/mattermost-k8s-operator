@@ -91,6 +91,13 @@ def app_fixture(
     Deploys postgresql-k8s, the mattermost-k8s charm, integrates them,
     and waits for all units to become active.
     """
+    # Deploy self-signed-certificates for TLS
+    juju.deploy("self-signed-certificates")
+    juju.wait(
+        lambda status: jubilant.all_active(status, "self-signed-certificates"),
+        timeout=JUJU_WAIT_TIMEOUT,
+    )
+
     # Deploy PostgreSQL
     juju.deploy(
         "postgresql-k8s",
@@ -99,6 +106,7 @@ def app_fixture(
         trust=True,
         config={"profile": "testing"},
     )
+    juju.integrate("postgresql-k8s", "self-signed-certificates:certificates")
     juju.wait(
         lambda status: jubilant.all_active(status, "postgresql-k8s"),
         timeout=JUJU_WAIT_TIMEOUT,
