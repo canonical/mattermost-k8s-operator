@@ -5,8 +5,6 @@ on:
 
 jobs:
   check-change-artifacts:
-    # remove this condition when creating your repo
-    if: github.repository != 'canonical/platform-engineering-charm-template'
     uses: canonical/release-notes-automation/.github/workflows/pr-compliance.yml@main
     secrets: inherit
     with:
