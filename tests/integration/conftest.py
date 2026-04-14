@@ -129,10 +129,10 @@ def app_fixture(
 
 @pytest.fixture(scope="module")
 def mattermost_address(app: str, juju: jubilant.Juju) -> str:
-    """Get the Mattermost unit IP address and port."""
+    """Get the Mattermost application IP address and port."""
     status = juju.status()
-    unit_ip = status.apps[app].units[app + "/0"].address
-    return f"http://{unit_ip}:{MATTERMOST_PORT}"
+    app_ip = status.apps[app].address
+    return f"http://{app_ip}:{MATTERMOST_PORT}"
 
 
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)
