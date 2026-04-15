@@ -119,7 +119,10 @@ def app_fixture(
         config={"profile": "testing"},
         force=is_force,
     )
-    juju.integrate("postgresql-k8s", "self-signed-certificates:certificates")
+    juju.integrate(
+        "postgresql-k8s:client-certificates" if juju_major >= 4 else "postgresql-k8s",
+        "self-signed-certificates:certificates",
+    )
     juju.wait(
         lambda status: jubilant.all_active(status, "postgresql-k8s"),
         timeout=JUJU_WAIT_TIMEOUT,
