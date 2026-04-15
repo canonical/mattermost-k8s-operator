@@ -87,6 +87,11 @@ def test_postgresql_relation(
     juju.wait(all_active_and_serving)
     assert is_mattermost_up()
 
+    def postgresql_relation_gone(status):
+        """Return True when the postgresql relation is fully removed."""
+        relations = status.apps[app].relations
+        return "postgresql" not in relations or not relations["postgresql"]
+
     # Remove the postgresql relation — charm should become waiting/blocked
     juju.remove_relation(app, "postgresql-k8s:database")
     juju.wait(
@@ -94,6 +99,7 @@ def test_postgresql_relation(
             status.apps[app].is_waiting or status.apps[app].is_blocked
         )
         and mattermost_connection_fails()
+        and postgresql_relation_gone(status)
     )
 
     # Re-integrate with postgresql — charm should return to active
