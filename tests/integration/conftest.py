@@ -104,9 +104,11 @@ def app_fixture(
     if juju_major >= 4:
         pg_channel = "16/edge"
         pg_base = "ubuntu@24.04"
+        is_force = True
     else:
         pg_channel = "14/stable"
         pg_base = "ubuntu@22.04"
+        is_force = False
 
     # Deploy PostgreSQL
     juju.deploy(
@@ -115,6 +117,7 @@ def app_fixture(
         base=pg_base,
         trust=True,
         config={"profile": "testing"},
+        force=is_force,
     )
     juju.integrate("postgresql-k8s", "self-signed-certificates:certificates")
     juju.wait(
