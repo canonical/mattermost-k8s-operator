@@ -98,11 +98,21 @@ def app_fixture(
         timeout=JUJU_WAIT_TIMEOUT,
     )
 
+    # Detect Juju major version to choose the right PostgreSQL channel
+    juju_major = juju.version().major
+
+    if juju_major >= 4:
+        pg_channel = "16/edge"
+        pg_base = "ubuntu@24.04"
+    else:
+        pg_channel = "14/stable"
+        pg_base = "ubuntu@22.04"
+
     # Deploy PostgreSQL
     juju.deploy(
         "postgresql-k8s",
-        channel="14/stable",
-        base="ubuntu@22.04",
+        channel=pg_channel,
+        base=pg_base,
         trust=True,
         config={"profile": "testing"},
     )
