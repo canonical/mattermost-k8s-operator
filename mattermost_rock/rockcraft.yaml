@@ -1,3 +1,6 @@
+# Copyright 2026 Canonical Ltd.
+# See LICENSE file for licensing details.
+
 name: mattermost
 base: ubuntu@24.04
 version: '10.11.6-1'

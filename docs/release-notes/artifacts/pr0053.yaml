@@ -1,0 +1,20 @@
+# Copyright 2026 Canonical Ltd.
+# See LICENSE file for licensing details.
+
+# Version of the artifact schema
+version_schema: 2
+
+# The key holding the change(s)
+changes:
+- title: Re-added workflows and wrote basic integration tests
+  author: DeeKay3
+  type: minor
+  description: During the first rewrite of Mattermost charm, we removed all the workflows and tests to unblock us from merging PRs. Now, to setup the repository properly, this PR re-added the workflows and wrote basic integration tests for the charm.
+  urls:
+    pr: 
+      - "https://github.com/canonical/mattermost-k8s-operator/pull/53"
+    related_doc:
+    related_issue:
+  visibility: public
+  highlight: false
+
