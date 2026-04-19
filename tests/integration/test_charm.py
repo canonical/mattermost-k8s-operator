@@ -93,7 +93,7 @@ def test_postgresql_relation(
         return "postgresql" not in relations or not relations["postgresql"]
 
     # Remove the postgresql relation — charm should become waiting/blocked
-    juju.remove_relation(app, "postgresql-k8s:database", force=True)
+    juju.remove_relation(app, "postgresql-k8s:database")
     juju.wait(
         lambda status: (status.apps[app].is_waiting or status.apps[app].is_blocked)
         and mattermost_connection_fails()
