@@ -4,6 +4,7 @@
 """Fixtures for charm integration tests."""
 
 import logging
+import socket
 import typing
 from collections.abc import Generator
 
@@ -169,3 +170,37 @@ def abort_on_fail(request: pytest.FixtureRequest):
     _ = yield
     if abort_on_fail and request.node.rep_call.failed:
         request.module.__aborted__ = True
+
+
+def _host_ip() -> str | None:
+    """Return the host's primary outbound IP, reachable from microk8s pods."""
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        ip = s.getsockname()[0]
+        s.close()
+        return ip
+    except Exception:  # noqa: BLE001
+        return None
+
+
+@pytest.fixture(scope="session")
+def s3_address(pytestconfig: pytest.Config) -> str | None:
+    """Provide the S3 service IP address for integration tests.
+
+    Defaults to the host's primary IP so microk8s pods can reach radosgw
+    on the runner without needing --s3-address to be passed explicitly.
+    """
+    return pytestconfig.getoption("--s3-address") or _host_ip()
+
+
+def generate_s3_config(s3_address: str) -> dict:
+    """Generate S3 config for MicroCeph radosgw based tests."""
+    return {
+        "access-key": "my-lovely-key",
+        "secret-key": "this-is-very-secret",
+        "bucket": "mattermost-test",
+        "region": "us-east-1",
+        "path": "mattermost",
+        "endpoint": f"http://{s3_address}:7480",
+    }
