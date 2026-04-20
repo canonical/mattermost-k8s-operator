@@ -12,3 +12,4 @@ jobs:
     secrets: inherit
     with:
       channel: latest/edge
+      resource-mapping: '{"mattermost": "app-image"}'
