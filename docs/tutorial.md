@@ -137,7 +137,7 @@ self-signed-certificates-0      1/1     Running   0          13m
 
 By default, `mattermost` is exposed on the port 8080. To find the internal IP address assigned to `mattermost`, check the application address in the `juju status` output. For our example, this is `10.152.183.239`. Open a web browser, navigate to `10.152.183.239:8080` and follow the steps to set up your Mattermost server.
 
-> If you are using `multipass`, you need to forward the port to access the application from a web browser:
+> If you are using Multipass, you need to forward the port to access the application from a web browser:
 > ```
 > microk8s kubectl port-forward --address 0.0.0.0 service/mattermost-k8s 8080:8080 -n mattermost-tutorial
 > ```
