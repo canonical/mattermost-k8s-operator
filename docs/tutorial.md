@@ -90,6 +90,8 @@ Integrate `postgresql-k8s` to `mattermost-k8s`:
 juju integrate mattermost-k8s postgresql-k8s
 ```
 
+### Inspect the status of the deployment
+
 By running `juju status --relations` the current state of the deployment can be queried:
 ```
 Model                Controller           Cloud/Region        Version  SLA          Timestamp
@@ -132,7 +134,8 @@ By default, `mattermost` is exposed on the port 8080. To find the internal IP ad
 > ```
 > microk8s kubectl port-forward --address 0.0.0.0 service/mattermost-k8s 8080:8080 -n mattermost-tutorial
 > ```
-> Then, in a seperate terminal in your host machine, you can find your VM's address by running `multipass info mattermost-tutorial-vm`. Now, you can navigate to `<your-multipass-vm-ip>:8080` to access Mattermost
+> Then, in a separate terminal in your host machine, you can find the address of your VM by running `multipass info mattermost-tutorial-vm`. 
+> This would be the private IP address and usually would be listed first. Now, you can navigate to `<your-multipass-vm-ip>:8080` to access Mattermost
 
 
 ### Clean up the environment

@@ -9,18 +9,19 @@ replaced-by:
 # Removing custom Canonical themes patch from the rock
 
 As part of the Mattermost charm refactoring, a Mattermost rock replaced
-the old Dockerfile approach. The new rock does not include a webapp patch that
+the old `Dockerfile` approach. The new rock does not include a web app patch that
 adds custom Canonical themes to the Mattermost frontend client.
 
-This way, the rock is more generic, and the webapp does not need to be rebuilt.
+This way, the rock is more generic, and the web app does not need to be rebuilt.
 
 
 ## Context
 
 In the old podspec Mattermost charm, the Mattermost image was created with a
-Dockerfile, and it included a patch that adds custom Canonical themes to the Mattermost webapp. This meant that a certain part of the Dockerfile was
-dedicated to downloading Mattermost's webapp files directly from its GitHub
-repository, applying the patch to the files, rebuilding the webapp, and adding the new
+`Dockerfile`, and it included a patch that adds custom Canonical themes to the 
+Mattermost web app. This meant that a certain part of the `Dockerfile` was
+dedicated to downloading Mattermost's web app files directly from its GitHub
+repository, applying the patch to the files, rebuilding the web app, and adding the new
 client to the existing Mattermost release. Subsequently, a `https-proxy-agent`
 patch was also applied to throttle concurrent proxy sockets to avoid
 overwhelming the proxy server in case `npm`
