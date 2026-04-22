@@ -73,7 +73,7 @@ Mattermost requires connections to PostgreSQL. For more information, see the [Ch
 Deploy the charms:
 ```
 juju deploy postgresql-k8s --channel 14/stable --trust
-juju deploy mattermost-k8s
+juju deploy mattermost-k8s --channel latest/edge
 ```
 
 The Mattermost database driver requires a secure SSL/TLS connection by default. For this tutorial, we will use the `self-signed-certificates` charm to provision a local Certificate Authority(CA) for PostgreSQL:
