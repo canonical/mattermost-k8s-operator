@@ -76,7 +76,7 @@ juju deploy postgresql-k8s --channel 14/stable --trust
 juju deploy mattermost-k8s
 ```
 
-The Mattermost database driver requires a secure SSL/TLS connection by default. For this tutorial, we will use `self-signed-certificates` to provision a local Certificate Authority(CA) for `postgresql`:
+The Mattermost database driver requires a secure SSL/TLS connection by default. For this tutorial, we will use the `self-signed-certificates` charm to provision a local Certificate Authority(CA) for PostgreSQL:
 ```
 juju deploy self-signed-certificates
 juju integrate postgresql-k8s self-signed-certificates:certificates
