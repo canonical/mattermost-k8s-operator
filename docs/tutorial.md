@@ -126,6 +126,13 @@ postgresql-k8s-0                2/2     Running   0          13m
 self-signed-certificates-0      1/1     Running   0          13m
 ```
 
+> If you are using `multipass`, or installed `microk8s` from scratch, you might get "insufficient permissions" error. In that case, you can run the commands presented at the error message in your terminal, after which you can run `microk8s` commands
+> ```
+> sudo usermod -a -G snap_microk8s ubuntu
+> sudo chown -R ubuntu ~/.kube
+> newgrp snap_microk8s
+> ```
+
 ### Access `Mattermost` for the first time 
 
 By default, `mattermost` is exposed on the port 8080. To find the internal IP address assigned to `mattermost`, check the application address in the `juju status` output. For our example, this is `10.152.183.239`. Open a web browser, navigate to `10.152.183.239:8080` and follow the steps to set up your Mattermost server.
