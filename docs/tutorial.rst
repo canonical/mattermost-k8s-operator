@@ -162,7 +162,7 @@ By default, ``mattermost`` is exposed on the port 8080. To find the internal IP 
 
 .. note::
 
-   If you are using ``multipass``, you need to forward the port to access the application from a web browser:
+   If you are using Multipass, you need to forward the port to access the application from a web browser:
 
    .. code-block:: bash
 
