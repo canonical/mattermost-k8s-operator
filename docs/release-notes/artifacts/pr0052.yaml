@@ -1,0 +1,16 @@
+# Version of the artifact schema
+version_schema: 2
+
+# The key holding the change(s)
+changes:
+- title: Added tutorial documentation
+  author: DeeKay3
+  type: minor
+  description: The tutorial documentation has been added to the charm's documentation, providing users with step-by-step instructions on how to deploy the Mattermost charm.
+    pr: 
+      - "https://github.com/canonical/mattermost-k8s-operator/pull/52"
+    related_doc:
+    related_issue:
+  visibility: public
+  highlight: false
+
