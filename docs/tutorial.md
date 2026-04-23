@@ -72,8 +72,8 @@ Mattermost requires connections to PostgreSQL. For more information, see the [Ch
 
 Deploy the charms:
 ```
-juju deploy postgresql-k8s --channel 14/stable --trust
 juju deploy mattermost-k8s --channel latest/edge
+juju deploy postgresql-k8s --channel 14/stable --trust
 ```
 
 The Mattermost database driver requires a secure SSL/TLS connection by default. For this tutorial, we will use the `self-signed-certificates` charm to provision a local Certificate Authority(CA) for PostgreSQL:
@@ -83,7 +83,7 @@ juju integrate postgresql-k8s self-signed-certificates:certificates
 
 ```
 
-### Integrate with the PostgreSQL k8s charm
+### Integrate with the PostgreSQL charm
 
 Integrate `postgresql-k8s` to `mattermost-k8s`:
 ```
@@ -94,18 +94,18 @@ juju integrate mattermost-k8s postgresql-k8s
 
 By running `juju status --relations` the current state of the deployment can be queried:
 ```
-Model                Controller           Cloud/Region        Version  SLA          Timestamp
-mattermost-tutorial  microk8s-controller  microk8s/localhost  3.6.11   unsupported  22:25:22+01:00
+Model                Controller          Cloud/Region        Version  SLA          Timestamp
+mattermost-tutorial  concierge-microk8s  microk8s/localhost  3.6.21   unsupported  21:45:15+01:00
 
-App                       Version  Status  Scale  Charm                     Channel    Rev  Address         Exposed  Message
-mattermost-k8s                     active      1  mattermost-k8s                         0  10.152.183.239  no       
-postgresql-k8s            14.20    active      1  postgresql-k8s            14/stable  774  10.152.183.92   no       
-self-signed-certificates           active      1  self-signed-certificates  1/stable   586  10.152.183.47   no       
+App                       Version  Status  Scale  Charm                     Channel      Rev  Address         Exposed  Message
+mattermost-k8s                     active      1  mattermost-k8s            latest/edge   29  10.152.183.166  no       
+postgresql-k8s            14.20    active      1  postgresql-k8s            14/stable    774  10.152.183.59   no       
+self-signed-certificates           active      1  self-signed-certificates  1/stable     586  10.152.183.208  no       
 
-Unit                         Workload  Agent  Address     Ports  Message
-mattermost-k8s/0*            active    idle   10.1.1.170         
-postgresql-k8s/0*            active    idle   10.1.1.180         Primary
-self-signed-certificates/0*  active    idle   10.1.1.145         
+Unit                         Workload  Agent  Address       Ports  Message
+mattermost-k8s/0*            active    idle   10.1.225.142         
+postgresql-k8s/0*            active    idle   10.1.225.140         Primary
+self-signed-certificates/0*  active    idle   10.1.225.141         
 
 Integration provider                   Requirer                       Interface          Type     Message
 mattermost-k8s:secret-storage          mattermost-k8s:secret-storage  secret-storage     peer     
@@ -113,7 +113,7 @@ postgresql-k8s:database                mattermost-k8s:postgresql      postgresql
 postgresql-k8s:database-peers          postgresql-k8s:database-peers  postgresql_peers   peer     
 postgresql-k8s:restart                 postgresql-k8s:restart         rolling_op         peer     
 postgresql-k8s:upgrade                 postgresql-k8s:upgrade         upgrade            peer     
-self-signed-certificates:certificates  postgresql-k8s:certificates    tls-certificates   regular 
+self-signed-certificates:certificates  postgresql-k8s:certificates    tls-certificates   regular
 ```
 The deployment finishes when all the charms show `Active` states.
 
@@ -126,7 +126,7 @@ postgresql-k8s-0                2/2     Running   0          13m
 self-signed-certificates-0      1/1     Running   0          13m
 ```
 
-> If you are using `multipass`, or installed `microk8s` from scratch, you might get "insufficient permissions" error. In that case, you can run the commands presented at the error message in your terminal, after which you can run `microk8s` commands
+> If you are using `multipass`, or installed `microk8s` from scratch, you might get an "insufficient permissions" error. In that case, run the commands presented at the error message in your terminal, after which you'll be able to run `microk8s` commands.
 > ```
 > sudo usermod -a -G snap_microk8s ubuntu
 > sudo chown -R ubuntu ~/.kube
@@ -147,7 +147,7 @@ By default, `mattermost` is exposed on the port 8080. To find the internal IP ad
 
 ### Clean up the environment
 
-Congratulations! You have successfully finished the Mattermost tutorial. You can now remove the
+Congratulations! You have successfully finished the Mattermost tutorial. You have now deployed the Mattermost charm, integrated it with a database, and accessed the Mattermost instance in your browser. You can now remove the
 model environment that you've created using the following command:
 
 ```
