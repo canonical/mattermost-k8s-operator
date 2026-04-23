@@ -22,7 +22,7 @@ MATTERMOST_PORT = 8080
 APP_NAME = "mattermost-k8s"
 
 
-@pytest.fixture(scope="module", name="charm")
+@pytest.fixture(scope="session", name="charm")
 def charm_fixture(pytestconfig: pytest.Config):
     """Get value from parameter charm-file."""
     charm = pytestconfig.getoption("--charm-file")
@@ -32,7 +32,7 @@ def charm_fixture(pytestconfig: pytest.Config):
     return charm
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def charm_resources(pytestconfig: pytest.Config) -> dict[str, str]:
     """The OCI resources for the charm."""
     rock_image_uri = pytestconfig.getoption("--mattermost-image")
@@ -80,7 +80,7 @@ def juju_fixture(
         return
 
 
-@pytest.fixture(scope="module", name="app")
+@pytest.fixture(scope="session", name="app")
 def app_fixture(
     juju: jubilant.Juju,
     pytestconfig: pytest.Config,
@@ -144,7 +144,7 @@ def app_fixture(
     yield APP_NAME
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def mattermost_address(app: str, juju: jubilant.Juju) -> str:
     """Get the Mattermost address and port."""
     status = juju.status()
