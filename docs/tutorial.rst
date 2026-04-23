@@ -155,8 +155,8 @@ Run ``microk8s kubectl get pods -n mattermost-tutorial`` to see the pods that ar
       sudo chown -R ubuntu ~/.kube
       newgrp snap_microk8s
 
-Access ``Mattermost`` for the first time
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Access Mattermost for the first time
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 By default, ``mattermost`` is exposed on the port 8080. To find the internal IP address assigned to ``mattermost``, check the application address in the ``juju status`` output. For our example, this is ``10.152.183.239``. Open a web browser, navigate to ``10.152.183.239:8080`` and follow the steps to set up your Mattermost server.
 
