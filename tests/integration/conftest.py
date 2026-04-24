@@ -4,6 +4,7 @@
 """Fixtures for charm integration tests."""
 
 import logging
+import socket
 import typing
 from collections.abc import Generator
 
@@ -21,7 +22,7 @@ MATTERMOST_PORT = 8080
 APP_NAME = "mattermost-k8s"
 
 
-@pytest.fixture(scope="module", name="charm")
+@pytest.fixture(scope="session", name="charm")
 def charm_fixture(pytestconfig: pytest.Config):
     """Get value from parameter charm-file."""
     charm = pytestconfig.getoption("--charm-file")
@@ -31,7 +32,7 @@ def charm_fixture(pytestconfig: pytest.Config):
     return charm
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def charm_resources(pytestconfig: pytest.Config) -> dict[str, str]:
     """The OCI resources for the charm."""
     rock_image_uri = pytestconfig.getoption("--mattermost-image")
@@ -79,7 +80,7 @@ def juju_fixture(
         return
 
 
-@pytest.fixture(scope="module", name="app")
+@pytest.fixture(scope="session", name="app")
 def app_fixture(
     juju: jubilant.Juju,
     pytestconfig: pytest.Config,
@@ -143,7 +144,7 @@ def app_fixture(
     yield APP_NAME
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def mattermost_address(app: str, juju: jubilant.Juju) -> str:
     """Get the Mattermost address and port."""
     status = juju.status()
@@ -169,3 +170,37 @@ def abort_on_fail(request: pytest.FixtureRequest):
     _ = yield
     if abort_on_fail and request.node.rep_call.failed:
         request.module.__aborted__ = True
+
+
+def _host_ip() -> str | None:
+    """Return the host's primary outbound IP, reachable from microk8s pods."""
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        ip = s.getsockname()[0]
+        s.close()
+        return ip
+    except Exception:  # noqa: BLE001
+        return None
+
+
+@pytest.fixture(scope="session")
+def s3_address(pytestconfig: pytest.Config) -> str | None:
+    """Provide the S3 service IP address for integration tests.
+
+    Defaults to the host's primary IP so microk8s pods can reach radosgw
+    on the runner without needing --s3-address to be passed explicitly.
+    """
+    return pytestconfig.getoption("--s3-address") or _host_ip()
+
+
+def generate_s3_config(s3_address: str) -> dict:
+    """Generate S3 config for MicroCeph radosgw based tests."""
+    return {
+        "access-key": "my-lovely-key",
+        "secret-key": "this-is-very-secret",
+        "bucket": "mattermost-test",
+        "region": "us-east-1",
+        "path": "mattermost",
+        "endpoint": f"http://{s3_address}:7480",
+    }

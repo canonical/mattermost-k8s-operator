@@ -11,6 +11,7 @@ jobs:
       canonical/operator-workflows/.github/workflows/integration_test.yaml@main
     secrets: inherit
     with:
+      pre-run-script: s3-installation.sh
       trivy-fs-enabled: false
       trivy-image-config: "trivy.yaml"
       self-hosted-runner: true
