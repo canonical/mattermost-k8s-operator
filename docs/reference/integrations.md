@@ -15,3 +15,11 @@ Database integrate command:
 ```
 juju integrate mattermost-k8s postgresql-k8s
 ```
+
+### `s3`
+
+_Interface_: `s3`
+_Supported_charms_: [`s3-integrator`](https://github.com/canonical/s3-integrator)
+
+S3 integration allows Mattermost charm to store and retrieve files from an 
+S3-compatible storage service, instead of using the local `./data` folder.
