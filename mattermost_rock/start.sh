@@ -29,4 +29,51 @@ if [ -n "$S3_BUCKET" ]; then
     fi
 fi
 
+# SMTP email settings configuration
+if [ -n "$SMTP_HOST" ]; then
+    export MM_EMAILSETTINGS_SENDEMAILNOTIFICATIONS=true
+    export MM_EMAILSETTINGS_SMTPSERVER="$SMTP_HOST"
+    export MM_EMAILSETTINGS_SMTPPORT="$SMTP_PORT"
+
+    if [ -n "$SMTP_USER" ]; then
+        export MM_EMAILSETTINGS_SMTPUSERNAME="$SMTP_USER"
+    fi
+    if [ -n "$SMTP_PASSWORD" ]; then
+        export MM_EMAILSETTINGS_SMTPPASSWORD="$SMTP_PASSWORD"
+    fi
+
+    # Map auth type: only "plain" enables SMTP auth
+    if [ "$SMTP_AUTH_TYPE" = "plain" ]; then
+        export MM_EMAILSETTINGS_ENABLESMTPAUTH=true
+    else
+        export MM_EMAILSETTINGS_ENABLESMTPAUTH=false
+    fi
+
+    # Map transport security to Mattermost connection security values
+    case "$SMTP_TRANSPORT_SECURITY" in
+        tls)
+            export MM_EMAILSETTINGS_CONNECTIONSECURITY=TLS
+            ;;
+        starttls)
+            export MM_EMAILSETTINGS_CONNECTIONSECURITY=STARTTLS
+            ;;
+        *)
+            export MM_EMAILSETTINGS_CONNECTIONSECURITY=""
+            ;;
+    esac
+
+    # Map skip_ssl_verify (paas-charm emits Python bool strings: "True"/"False")
+    if [ "$SMTP_SKIP_SSL_VERIFY" = "True" ]; then
+        export MM_EMAILSETTINGS_SKIPHOSTVERIFICATION=true
+    else
+        export MM_EMAILSETTINGS_SKIPHOSTVERIFICATION=false
+    fi
+
+    # Use domain for the sender/reply-to address if provided
+    if [ -n "$SMTP_DOMAIN" ]; then
+        export MM_EMAILSETTINGS_FEEDBACKEMAIL="noreply@${SMTP_DOMAIN}"
+        export MM_EMAILSETTINGS_REPLYTOADDRESS="noreply@${SMTP_DOMAIN}"
+    fi
+fi
+
 exec /app/bin/mattermost
