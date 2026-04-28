@@ -26,8 +26,31 @@ class MattermostK8sCharm(paas_charm.go.Charm):
         """
         super().__init__(*args)
 
+        self.framework.observe(self.on.app_pebble_ready, self._on_app_pebble_ready)
+
         # actions
         self.framework.observe(self.on.grant_admin_role_action, self._on_grant_admin_role_action)
+
+    def _on_app_pebble_ready(self, event: ops.PebbleReadyEvent) -> None:
+        """Inject Local Mode environment variable into the Pebble plan.
+        
+        Args:
+            event: Event triggered when the Pebble instance is ready.
+        """
+        container = event.workload
+        patch_layer = {
+            "services": {
+                "go": {
+                    "override": "merge",
+                    "environment": {
+                        "MM_SERVICESETTINGS_ENABLELOCALMODE": "true"
+                    }
+                }
+            }
+        }
+        container.add_layer("local-mode-patch", patch_layer, combine=True)
+        container.replan()
+
 
     def _on_grant_admin_role_action(self, event: ops.ActionEvent) -> None:
         """Grant the "system_admin" role to a specified user.
