@@ -61,6 +61,15 @@ def test_smtp_integration(
     """
     mattermost_address = _get_mattermost_address(app, juju)
 
+    # Wait for Mattermost HTTP to be ready before any API calls.
+    # The session-scoped app fixture only waits for Juju active status, not for
+    # the HTTP port — Mattermost can take additional time to bind.
+    juju.wait(
+        lambda status: jubilant.all_active(status, app)
+        and _mattermost_up(mattermost_address),
+        timeout=JUJU_WAIT_TIMEOUT,
+    )
+
     # Confirm baseline: email notifications must be disabled before SMTP is wired up
     baseline_config = _client_config(mattermost_address)
     assert (
