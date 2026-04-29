@@ -36,16 +36,6 @@ def _mattermost_up(address: str) -> bool:
         return False
 
 
-def _client_config(address: str) -> dict:
-    """Fetch the public client config from Mattermost."""
-    response = requests.get(
-        f"{address}/api/v4/config/client?format=old",
-        timeout=10,
-    )
-    response.raise_for_status()
-    return response.json()
-
-
 @pytest.mark.abort_on_fail
 def test_smtp_integration(
     app: str,
@@ -69,12 +59,6 @@ def test_smtp_integration(
         and _mattermost_up(mattermost_address),
         timeout=JUJU_WAIT_TIMEOUT,
     )
-
-    # Confirm baseline: email notifications must be disabled before SMTP is wired up
-    baseline_config = _client_config(mattermost_address)
-    assert (
-        baseline_config.get("SendEmailNotifications") != "true"
-    ), "Expected email notifications to be disabled before SMTP integration"
 
     # Deploy smtp-integrator with non-routable TEST-NET-1 address so the
     # charm becomes active without actually connecting to an SMTP server.
@@ -105,42 +89,29 @@ def test_smtp_integration(
     juju.wait(all_active_and_mattermost_serving, timeout=JUJU_WAIT_TIMEOUT)
     logger.info("Mattermost is active after SMTP integration")
 
-    # --- Verify via public client API ------------------------------------------
-    # SendEmailNotifications is exposed by /api/v4/config/client and must now
-    # be "true" because start.sh maps SMTP_HOST → MM_EMAILSETTINGS_*.
-    after_config = _client_config(mattermost_address)
+    # --- Verify MM_EMAILSETTINGS_* env vars in the workload container ---------
+    # The public /api/v4/config/client endpoint does not expose email settings
+    # (those require admin auth). Instead read the mattermost process environ
+    # directly via /proc to confirm start.sh mapped SMTP_* → MM_EMAILSETTINGS_*.
+    ssh_output = juju.ssh(
+        f"{app}/0",
+        "cat /proc/*/environ 2>/dev/null | tr '\\0' '\\n' | grep '^MM_EMAILSETTINGS_' | sort -u",
+        container="app",
+    )
+    logger.info("MM_EMAILSETTINGS env vars in container:\n%s", ssh_output)
     assert (
-        after_config.get("SendEmailNotifications") == "true"
-    ), f"Expected SendEmailNotifications=true, got: {after_config.get('SendEmailNotifications')}"
-    logger.info("Email notifications enabled after SMTP integration")
-
-    # --- Verify MM_EMAILSETTINGS_* env vars via workload container SSH ---------
-    # The workload (app) container has bash; we read each running process'
-    # environ to find the one that carries MM_EMAILSETTINGS_* (mattermost).
-    try:
-        ssh_output = juju.ssh(
-            f"{app}/0",
-            "cat /proc/*/environ 2>/dev/null | tr '\\0' '\\n' | grep '^MM_EMAILSETTINGS_' || true",
-            container="app",
-        )
-        logger.info("MM_EMAILSETTINGS env vars found:\n%s", ssh_output)
-        assert (
-            f"MM_EMAILSETTINGS_SMTPSERVER={_SMTP_HOST}" in ssh_output
-        ), f"Expected MM_EMAILSETTINGS_SMTPSERVER={_SMTP_HOST} in env, got:\n{ssh_output}"
-        assert (
-            f"MM_EMAILSETTINGS_SMTPPORT={_SMTP_PORT}" in ssh_output
-        ), f"Expected MM_EMAILSETTINGS_SMTPPORT={_SMTP_PORT} in env, got:\n{ssh_output}"
-        assert (
-            "MM_EMAILSETTINGS_SENDEMAILNOTIFICATIONS=true" in ssh_output
-        ), f"Expected MM_EMAILSETTINGS_SENDEMAILNOTIFICATIONS=true in env, got:\n{ssh_output}"
-        assert f"MM_EMAILSETTINGS_FEEDBACKEMAIL=noreply@{_SMTP_DOMAIN}" in ssh_output, (
-            f"Expected MM_EMAILSETTINGS_FEEDBACKEMAIL=noreply@{_SMTP_DOMAIN} in env, "
-            f"got:\n{ssh_output}"
-        )
-    except Exception as exc:  # noqa: BLE001
-        # SSH into the workload container may not be available in all CI
-        # environments; log but don't fail on infrastructure issues.
-        logger.warning("Could not verify env vars via SSH (non-fatal): %s", exc)
+        f"MM_EMAILSETTINGS_SMTPSERVER={_SMTP_HOST}" in ssh_output
+    ), f"Expected MM_EMAILSETTINGS_SMTPSERVER={_SMTP_HOST} in env, got:\n{ssh_output}"
+    assert (
+        f"MM_EMAILSETTINGS_SMTPPORT={_SMTP_PORT}" in ssh_output
+    ), f"Expected MM_EMAILSETTINGS_SMTPPORT={_SMTP_PORT} in env, got:\n{ssh_output}"
+    assert (
+        "MM_EMAILSETTINGS_SENDEMAILNOTIFICATIONS=true" in ssh_output
+    ), f"Expected MM_EMAILSETTINGS_SENDEMAILNOTIFICATIONS=true in env, got:\n{ssh_output}"
+    assert f"MM_EMAILSETTINGS_FEEDBACKEMAIL=noreply@{_SMTP_DOMAIN}" in ssh_output, (
+        f"Expected MM_EMAILSETTINGS_FEEDBACKEMAIL=noreply@{_SMTP_DOMAIN} in env, "
+        f"got:\n{ssh_output}"
+    )
 
 
 @pytest.mark.abort_on_fail
@@ -166,9 +137,15 @@ def test_smtp_removal(
     juju.wait(all_active_and_mattermost_serving, timeout=JUJU_WAIT_TIMEOUT)
     logger.info("Mattermost is active after SMTP removal")
 
-    after_removal_config = _client_config(mattermost_address)
-    assert after_removal_config.get("SendEmailNotifications") != "true", (
-        "Expected email notifications to be disabled after SMTP relation removed, "
-        f"got: {after_removal_config.get('SendEmailNotifications')}"
+    # Verify that MM_EMAILSETTINGS_SMTPSERVER is no longer present in the
+    # mattermost process environment after the relation is removed.
+    ssh_after_removal = juju.ssh(
+        f"{app}/0",
+        "cat /proc/*/environ 2>/dev/null | tr '\\0' '\\n' | grep '^MM_EMAILSETTINGS_SMTPSERVER=' || true",
+        container="app",
     )
-    logger.info("Email notifications correctly disabled after SMTP removal")
+    assert not ssh_after_removal.strip(), (
+        "Expected MM_EMAILSETTINGS_SMTPSERVER to be unset after SMTP removal, "
+        f"got: {ssh_after_removal}"
+    )
+    logger.info("SMTP env vars correctly absent after relation removal")
