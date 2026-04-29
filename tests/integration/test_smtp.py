@@ -95,7 +95,7 @@ def test_smtp_integration(
     )
 
     # Integrate smtp-integrator with mattermost-k8s
-    juju.integrate(app, "smtp-integrator")
+    juju.integrate(app, "smtp-integrator:smtp")
 
     def all_active_and_mattermost_serving(status):
         if not jubilant.all_active(status):
