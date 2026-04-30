@@ -33,4 +33,8 @@ requires:
     interface: s3
     optional: true
     limit: 1
+  smtp:
+    interface: smtp
+    optional: True
+    limit: 1
 

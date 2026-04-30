@@ -23,3 +23,22 @@ _Supported_charms_: [`s3-integrator`](https://github.com/canonical/s3-integrator
 
 S3 integration allows Mattermost charm to store and retrieve files from an 
 S3-compatible storage service, instead of using the local `./data` folder.
+
+Integrate command:
+```
+juju integrate mattermost-k8s s3-integrator
+```
+
+### `smtp`
+
+_Interface_: `smtp`
+_Supported charms_: [`smtp-integrator`](https://charmhub.io/smtp-integrator)
+
+SMTP integration enables Mattermost to send outgoing email notifications
+(password resets, team invitations, and so on) through an external SMTP relay.
+
+Integrate command:
+```
+juju integrate mattermost-k8s smtp-integrator:smtp
+```
+

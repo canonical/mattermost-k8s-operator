@@ -19,6 +19,7 @@ JUJU_WAIT_TIMEOUT = 1200
 # Mattermost listens on port 8080 inside the workload container
 MATTERMOST_PORT = 8080
 
+
 APP_NAME = "mattermost-k8s"
 
 
