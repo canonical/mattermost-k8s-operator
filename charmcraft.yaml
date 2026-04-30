@@ -29,4 +29,8 @@ requires:
     interface: postgresql_client
     optional: false
     limit: 1
+  s3:
+    interface: s3
+    optional: true
+    limit: 1
 

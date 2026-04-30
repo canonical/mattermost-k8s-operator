@@ -33,3 +33,4 @@ def pytest_addoption(parser):
         action="store",
         help="mattermost OCI rock image URI",
     )
+    parser.addoption("--s3-address", action="store")
