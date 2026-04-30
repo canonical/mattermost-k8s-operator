@@ -35,7 +35,7 @@ _Interface_: `smtp`
 _Supported charms_: [`smtp-integrator`](https://charmhub.io/smtp-integrator)
 
 SMTP integration enables Mattermost to send outgoing email notifications
-(password resets, team invitations, etc.) via an external SMTP relay.
+(password resets, team invitations, and so on) through an external SMTP relay.
 
 Integrate command:
 ```
