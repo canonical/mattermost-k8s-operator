@@ -10,7 +10,6 @@ import typing
 
 import ops
 import paas_charm.go
-
 from ops.pebble import ExecError
 
 logger = logging.getLogger(__name__)
