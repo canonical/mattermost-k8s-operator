@@ -11,7 +11,7 @@ import jubilant
 import pytest
 import requests
 
-from .conftest import JUJU_WAIT_TIMEOUT, MATTERMOST_PORT
+from .conftest import ADMIN_PASSWORD, ADMIN_USERNAME, JUJU_WAIT_TIMEOUT, MATTERMOST_PORT
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +34,32 @@ def _mattermost_up(address: str) -> bool:
         return requests.get(address, timeout=5).status_code == 200
     except (requests.ConnectionError, requests.Timeout):
         return False
+
+
+def _get_admin_token(address: str) -> str:
+    """Log in as the pre-created admin user and return an auth token."""
+    resp = requests.post(
+        f"{address}/api/v4/users/login",
+        json={"login_id": ADMIN_USERNAME, "password": ADMIN_PASSWORD},
+        timeout=30,
+    )
+    resp.raise_for_status()
+    return resp.headers["Token"]
+
+
+def _get_email_settings(address: str, token: str) -> dict:
+    """Return the EmailSettings section of the Mattermost server config.
+
+    Requires a system admin token. Env-var overrides (MM_EMAILSETTINGS_*)
+    are reflected in the response without being written back to the database.
+    """
+    resp = requests.get(
+        f"{address}/api/v4/config",
+        headers={"Authorization": f"Bearer {token}"},
+        timeout=10,
+    )
+    resp.raise_for_status()
+    return resp.json()["EmailSettings"]
 
 
 @pytest.mark.abort_on_fail
@@ -89,29 +115,28 @@ def test_smtp_integration(
     juju.wait(all_active_and_mattermost_serving, timeout=JUJU_WAIT_TIMEOUT)
     logger.info("Mattermost is active after SMTP integration")
 
-    # --- Verify MM_EMAILSETTINGS_* env vars in the workload container ---------
-    # The public /api/v4/config/client endpoint does not expose email settings
-    # (those require admin auth). Instead read the mattermost process environ
-    # directly via /proc to confirm start.sh mapped SMTP_* → MM_EMAILSETTINGS_*.
-    ssh_output = juju.ssh(
-        f"{app}/0",
-        "cat /proc/*/environ 2>/dev/null | tr '\\0' '\\n' | grep '^MM_EMAILSETTINGS_' | sort -u",
-        container="app",
-    )
-    logger.info("MM_EMAILSETTINGS env vars in container:\n%s", ssh_output)
+    # --- Verify via Mattermost admin API --------------------------------------
+    # GET /api/v4/config returns the effective config including MM_EMAILSETTINGS_*
+    # env var overrides. Env var values are NOT written back to the database,
+    # so they appear here only while the env var is set (i.e. while the SMTP
+    # relation is active).
+    token = _get_admin_token(mattermost_address)
+    email_settings = _get_email_settings(mattermost_address, token)
+    logger.info("EmailSettings after SMTP integration: %s", email_settings)
+
     assert (
-        f"MM_EMAILSETTINGS_SMTPSERVER={_SMTP_HOST}" in ssh_output
-    ), f"Expected MM_EMAILSETTINGS_SMTPSERVER={_SMTP_HOST} in env, got:\n{ssh_output}"
+        email_settings.get("SMTPServer") == _SMTP_HOST
+    ), f"Expected SMTPServer={_SMTP_HOST}, got: {email_settings.get('SMTPServer')}"
+    assert str(email_settings.get("SMTPPort", "")) == str(
+        _SMTP_PORT
+    ), f"Expected SMTPPort={_SMTP_PORT}, got: {email_settings.get('SMTPPort')}"
     assert (
-        f"MM_EMAILSETTINGS_SMTPPORT={_SMTP_PORT}" in ssh_output
-    ), f"Expected MM_EMAILSETTINGS_SMTPPORT={_SMTP_PORT} in env, got:\n{ssh_output}"
+        email_settings.get("SendEmailNotifications") is True
+    ), f"Expected SendEmailNotifications=true, got: {email_settings.get('SendEmailNotifications')}"
+    # auth_type=none → EnableSMTPAuth must be false
     assert (
-        "MM_EMAILSETTINGS_SENDEMAILNOTIFICATIONS=true" in ssh_output
-    ), f"Expected MM_EMAILSETTINGS_SENDEMAILNOTIFICATIONS=true in env, got:\n{ssh_output}"
-    assert f"MM_EMAILSETTINGS_FEEDBACKEMAIL=noreply@{_SMTP_DOMAIN}" in ssh_output, (
-        f"Expected MM_EMAILSETTINGS_FEEDBACKEMAIL=noreply@{_SMTP_DOMAIN} in env, "
-        f"got:\n{ssh_output}"
-    )
+        email_settings.get("EnableSMTPAuth") is False
+    ), f"Expected EnableSMTPAuth=false, got: {email_settings.get('EnableSMTPAuth')}"
 
 
 @pytest.mark.abort_on_fail
@@ -137,15 +162,20 @@ def test_smtp_removal(
     juju.wait(all_active_and_mattermost_serving, timeout=JUJU_WAIT_TIMEOUT)
     logger.info("Mattermost is active after SMTP removal")
 
-    # Verify that MM_EMAILSETTINGS_SMTPSERVER is no longer present in the
-    # mattermost process environment after the relation is removed.
-    ssh_after_removal = juju.ssh(
-        f"{app}/0",
-        "cat /proc/*/environ 2>/dev/null | tr '\\0' '\\n' | grep '^MM_EMAILSETTINGS_SMTPSERVER=' || true",
-        container="app",
+    # Re-login (Mattermost may have restarted, invalidating the previous token).
+    # MM_EMAILSETTINGS_* env vars are no longer passed by start.sh, so Mattermost
+    # falls back to its database defaults (empty SMTPServer, notifications off).
+    # Env var overrides are never written back to the DB, so these defaults hold.
+    token = _get_admin_token(mattermost_address)
+    email_settings = _get_email_settings(mattermost_address, token)
+    logger.info("EmailSettings after SMTP removal: %s", email_settings)
+
+    assert email_settings.get("SendEmailNotifications") is False, (
+        "Expected SendEmailNotifications=false after SMTP removal, "
+        f"got: {email_settings.get('SendEmailNotifications')}"
     )
-    assert not ssh_after_removal.strip(), (
-        "Expected MM_EMAILSETTINGS_SMTPSERVER to be unset after SMTP removal, "
-        f"got: {ssh_after_removal}"
+    assert email_settings.get("SMTPServer") == "", (
+        f"Expected SMTPServer to be empty after SMTP removal, "
+        f"got: {email_settings.get('SMTPServer')}"
     )
-    logger.info("SMTP env vars correctly absent after relation removal")
+    logger.info("Email settings correctly reverted to defaults after SMTP removal")

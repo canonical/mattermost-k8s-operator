@@ -5,11 +5,13 @@
 
 import logging
 import socket
+import time
 import typing
 from collections.abc import Generator
 
 import jubilant
 import pytest
+import requests
 
 logger = logging.getLogger(__name__)
 
@@ -18,6 +20,42 @@ JUJU_WAIT_TIMEOUT = 1200
 
 # Mattermost listens on port 8080 inside the workload container
 MATTERMOST_PORT = 8080
+
+# Admin user created once during app fixture setup so it is always the first
+# user registered (= system admin) before any test creates Mattermost users.
+ADMIN_EMAIL = "ci-admin@test.local"
+ADMIN_USERNAME = "ciadmin"
+ADMIN_PASSWORD = "CiAdmin1234!"
+
+
+def _wait_for_http_ready(address: str, timeout: int = 300) -> None:
+    """Block until Mattermost responds HTTP 200, or raise TimeoutError."""
+    start = time.monotonic()
+    while time.monotonic() - start < timeout:
+        try:
+            if requests.get(address, timeout=5).status_code == 200:
+                return
+        except (requests.ConnectionError, requests.Timeout):
+            pass
+        time.sleep(3)
+    raise TimeoutError(f"Mattermost at {address} not ready after {timeout}s")
+
+
+def _ensure_admin_user(address: str) -> None:
+    """Create the admin user if it doesn't already exist (idempotent)."""
+    resp = requests.post(
+        f"{address}/api/v4/users",
+        json={
+            "email": ADMIN_EMAIL,
+            "username": ADMIN_USERNAME,
+            "password": ADMIN_PASSWORD,
+        },
+        timeout=30,
+    )
+    # 201 = created, 400 = already exists — both are acceptable
+    if resp.status_code not in (201, 400):
+        resp.raise_for_status()
+
 
 APP_NAME = "mattermost-k8s"
 
@@ -140,6 +178,18 @@ def app_fixture(
     # Integrate with PostgreSQL
     juju.integrate(APP_NAME, "postgresql-k8s:database")
     juju.wait(jubilant.all_active, timeout=JUJU_WAIT_TIMEOUT)
+
+    # Wait for the HTTP port to be reachable and create the admin user.
+    # Must happen before any test creates Mattermost users so that ciadmin
+    # is registered first and automatically receives the system_admin role.
+    _status = juju.status()
+    _address = (
+        _status.apps[APP_NAME].address
+        or _status.apps[APP_NAME].units[APP_NAME + "/0"].address
+    )
+    _mm_url = f"http://{_address}:{MATTERMOST_PORT}"
+    _wait_for_http_ready(_mm_url)
+    _ensure_admin_user(_mm_url)
 
     yield APP_NAME
 
