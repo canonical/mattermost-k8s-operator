@@ -42,10 +42,3 @@ requires:
     interface: s3
     optional: true
     limit: 1
-
-config:
-  options:
-    local-mode:
-      type: boolean
-      default: true
-      description: Enable Local Mode for mmctl via unix socket.

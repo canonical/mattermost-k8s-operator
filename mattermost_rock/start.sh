@@ -29,7 +29,4 @@ if [ -n "$S3_BUCKET" ]; then
     fi
 fi
 
-# Local mode configuration
-export MM_SERVICESETTINGS_ENABLELOCALMODE="${APP_LOCAL_MODE:-false}"
-
 exec /app/bin/mattermost
