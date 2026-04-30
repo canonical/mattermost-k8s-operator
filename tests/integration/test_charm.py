@@ -104,3 +104,51 @@ def test_postgresql_relation(
     juju.integrate(app, "postgresql-k8s:database")
     juju.wait(all_active_and_serving)
     assert is_mattermost_up()
+
+
+@pytest.mark.abort_on_fail
+def test_ingress(
+    app: str,
+    juju: jubilant.Juju,
+):
+    """Check that integrating traefik-k8s provides a reachable ingress URL.
+
+    arrange: The charm is deployed and active with postgresql.
+    act: Deploy traefik-k8s with subdomain routing, integrate with mattermost-k8s.
+    assert: The ingress URL from the relation data is reachable and serves Mattermost.
+    """
+    juju.deploy(
+        "traefik-k8s",
+        channel="latest/stable",
+        trust=True,
+        config={
+            "routing_mode": "subdomain",
+            "external_hostname": "testing.local",
+        },
+    )
+    juju.wait(
+        lambda status: jubilant.all_active(status, "traefik-k8s"),
+        timeout=1200,
+    )
+
+    juju.integrate(f"{app}:ingress", "traefik-k8s:ingress")
+    juju.wait(jubilant.all_active, timeout=1200)
+
+    # The ingress relation should now have a URL
+    status = juju.status()
+    traefik_address = status.apps["traefik-k8s"].address
+
+    # With subdomain routing, traefik routes based on Host header.
+    # Use the traefik ClusterIP directly with the expected Host header.
+    model = juju.model
+    ingress_host = f"{model}-{app}.testing.local"
+    response = requests.get(
+        f"http://{traefik_address}",
+        headers={"Host": ingress_host},
+        timeout=10,
+    )
+    assert response.status_code == 200
+    assert "Mattermost" in response.text
+    logger.info(
+        "Ingress test passed: Mattermost reachable via traefik at %s", ingress_host
+    )
