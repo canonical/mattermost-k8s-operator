@@ -11,7 +11,13 @@ import jubilant
 import pytest
 import requests
 
-from .conftest import ADMIN_PASSWORD, ADMIN_USERNAME, JUJU_WAIT_TIMEOUT, MATTERMOST_PORT
+from .conftest import (
+    ADMIN_PASSWORD,
+    ADMIN_USERNAME,
+    JUJU_WAIT_TIMEOUT,
+    MATTERMOST_PORT,
+    _ensure_admin_user,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -85,6 +91,11 @@ def test_smtp_integration(
         and _mattermost_up(mattermost_address),
         timeout=JUJU_WAIT_TIMEOUT,
     )
+
+    # Create the admin user now that HTTP is confirmed ready. Must be done
+    # here (not in app_fixture) so open registration is still available for
+    # the S3 tests, which run before this file.
+    _ensure_admin_user(mattermost_address)
 
     # Deploy smtp-integrator with non-routable TEST-NET-1 address so the
     # charm becomes active without actually connecting to an SMTP server.
@@ -170,12 +181,11 @@ def test_smtp_removal(
     email_settings = _get_email_settings(mattermost_address, token)
     logger.info("EmailSettings after SMTP removal: %s", email_settings)
 
-    assert email_settings.get("SendEmailNotifications") is False, (
-        "Expected SendEmailNotifications=false after SMTP removal, "
-        f"got: {email_settings.get('SendEmailNotifications')}"
-    )
+    # SMTPServer being empty confirms the env var override was removed.
+    # We don't assert SendEmailNotifications here because its default value
+    # in Mattermost 10.x is true regardless of SMTP configuration.
     assert email_settings.get("SMTPServer") == "", (
         f"Expected SMTPServer to be empty after SMTP removal, "
         f"got: {email_settings.get('SMTPServer')}"
     )
-    logger.info("Email settings correctly reverted to defaults after SMTP removal")
+    logger.info("SMTP server correctly cleared after relation removal")

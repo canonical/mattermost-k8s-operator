@@ -179,18 +179,6 @@ def app_fixture(
     juju.integrate(APP_NAME, "postgresql-k8s:database")
     juju.wait(jubilant.all_active, timeout=JUJU_WAIT_TIMEOUT)
 
-    # Wait for the HTTP port to be reachable and create the admin user.
-    # Must happen before any test creates Mattermost users so that ciadmin
-    # is registered first and automatically receives the system_admin role.
-    _status = juju.status()
-    _address = (
-        _status.apps[APP_NAME].address
-        or _status.apps[APP_NAME].units[APP_NAME + "/0"].address
-    )
-    _mm_url = f"http://{_address}:{MATTERMOST_PORT}"
-    _wait_for_http_ready(_mm_url)
-    _ensure_admin_user(_mm_url)
-
     yield APP_NAME
 
 
