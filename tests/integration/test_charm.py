@@ -134,16 +134,16 @@ def test_ingress(
     juju.integrate(f"{app}:ingress", "traefik-k8s:ingress")
     juju.wait(jubilant.all_active, timeout=1200)
 
-    # The ingress relation should now have a URL
+    # The ingress relation should now have a URL.
+    # Use the traefik unit's pod IP (not the app ClusterIP which is on port 65535).
     status = juju.status()
-    traefik_address = status.apps["traefik-k8s"].address
+    traefik_unit_address = status.apps["traefik-k8s"].units["traefik-k8s/0"].address
 
     # With subdomain routing, traefik routes based on Host header.
-    # Use the traefik ClusterIP directly with the expected Host header.
     model = juju.model
     ingress_host = f"{model}-{app}.testing.local"
     response = requests.get(
-        f"http://{traefik_address}",
+        f"http://{traefik_unit_address}",
         headers={"Host": ingress_host},
         timeout=10,
     )
