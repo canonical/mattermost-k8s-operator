@@ -10,7 +10,7 @@ import typing
 
 import ops
 import paas_charm.go
-from ops.pebble import ExecError
+from ops.pebble import ExecError, LayerDict
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +41,7 @@ class MattermostK8sCharm(paas_charm.go.Charm):
         Returns:
             bool: True if successful, False if the socket fails to initialize on startup.
         """
-        layer = {
+        layer: LayerDict = {
             "services": {
                 "go": {
                     "override": "merge",
