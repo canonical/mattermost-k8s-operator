@@ -29,9 +29,7 @@ class MattermostK8sCharm(paas_charm.go.Charm):
         super().__init__(*args)
 
         # actions
-        self.framework.observe(
-            self.on.grant_admin_role_action, self._on_grant_admin_role_action
-        )
+        self.framework.observe(self.on.grant_admin_role_action, self._on_grant_admin_role_action)
 
     def _set_local_mode(self, container: ops.Container, enable: bool) -> bool:
         """Toggle local mode via Pebble layer and wait for readiness if enabling.
@@ -48,9 +46,7 @@ class MattermostK8sCharm(paas_charm.go.Charm):
                 "go": {
                     "override": "merge",
                     "environment": {
-                        "MM_SERVICESETTINGS_ENABLELOCALMODE": (
-                            "true" if enable else "false"
-                        )
+                        "MM_SERVICESETTINGS_ENABLELOCALMODE": ("true" if enable else "false")
                     },
                 }
             }
