@@ -9,8 +9,8 @@ import time
 import typing
 
 import ops
-from ops.pebble import ExecError, LayerDict
 import paas_charm.go
+from ops.pebble import ExecError, LayerDict
 
 logger = logging.getLogger(__name__)
 
@@ -103,6 +103,7 @@ class MattermostK8sCharm(paas_charm.go.Charm):
                 time.sleep(poll_interval)
                 time_elapsed += poll_interval
         return False
+
 
 if __name__ == "__main__":
     ops.main(MattermostK8sCharm)
