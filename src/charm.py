@@ -90,15 +90,12 @@ class MattermostK8sCharm(paas_charm.go.Charm):
             event.fail("User parameter is required")
             return
 
-        if not self._set_local_mode(container, enable=True):
-            event.fail("Mattermost socket failed to initialize after 30 seconds")
-            return
-
-        cmd = ["/app/bin/mmctl", "--local", "roles", "system-admin", user]
-        action_failed = False
-        error_message = ""
-
         try:
+            if not self._set_local_mode(container, enable=True):
+                event.fail("Mattermost socket failed to initialize after 30 seconds")
+                return
+
+            cmd = ["/app/bin/mmctl", "--local", "roles", "system-admin", user]
             process = container.exec(cmd)
             stdout, _ = process.wait_output()
             msg = (
@@ -107,12 +104,9 @@ class MattermostK8sCharm(paas_charm.go.Charm):
             )
             event.set_results({"info": msg, "output": stdout})
         except ExecError as ex:
-            action_failed = True
-            error_message = f"Failed to grant admin role to user {user}: {ex.stderr}"
-
-        self._set_local_mode(container, enable=False)
-        if action_failed:
-            event.fail(error_message)
+            event.fail(f"Failed to grant admin role to user {user}: {ex.stderr}")
+        finally:
+            self._set_local_mode(container, enable=False)
 
 
 if __name__ == "__main__":

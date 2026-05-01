@@ -8,7 +8,7 @@
 import ops
 import ops.testing
 import pytest
-
+from unittest.mock import patch
 from charm import MattermostK8sCharm
 
 SOCKET_PATH = "/var/tmp/mattermost_local.socket"
@@ -135,7 +135,8 @@ def test_grant_admin_role_exec_error(context):
     assert env["MM_SERVICESETTINGS_ENABLELOCALMODE"] == "false"
 
 
-def test_grant_admin_role_socket_timeout(context):
+@patch("time.sleep", return_value=None)
+def test_grant_admin_role_socket_timeout(mock_sleep, context):
     """Test that the action fails if the socket does not initialize within the timeout period."""
     user = "valid_user"
     mock_socket_fail = ops.testing.Exec(
@@ -151,3 +152,7 @@ def test_grant_admin_role_socket_timeout(context):
     assert (
         "Mattermost socket failed to initialize after 30 seconds" in exc.value.message
     )
+    state_out = exc.value.state
+    plan = state_out.get_container("app").plan
+    env = plan.services["go"].environment
+    assert env["MM_SERVICESETTINGS_ENABLELOCALMODE"] == "false"
