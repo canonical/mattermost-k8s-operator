@@ -29,9 +29,11 @@ CHARM_META = {
 }
 
 CHARM_ACTIONS = {
-    "rotate-secret-key": {
-        "description": "Rotate the secret key.",
+    "grant-admin-role": {
+        "description": "Grant the system_admin role to a specified user.",
+        "params": {"user": {"type": "string"}},
     },
+    "rotate-secret-key": {"description": "Rotate the secret key."},
 }
 
 CHARM_CONFIG = {
