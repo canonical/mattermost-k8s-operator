@@ -6,6 +6,7 @@
 """Integration tests for Mattermost charm."""
 
 import logging
+from secrets import token_hex
 
 import jubilant
 import pytest
@@ -106,7 +107,7 @@ def test_postgresql_relation(
     assert is_mattermost_up()
 
 
-def test_grant_admin_role_missing_user(app: str, juju: jubilant.Juju):
+def test_grant_admin_role_missing_user(app: str, juju: jubilant.Juju) -> None:
     """Check that the grant-admin-role action executes end-to-end.
 
     arrange: The charm is deployed and active.
@@ -115,7 +116,7 @@ def test_grant_admin_role_missing_user(app: str, juju: jubilant.Juju):
             local mode toggle and socket communication worked.
     """
     unit_name = f"{app}/0"
-    fake_user = "nonexistent"
+    fake_user = token_hex(8)
     result = juju.run(unit_name, "grant-admin-role", {"user": fake_user})
     assert result.status == "failed"
     assert "Unable to find user" in result.message

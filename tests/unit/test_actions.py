@@ -5,10 +5,13 @@
 
 """Unit tests for actions."""
 
+from secrets import token_hex
+from unittest.mock import MagicMock, patch
+
 import ops
 import ops.testing
 import pytest
-from unittest.mock import patch
+
 from charm import MattermostK8sCharm
 
 SOCKET_PATH = "/var/tmp/mattermost_local.socket"
@@ -78,9 +81,16 @@ def context():
     )
 
 
-def test_grant_admin_role_success(context):
-    """Test the grant-admin-role action with a successful mmctl execution."""
-    user = "valid_user"
+def test_grant_admin_role_success(context: ops.testing.Context) -> None:
+    """Test the grant-admin-role action with a successful mmctl execution.
+
+    arrange: Mock the socket check and mmctl execution to return success, and set up
+        the container and action event.
+    act: Run the grant-admin-role action.
+    assert: The action output matches the mmctl stdout and local mode is disabled in
+        the final state.
+    """
+    user = token_hex(8)
     mock_socket_check = ops.testing.Exec(
         command_prefix=["test", "-S", SOCKET_PATH], return_code=0
     )
@@ -105,9 +115,16 @@ def test_grant_admin_role_success(context):
     assert env["MM_SERVICESETTINGS_ENABLELOCALMODE"] == "false"
 
 
-def test_grant_admin_role_exec_error(context):
-    """Test the grant-admin-role action with an unsuccessful mmctl execution."""
-    user = "invalid_user"
+def test_grant_admin_role_exec_error(context: ops.testing.Context) -> None:
+    """Test the grant-admin-role action with an unsuccessful mmctl execution.
+
+    arrange: Mock the socket check and mmctl execution to return an error, and set up
+        the container and action event.
+    act: Run the grant-admin-role action.
+    assert: The action fails with the mmctl error message and local mode is disabled
+        in the final state.
+    """
+    user = token_hex(8)
     mock_socket_check = ops.testing.Exec(
         command_prefix=["test", "-S", SOCKET_PATH],
         return_code=0,
@@ -136,9 +153,16 @@ def test_grant_admin_role_exec_error(context):
 
 
 @patch("time.sleep", return_value=None)
-def test_grant_admin_role_socket_timeout(mock_sleep, context):
-    """Test that the action fails if the socket does not initialize within the timeout period."""
-    user = "valid_user"
+def test_grant_admin_role_socket_timeout(mock_sleep: MagicMock, context: ops.testing.Context) -> None:
+    """Test that the action fails if the socket does not initialize within the timeout period.
+
+    arrange: Mock the socket check to always fail and set up the container and action
+        event.
+    act: Run the grant-admin-role action.
+    assert: The action fails with a timeout message and local mode is disabled in the
+        final state.
+    """
+    user = token_hex(8)
     mock_socket_fail = ops.testing.Exec(
         command_prefix=["test", "-S", SOCKET_PATH], return_code=1
     )
