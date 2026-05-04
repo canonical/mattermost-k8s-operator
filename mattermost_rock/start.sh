@@ -77,4 +77,41 @@ if [ -n "$SMTP_HOST" ]; then
     fi
 fi
 
+# SAML SSO configuration
+if [ -n "$SAML_ENTITY_ID" ]; then
+    # Write the IdP signing certificate to a temp file that Mattermost can read
+    if echo "$SAML_SIGNING_CERTIFICATE" | grep -q "BEGIN CERTIFICATE"; then
+        printf '%s' "$SAML_SIGNING_CERTIFICATE" > /tmp/saml-idp.crt
+    else
+        printf '-----BEGIN CERTIFICATE-----\n%s\n-----END CERTIFICATE-----\n' "$SAML_SIGNING_CERTIFICATE" > /tmp/saml-idp.crt
+    fi
+
+    export MM_SAMLSETTINGS_ENABLE=true
+    export MM_SAMLSETTINGS_VERIFY=true
+    export MM_SAMLSETTINGS_ENCRYPT=false
+    export MM_SAMLSETTINGS_IDPDESCRIPTORURL="$SAML_ENTITY_ID"
+    export MM_SAMLSETTINGS_SERVICEPROVIDERIDENTIFIER="$APP_BASE_URL"
+    export MM_SAMLSETTINGS_IDPCERTIFICATEFILE=/tmp/saml-idp.crt
+    export MM_SAMLSETTINGS_ASSERTIONCONSUMERSERVICEURL="${APP_BASE_URL}/login/sso/saml"
+    # Use the built-in Mattermost SAML library to avoid requiring xmlsec1
+    export MM_EXPERIMENTALSETTINGS_USENEWSAMLLIBRARY=true
+
+    if [ -n "$SAML_METADATA_URL" ]; then
+        export MM_SAMLSETTINGS_IDPMETADATAURL="$SAML_METADATA_URL"
+    fi
+
+    if [ -n "$SAML_SINGLE_SIGN_ON_REDIRECT_URL" ]; then
+        export MM_SAMLSETTINGS_IDPURL="$SAML_SINGLE_SIGN_ON_REDIRECT_URL"
+    fi
+fi
+
+# OpenID Connect (OAuth) configuration
+if [ -n "$APP_OAUTH_CLIENT_ID" ]; then
+    export MM_OPENIDSETTINGS_ENABLE=true
+    export MM_OPENIDSETTINGS_ID="$APP_OAUTH_CLIENT_ID"
+    export MM_OPENIDSETTINGS_SECRET="$APP_OAUTH_CLIENT_SECRET"
+    # Construct the OIDC discovery endpoint from the issuer URL
+    export MM_OPENIDSETTINGS_DISCOVERYENDPOINT="${APP_OAUTH_API_BASE_URL}/.well-known/openid-configuration"
+fi
+
 exec /app/bin/mattermost
