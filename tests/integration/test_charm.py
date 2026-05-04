@@ -117,6 +117,6 @@ def test_grant_admin_role_missing_user(app: str, juju: jubilant.Juju) -> None:
     """
     unit_name = f"{app}/0"
     fake_user = token_hex(8)
-    result = juju.run(unit_name, "grant-admin-role", {"user": fake_user})
-    assert result.status == "failed"
-    assert "Unable to find user" in result.message
+    with pytest.raises(jubilant.TaskError) as exc:
+            juju.run(unit_name, "grant-admin-role", {"user": fake_user})
+    assert "unable to find user" in str(exc.value)
