@@ -35,6 +35,99 @@ requires:
     limit: 1
   smtp:
     interface: smtp
-    optional: True
+    optional: true
     limit: 1
+
+config:
+  options:
+    licence:
+      type: string
+      description: |
+        The contents of the Mattermost Enterprise Edition licence file.
+        Required for enterprise features such as clustering, S3 server-side
+        encryption, and SAML SSO.
+      default: ""
+    clustering:
+      type: boolean
+      description: |
+        Enable Mattermost high-availability clustering mode.
+        Requires a Mattermost Enterprise Edition licence.
+      default: false
+    debug:
+      type: boolean
+      description: |
+        Set the Mattermost log level to DEBUG. When false, the log level is INFO.
+        Also enables S3 request tracing when S3 storage is active.
+      default: false
+    image-proxy-enabled:
+      type: boolean
+      description: |
+        Enable the built-in local image proxy. This prevents Mattermost clients
+        from connecting directly to remote image servers, anonymizing their
+        connections and blocking insecure content.
+      default: false
+    max-channels-per-team:
+      type: int
+      description: |
+        Maximum number of channels per team, including both active and
+        deleted channels.
+      default: 3000
+    max-users-per-team:
+      type: int
+      description: |
+        Maximum number of users per team, including active and inactive users.
+      default: 2000
+    max-file-size:
+      type: int
+      description: |
+        Maximum file upload size in megabytes.
+      default: 5
+    primary-team:
+      type: string
+      description: |
+        The primary team of which users on the server are members. When set,
+        the options to join other teams or leave the primary team are disabled.
+        Value is the team URL slug (e.g. "myteam").
+      default: ""
+    push-notification-server:
+      type: string
+      description: |
+        The URL of the push notification server (e.g. Mattermost HPNS or a
+        self-hosted push proxy). Required for mobile push notifications.
+      default: ""
+    push-notifications-include-message-snippet:
+      type: boolean
+      description: |
+        If true, push notification payloads include a message snippet (which
+        may contain confidential information). If false, payloads include only
+        an ID for the client to fetch the message directly.
+      default: false
+    s3-server-side-encryption:
+      type: boolean
+      description: |
+        Enable S3 Server-Side Encryption (SSE) for file attachments at rest.
+        Requires S3-side configuration and a Mattermost Enterprise Edition licence.
+      default: false
+    close-unused-direct-messages:
+      type: boolean
+      description: |
+        Automatically close direct message conversations that have been
+        inactive. If disabled, users cannot enable this themselves.
+      default: false
+    enable-custom-emoji:
+      type: boolean
+      description: |
+        Allow users to create and use custom emoji.
+      default: false
+    enable-link-previews:
+      type: boolean
+      description: |
+        Enable link/URL previews in messages. If disabled, users cannot
+        enable this themselves.
+      default: false
+    enable-user-access-tokens:
+      type: boolean
+      description: |
+        Allow users to create Personal Access Tokens.
+      default: false
 
