@@ -79,22 +79,18 @@ fi
 
 # SAML SSO configuration
 if [ -n "$SAML_ENTITY_ID" ]; then
-    # Write the IdP signing certificate to a temp file that Mattermost can read
-    if echo "$SAML_SIGNING_CERTIFICATE" | grep -q "BEGIN CERTIFICATE"; then
-        printf '%s' "$SAML_SIGNING_CERTIFICATE" > /tmp/saml-idp.crt
-    else
-        printf '-----BEGIN CERTIFICATE-----\n%s\n-----END CERTIFICATE-----\n' "$SAML_SIGNING_CERTIFICATE" > /tmp/saml-idp.crt
-    fi
-
     export MM_SAMLSETTINGS_ENABLE=true
     export MM_SAMLSETTINGS_VERIFY=true
     export MM_SAMLSETTINGS_ENCRYPT=false
     export MM_SAMLSETTINGS_IDPDESCRIPTORURL="$SAML_ENTITY_ID"
     export MM_SAMLSETTINGS_SERVICEPROVIDERIDENTIFIER="$APP_BASE_URL"
-    export MM_SAMLSETTINGS_IDPCERTIFICATEFILE=/tmp/saml-idp.crt
     export MM_SAMLSETTINGS_ASSERTIONCONSUMERSERVICEURL="${APP_BASE_URL}/login/sso/saml"
-    # Use the built-in Mattermost SAML library to avoid requiring xmlsec1
     export MM_EXPERIMENTALSETTINGS_USENEWSAMLLIBRARY=true
+
+    # Required SAML assertion attribute mappings
+    export MM_SAMLSETTINGS_EMAILATTRIBUTE="email"
+    export MM_SAMLSETTINGS_USERNAMEATTRIBUTE="username"
+    export MM_SAMLSETTINGS_LOGINBUTTONTEXT="SAML SSO"
 
     if [ -n "$SAML_METADATA_URL" ]; then
         export MM_SAMLSETTINGS_IDPMETADATAURL="$SAML_METADATA_URL"
