@@ -55,51 +55,13 @@ resource "juju_application" "smtp_integrator" {
   units  = 1
 }
 
-resource "juju_application" "gateway_api_integrator" {
-  name       = "gateway-api-integrator"
+module "ingress_configurator" {
+  source     = "git::https://github.com/canonical/ingress-configurator-operator//terraform?ref=rev72&depth=1"
+  app_name   = "ingress-configurator"
   model_uuid = var.model_uuid
-
-  charm {
-    name     = "gateway-api-integrator"
-    channel  = var.gateway_api_integrator.channel
-    revision = var.gateway_api_integrator.revision
-  }
-
-  config = merge(
-    { "gateway-class" = "cilium" },
-    var.gateway_api_integrator.config
-  )
-  trust = true
-}
-
-resource "juju_application" "gateway_route_configurator" {
-  name       = "gateway-route-configurator"
-  model_uuid = var.model_uuid
-
-  charm {
-    name     = "gateway-route-configurator"
-    channel  = var.gateway_route_configurator.channel
-    revision = var.gateway_route_configurator.revision
-  }
-
-  config = merge(
-    { hostname = var.external_hostname },
-    var.gateway_route_configurator.config
-  )
-}
-
-resource "juju_application" "self_signed_certificates" {
-  name       = "self-signed-certificates"
-  model_uuid = var.model_uuid
-
-  charm {
-    name     = "self-signed-certificates"
-    channel  = var.self_signed_certificates.channel
-    revision = var.self_signed_certificates.revision
-  }
-
-  config = var.self_signed_certificates.config
-  units  = 1
+  channel    = var.ingress_configurator.channel
+  revision   = var.ingress_configurator.revision
+  config     = { hostname = var.external_hostname }
 }
 
 # --- Integrations ---
@@ -155,35 +117,7 @@ resource "juju_integration" "mattermost_ingress" {
   }
 
   application {
-    name     = juju_application.gateway_route_configurator.name
-    endpoint = "ingress"
-  }
-}
-
-resource "juju_integration" "gateway_route" {
-  model_uuid = var.model_uuid
-
-  application {
-    name     = juju_application.gateway_route_configurator.name
-    endpoint = "gateway-route"
-  }
-
-  application {
-    name     = juju_application.gateway_api_integrator.name
-    endpoint = "gateway-route"
-  }
-}
-
-resource "juju_integration" "gateway_tls" {
-  model_uuid = var.model_uuid
-
-  application {
-    name     = juju_application.gateway_api_integrator.name
-    endpoint = "certificates"
-  }
-
-  application {
-    name     = juju_application.self_signed_certificates.name
-    endpoint = "certificates"
+    name     = module.ingress_configurator.app_name
+    endpoint = module.ingress_configurator.endpoints.ingress
   }
 }

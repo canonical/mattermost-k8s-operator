@@ -7,7 +7,7 @@ variable "model_uuid" {
 }
 
 variable "external_hostname" {
-  description = "External hostname for ingress (used by gateway-route-configurator)."
+  description = "External hostname for ingress (used by ingress-configurator)."
   type        = string
 }
 
@@ -51,29 +51,11 @@ variable "smtp_integrator" {
   })
 }
 
-variable "gateway_api_integrator" {
-  description = "Gateway API integrator charm configuration."
+variable "ingress_configurator" {
+  description = "Ingress configurator charm configuration."
   type = object({
-    channel  = string
-    revision = number
-    config   = optional(map(string), {})
+    channel  = optional(string, "latest/edge")
+    revision = optional(number, 72)
   })
-}
-
-variable "gateway_route_configurator" {
-  description = "Gateway route configurator charm configuration."
-  type = object({
-    channel  = string
-    revision = number
-    config   = optional(map(string), {})
-  })
-}
-
-variable "self_signed_certificates" {
-  description = "Self-signed certificates charm configuration."
-  type = object({
-    channel  = string
-    revision = number
-    config   = optional(map(string), {})
-  })
+  default = {}
 }
