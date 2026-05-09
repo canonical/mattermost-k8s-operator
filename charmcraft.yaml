@@ -37,27 +37,7 @@ requires:
     interface: oauth
     optional: true
     limit: 1
-  saml:
-    interface: saml
-    optional: true
-    limit: 1
   smtp:
     interface: smtp
     optional: true
     limit: 1
-
-config:
-  options:
-    oauth-scopes:
-      type: string
-      description: |
-        Space-separated list of OAuth/OIDC scopes to request. Must include "openid".
-        Used when the oauth relation is active.
-      default: "openid email profile"
-    oauth-redirect-path:
-      type: string
-      description: |
-        The redirect path for the OAuth/OIDC callback. Mattermost's OpenID Connect
-        callback endpoint is /signup/openid/complete.
-      default: "/signup/openid/complete"
-

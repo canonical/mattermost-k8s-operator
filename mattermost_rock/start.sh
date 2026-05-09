@@ -77,30 +77,6 @@ if [ -n "$SMTP_HOST" ]; then
     fi
 fi
 
-# SAML SSO configuration
-if [ -n "$SAML_ENTITY_ID" ]; then
-    export MM_SAMLSETTINGS_ENABLE=true
-    export MM_SAMLSETTINGS_VERIFY=true
-    export MM_SAMLSETTINGS_ENCRYPT=false
-    export MM_SAMLSETTINGS_IDPDESCRIPTORURL="$SAML_ENTITY_ID"
-    export MM_SAMLSETTINGS_SERVICEPROVIDERIDENTIFIER="$APP_BASE_URL"
-    export MM_SAMLSETTINGS_ASSERTIONCONSUMERSERVICEURL="${APP_BASE_URL}/login/sso/saml"
-    export MM_EXPERIMENTALSETTINGS_USENEWSAMLLIBRARY=true
-
-    # Required SAML assertion attribute mappings
-    export MM_SAMLSETTINGS_EMAILATTRIBUTE="email"
-    export MM_SAMLSETTINGS_USERNAMEATTRIBUTE="username"
-    export MM_SAMLSETTINGS_LOGINBUTTONTEXT="SAML SSO"
-
-    if [ -n "$SAML_METADATA_URL" ]; then
-        export MM_SAMLSETTINGS_IDPMETADATAURL="$SAML_METADATA_URL"
-    fi
-
-    if [ -n "$SAML_SINGLE_SIGN_ON_REDIRECT_URL" ]; then
-        export MM_SAMLSETTINGS_IDPURL="$SAML_SINGLE_SIGN_ON_REDIRECT_URL"
-    fi
-fi
-
 # OpenID Connect (OAuth) configuration
 if [ -n "$APP_OAUTH_CLIENT_ID" ]; then
     export MM_OPENIDSETTINGS_ENABLE=true
