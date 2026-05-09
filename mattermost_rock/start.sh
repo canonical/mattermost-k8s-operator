@@ -5,14 +5,13 @@
 
 set -e
 
-# Helper: convert paas-charm Python-style booleans ("True"/"False") to
-# Mattermost-style ("true"/"false").
+# Helper: convert boolean config values to Mattermost-style ("true"/"false").
+# Handles both Python-style ("True"/"False") and lowercase ("true"/"false").
 to_mm_bool() {
-    if [ "$1" = "True" ]; then
-        echo "true"
-    else
-        echo "false"
-    fi
+    case "$(echo "$1" | tr '[:upper:]' '[:lower:]')" in
+        true) echo "true" ;;
+        *) echo "false" ;;
+    esac
 }
 
 # ---------------------------------------------------------------------------
