@@ -20,7 +20,7 @@ Each revision is versioned by the date of the revision.
   - `push-notification-server`: Push notification server URL.
   - `push-notifications-include-message-snippet`: Include message content in push payloads.
   - `s3-server-side-encryption`: Enable S3 server-side encryption.
-  - `close-unused-direct-messages`: Auto-close inactive DMs.
+  - `close-unused-direct-messages`: Auto-close inactive direct messages.
   - `enable-custom-emoji`: Allow custom emoji.
   - `enable-link-previews`: Enable link previews in messages.
   - `enable-user-access-tokens`: Allow Personal Access Tokens.
