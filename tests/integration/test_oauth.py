@@ -152,9 +152,25 @@ def test_oauth_integration(
     _safe_integrate(juju, f"{app}:oauth", "hydra")
     juju.wait(jubilant.all_active, timeout=JUJU_WAIT_TIMEOUT)
 
-    # Verify OAuth env vars are present in the pebble plan.
-    # paas-charm writes APP_OAUTH_* env vars into the pebble service layer;
-    # start.sh then translates them to MM_OPENIDSETTINGS_* at runtime.
+    # Wait for hydra to complete client registration and paas-charm to write
+    # the OAuth credentials into the pebble plan.  The charm goes active before
+    # hydra returns client_id/secret (oauth is optional), so we poll.
+    def _oauth_env_in_plan(status):
+        """Return True when APP_OAUTH_CLIENT_ID appears in the pebble plan."""
+        if not jubilant.all_active(status):
+            return False
+        try:
+            task = juju.exec(
+                "PEBBLE_SOCKET=/charm/containers/app/pebble.socket pebble plan",
+                unit=f"{app}/0",
+            )
+            return "APP_OAUTH_CLIENT_ID" in task.stdout
+        except jubilant.CLIError:
+            return False
+
+    juju.wait(_oauth_env_in_plan, timeout=JUJU_WAIT_TIMEOUT)
+
+    # Final verification — read the full plan and assert all expected vars.
     task = juju.exec(
         "PEBBLE_SOCKET=/charm/containers/app/pebble.socket pebble plan",
         unit=f"{app}/0",
