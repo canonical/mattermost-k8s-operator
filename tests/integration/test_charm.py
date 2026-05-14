@@ -104,3 +104,70 @@ def test_postgresql_relation(
     juju.integrate(app, "postgresql-k8s:database")
     juju.wait(all_active_and_serving)
     assert is_mattermost_up()
+
+
+@pytest.mark.abort_on_fail
+def test_ingress(
+    app: str,
+    juju: jubilant.Juju,
+):
+    """Check that integrating traefik-k8s provides a reachable ingress URL.
+
+    arrange: The charm is deployed and active with postgresql.
+    act: Deploy traefik-k8s with subdomain routing, integrate with mattermost-k8s.
+    assert: The ingress URL from the relation data is reachable and serves Mattermost.
+    """
+    juju.deploy(
+        "traefik-k8s",
+        channel="latest/stable",
+        trust=True,
+        config={
+            "routing_mode": "subdomain",
+            "external_hostname": "testing.local",
+        },
+    )
+    juju.wait(
+        lambda status: jubilant.all_active(status, "traefik-k8s"),
+        timeout=1200,
+    )
+
+    juju.integrate(f"{app}:ingress", "traefik-k8s:ingress")
+    juju.wait(jubilant.all_active, timeout=1200)
+
+    # Use the traefik unit's pod IP (not the app ClusterIP which is on port 65535).
+    status = juju.status()
+    traefik_unit_address = status.apps["traefik-k8s"].units["traefik-k8s/0"].address
+
+    # With subdomain routing, traefik routes based on Host header.
+    model = juju.model
+    ingress_host = f"{model}-{app}.testing.local"
+    logger.info(
+        "Ingress host: %s, traefik address: %s", ingress_host, traefik_unit_address
+    )
+
+    # Traefik may need a moment to pick up the route after Juju reports active.
+    def ingress_reachable(status):
+        if not jubilant.all_active(status):
+            return False
+        try:
+            resp = requests.get(
+                f"http://{traefik_unit_address}",
+                headers={"Host": ingress_host},
+                timeout=10,
+            )
+            return resp.status_code == 200
+        except (requests.ConnectionError, requests.Timeout):
+            return False
+
+    juju.wait(ingress_reachable, timeout=300)
+
+    response = requests.get(
+        f"http://{traefik_unit_address}",
+        headers={"Host": ingress_host},
+        timeout=10,
+    )
+    assert response.status_code == 200
+    assert "Mattermost" in response.text
+    logger.info(
+        "Ingress test passed: Mattermost reachable via traefik at %s", ingress_host
+    )
