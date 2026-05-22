@@ -64,6 +64,10 @@ class MattermostK8sCharm(paas_charm.go.Charm):
             event.fail(f"Failed to grant admin role to user {user}: {ex.stderr}")
         finally:
             self._set_local_mode(container, enable=False)
+            try:
+                container.remove_path(SOCKET_PATH)
+            except ops.pebble.PathError:
+                pass
 
     def _set_local_mode(self, container: ops.Container, enable: bool) -> bool:
         """Toggle local mode via Pebble layer and wait for readiness if enabling.
@@ -97,7 +101,7 @@ class MattermostK8sCharm(paas_charm.go.Charm):
 
         while time_elapsed < timeout:
             try:
-                container.exec(["test", "-S", SOCKET_PATH]).wait_output()
+                container.exec(["/app/bin/mmctl", "--local", "system", "status"]).wait_output()
                 return True
             except ExecError:
                 time.sleep(poll_interval)

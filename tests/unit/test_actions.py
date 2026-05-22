@@ -92,7 +92,7 @@ def test_grant_admin_role_success(context: ops.testing.Context) -> None:
     """
     user = token_hex(8)
     mock_socket_check = ops.testing.Exec(
-        command_prefix=["test", "-S", SOCKET_PATH], return_code=0
+        command_prefix=["/app/bin/mmctl", "--local", "system", "status"], return_code=0
     )
     mock_mmctl = ops.testing.Exec(
         command_prefix=["/app/bin/mmctl", "--local", "roles", "system-admin", user],
@@ -126,8 +126,7 @@ def test_grant_admin_role_exec_error(context: ops.testing.Context) -> None:
     """
     user = token_hex(8)
     mock_socket_check = ops.testing.Exec(
-        command_prefix=["test", "-S", SOCKET_PATH],
-        return_code=0,
+        command_prefix=["/app/bin/mmctl", "--local", "system", "status"], return_code=0
     )
     mock_mmctl = ops.testing.Exec(
         command_prefix=["/app/bin/mmctl", "--local", "roles", "system-admin", user],
@@ -164,7 +163,7 @@ def test_grant_admin_role_socket_timeout(mock_sleep: MagicMock, context: ops.tes
     """
     user = token_hex(8)
     mock_socket_fail = ops.testing.Exec(
-        command_prefix=["test", "-S", SOCKET_PATH], return_code=1
+        command_prefix=["/app/bin/mmctl", "--local", "system", "status"], return_code=1
     )
     container = ops.testing.Container(
         name="app", can_connect=True, execs=[mock_socket_fail]
