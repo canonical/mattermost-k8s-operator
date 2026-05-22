@@ -1,14 +1,5 @@
 {
-  "__inputs": [
-    {
-      "name": "DS_PROMETHEUS",
-      "label": "Prometheus",
-      "description": "",
-      "type": "datasource",
-      "pluginId": "prometheus",
-      "pluginName": "Prometheus"
-    }
-  ],
+  "__inputs": [],
   "__elements": {},
   "__requires": [
     {
@@ -160,7 +151,7 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "8.2.3",
+      "pluginVersion": "10.2.3",
       "targets": [
         {
           "datasource": {
@@ -256,7 +247,7 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "8.2.3",
+      "pluginVersion": "10.2.3",
       "targets": [
         {
           "datasource": {
@@ -265,7 +256,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "sum(rate(mattermost_websocket_broadcasts_total{juju_application=~\"$juju_application\", juju_model=~\"$juju_model\"}[5m])) by (juju_model, juju_application, juju_unit, name)",
+          "expr": "sum(rate(mattermost_websocket_broadcasts_total{juju_application=~\"$juju_application\", juju_model=~\"$juju_model\", juju_unit=~\"$juju_unit\"}[5m])) by (juju_model, juju_application, juju_unit, name)",
           "interval": "",
           "legendFormat": "{{name}}",
           "range": true,
@@ -354,7 +345,7 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "8.2.3",
+      "pluginVersion": "10.2.3",
       "targets": [
         {
           "datasource": {
@@ -362,8 +353,8 @@
             "uid": "${prometheusds}"
           },
           "editorMode": "code",
-          "expr": "sum(increase(mattermost_websocket_reconnects_total{juju_application=~\"$juju_application\", juju_model=~\"$juju_model\"}[10m])) by (juju_model, juju_application, juju_unit)",
-          "legendFormat": "{{instance}}",
+          "expr": "sum(increase(mattermost_websocket_reconnects_total{juju_application=~\"$juju_application\", juju_model=~\"$juju_model\", juju_unit=~\"$juju_unit\"}[10m])) by (juju_model, juju_application, juju_unit)",
+          "legendFormat": "{{juju_unit}}",
           "range": true,
           "refId": "A"
         }
@@ -450,7 +441,7 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "8.2.3",
+      "pluginVersion": "10.2.3",
       "targets": [
         {
           "datasource": {
@@ -458,7 +449,7 @@
             "uid": "${prometheusds}"
           },
           "editorMode": "code",
-          "expr": "sum(rate(mattermost_websocket_event_total{juju_application=~\"$juju_application\", juju_model=~\"$juju_model\"}[5m])) by (juju_model, juju_application, juju_unit, type)",
+          "expr": "sum(rate(mattermost_websocket_event_total{juju_application=~\"$juju_application\", juju_model=~\"$juju_model\", juju_unit=~\"$juju_unit\"}[5m])) by (juju_model, juju_application, juju_unit, type)",
           "legendFormat": "{{type}}",
           "range": true,
           "refId": "A"
@@ -579,9 +570,9 @@
             "type": "prometheus",
             "uid": "${prometheusds}"
           },
-          "expr": "rate(mattermost_http_requests_total{instance=~\"$server\", juju_application=~\"$juju_application\", juju_model=~\"$juju_model\"}[1m])",
+          "expr": "rate(mattermost_http_requests_total{juju_application=~\"$juju_application\", juju_model=~\"$juju_model\"}[1m])",
           "interval": "",
-          "legendFormat": "{{instance}}",
+          "legendFormat": "{{juju_unit}}",
           "refId": "A"
         },
         {
@@ -589,7 +580,7 @@
             "type": "prometheus",
             "uid": "${prometheusds}"
           },
-          "expr": "sum(rate(mattermost_http_requests_total{instance=~\"$server\", juju_application=~\"$juju_application\", juju_model=~\"$juju_model\"}[1m]))",
+          "expr": "sum(rate(mattermost_http_requests_total{juju_application=~\"$juju_application\", juju_model=~\"$juju_model\"}[1m]))",
           "interval": "",
           "legendFormat": "Total",
           "refId": "B"
@@ -684,9 +675,9 @@
             "type": "prometheus",
             "uid": "${prometheusds}"
           },
-          "expr": "sum(rate(mattermost_db_store_time_count{instance=~\"$server\", juju_application=~\"$juju_application\", juju_model=~\"$juju_model\"}[5m])) by (juju_model, juju_application, juju_unit)",
+          "expr": "sum(rate(mattermost_db_store_time_count{juju_application=~\"$juju_application\", juju_model=~\"$juju_model\"}[5m])) by (juju_model, juju_application, juju_unit)",
           "interval": "",
-          "legendFormat": "{{instance}}",
+          "legendFormat": "{{juju_unit}}",
           "refId": "A"
         },
         {
@@ -694,7 +685,7 @@
             "type": "prometheus",
             "uid": "${prometheusds}"
           },
-          "expr": "sum(rate(mattermost_db_store_time_count{instance=~\"$server\", juju_application=~\"$juju_application\", juju_model=~\"$juju_model\"}[5m]))",
+          "expr": "sum(rate(mattermost_db_store_time_count{juju_application=~\"$juju_application\", juju_model=~\"$juju_model\"}[5m]))",
           "interval": "",
           "legendFormat": "Total",
           "refId": "B"
@@ -790,9 +781,9 @@
             "type": "prometheus",
             "uid": "${prometheusds}"
           },
-          "expr": "histogram_quantile(0.99, sum(rate(mattermost_api_time_bucket{instance=~\"$server\", juju_application=~\"$juju_application\", juju_model=~\"$juju_model\"}[1m])) by (juju_model, juju_application, juju_unit, le))",
+          "expr": "histogram_quantile(0.99, sum(rate(mattermost_api_time_bucket{juju_application=~\"$juju_application\", juju_model=~\"$juju_model\"}[1m])) by (juju_model, juju_application, juju_unit, le))",
           "interval": "",
-          "legendFormat": "p99-{{instance}}",
+          "legendFormat": "p99-{{juju_unit}}",
           "refId": "A"
         },
         {
@@ -800,9 +791,9 @@
             "type": "prometheus",
             "uid": "${prometheusds}"
           },
-          "expr": "histogram_quantile(0.50, sum(rate(mattermost_api_time_bucket{instance=~\"$server\", juju_application=~\"$juju_application\", juju_model=~\"$juju_model\"}[1m])) by (juju_model, juju_application, juju_unit, le))",
+          "expr": "histogram_quantile(0.50, sum(rate(mattermost_api_time_bucket{juju_application=~\"$juju_application\", juju_model=~\"$juju_model\"}[1m])) by (juju_model, juju_application, juju_unit, le))",
           "interval": "",
-          "legendFormat": "p50-{{instance}}",
+          "legendFormat": "p50-{{juju_unit}}",
           "refId": "B"
         }
       ],
@@ -896,9 +887,9 @@
             "type": "prometheus",
             "uid": "${prometheusds}"
           },
-          "expr": "histogram_quantile(0.99, sum(rate(mattermost_db_store_time_bucket{instance=~\"$server\", juju_application=~\"$juju_application\", juju_model=~\"$juju_model\"}[1m])) by (juju_model, juju_application, juju_unit, le))",
+          "expr": "histogram_quantile(0.99, sum(rate(mattermost_db_store_time_bucket{juju_application=~\"$juju_application\", juju_model=~\"$juju_model\"}[1m])) by (juju_model, juju_application, juju_unit, le))",
           "interval": "",
-          "legendFormat": "p99-{{instance}}",
+          "legendFormat": "p99-{{juju_unit}}",
           "refId": "A"
         },
         {
@@ -906,9 +897,9 @@
             "type": "prometheus",
             "uid": "${prometheusds}"
           },
-          "expr": "histogram_quantile(0.50, sum(rate(mattermost_db_store_time_bucket{instance=~\"$server\", juju_application=~\"$juju_application\", juju_model=~\"$juju_model\"}[1m])) by (juju_model, juju_application, juju_unit, le))",
+          "expr": "histogram_quantile(0.50, sum(rate(mattermost_db_store_time_bucket{juju_application=~\"$juju_application\", juju_model=~\"$juju_model\"}[1m])) by (juju_model, juju_application, juju_unit, le))",
           "interval": "",
-          "legendFormat": "p50-{{instance}}",
+          "legendFormat": "p50-{{juju_unit}}",
           "refId": "B"
         }
       ],
@@ -1001,7 +992,7 @@
             "type": "prometheus",
             "uid": "${prometheusds}"
           },
-          "expr": "sum(increase(mattermost_db_store_time_count{instance=~\"$server\",method=~\"$top_db_count\", juju_application=~\"$juju_application\", juju_model=~\"$juju_model\"}[5m])) by (juju_model, juju_application, juju_unit, method)",
+          "expr": "sum(increase(mattermost_db_store_time_count{method=~\"$top_db_count\", juju_application=~\"$juju_application\", juju_model=~\"$juju_model\"}[5m])) by (juju_model, juju_application, juju_unit, method)",
           "interval": "",
           "legendFormat": "{{method}}",
           "refId": "A"
@@ -1096,7 +1087,7 @@
             "type": "prometheus",
             "uid": "${prometheusds}"
           },
-          "expr": "sum(increase(mattermost_api_time_count{instance=~\"$server\",handler=~\"$top_api_count\", juju_application=~\"$juju_application\", juju_model=~\"$juju_model\"}[5m])) by (juju_model, juju_application, juju_unit, handler)",
+          "expr": "sum(increase(mattermost_api_time_count{handler=~\"$top_api_count\", juju_application=~\"$juju_application\", juju_model=~\"$juju_model\"}[5m])) by (juju_model, juju_application, juju_unit, handler)",
           "interval": "",
           "legendFormat": "{{handler}}",
           "refId": "A"
@@ -1195,7 +1186,7 @@
             "type": "prometheus",
             "uid": "${prometheusds}"
           },
-          "expr": "sum(increase(mattermost_db_store_time_sum{instance=~\"$server\",method=~\"$top_db_latency\", juju_application=~\"$juju_application\", juju_model=~\"$juju_model\"}[5m])) by (juju_model, juju_application, juju_unit, method) / sum(increase(mattermost_db_store_time_count{instance=~\"$server\",method=~\"$top_db_latency\", juju_application=~\"$juju_application\", juju_model=~\"$juju_model\"}[5m])) by (juju_model, juju_application, juju_unit, method)",
+          "expr": "sum(increase(mattermost_db_store_time_sum{method=~\"$top_db_latency\", juju_application=~\"$juju_application\", juju_model=~\"$juju_model\"}[5m])) by (juju_model, juju_application, juju_unit, method) / sum(increase(mattermost_db_store_time_count{method=~\"$top_db_latency\", juju_application=~\"$juju_application\", juju_model=~\"$juju_model\"}[5m])) by (juju_model, juju_application, juju_unit, method)",
           "interval": "",
           "legendFormat": "{{method}}",
           "refId": "A"
@@ -1294,7 +1285,7 @@
             "type": "prometheus",
             "uid": "${prometheusds}"
           },
-          "expr": "sum(increase(mattermost_api_time_sum{instance=~\"$server\",handler=~\"$top_api_latency\", juju_application=~\"$juju_application\", juju_model=~\"$juju_model\"}[5m])) by (juju_model, juju_application, juju_unit, handler) / sum(increase(mattermost_api_time_count{instance=~\"$server\",handler=~\"$top_api_latency\", juju_application=~\"$juju_application\", juju_model=~\"$juju_model\"}[5m])) by (juju_model, juju_application, juju_unit, handler)",
+          "expr": "sum(increase(mattermost_api_time_sum{handler=~\"$top_api_latency\", juju_application=~\"$juju_application\", juju_model=~\"$juju_model\"}[5m])) by (juju_model, juju_application, juju_unit, handler) / sum(increase(mattermost_api_time_count{handler=~\"$top_api_latency\", juju_application=~\"$juju_application\", juju_model=~\"$juju_model\"}[5m])) by (juju_model, juju_application, juju_unit, handler)",
           "interval": "",
           "legendFormat": "{{handler}}",
           "refId": "A"
@@ -1390,9 +1381,9 @@
             "type": "prometheus",
             "uid": "${prometheusds}"
           },
-          "expr": "histogram_quantile (\n  0.99,\n  sum by (le, juju_model, juju_application, juju_unit)(\n    rate(mattermost_api_time_bucket{instance=~\"$server\",handler=\"getPostsForChannelAroundLastUnread\", juju_application=~\"$juju_application\", juju_model=~\"$juju_model\"}[5m])\n  )\n)",
+          "expr": "histogram_quantile (\n  0.99,\n  sum by (le, juju_model, juju_application, juju_unit)(\n    rate(mattermost_api_time_bucket{handler=\"getPostsForChannelAroundLastUnread\", juju_application=~\"$juju_application\", juju_model=~\"$juju_model\"}[5m])\n  )\n)",
           "interval": "",
-          "legendFormat": "p99-{{instance}}",
+          "legendFormat": "p99-{{juju_unit}}",
           "refId": "A"
         },
         {
@@ -1400,9 +1391,9 @@
             "type": "prometheus",
             "uid": "${prometheusds}"
           },
-          "expr": "histogram_quantile (\n  0.50,\n  sum by (le, juju_model, juju_application, juju_unit)(\n    rate(mattermost_api_time_bucket{instance=~\"$server\",handler=\"getPostsForChannelAroundLastUnread\", juju_application=~\"$juju_application\", juju_model=~\"$juju_model\"}[5m])\n  )\n)",
+          "expr": "histogram_quantile (\n  0.50,\n  sum by (le, juju_model, juju_application, juju_unit)(\n    rate(mattermost_api_time_bucket{handler=\"getPostsForChannelAroundLastUnread\", juju_application=~\"$juju_application\", juju_model=~\"$juju_model\"}[5m])\n  )\n)",
           "interval": "",
-          "legendFormat": "p50-{{instance}}",
+          "legendFormat": "p50-{{juju_unit}}",
           "refId": "B"
         }
       ],
@@ -1496,9 +1487,9 @@
             "type": "prometheus",
             "uid": "${prometheusds}"
           },
-          "expr": "histogram_quantile (\n  0.99,\n  sum by (le, juju_model, juju_application, juju_unit)(\n    rate(mattermost_api_time_bucket{instance=~\"$server\",handler=\"createPost\", juju_application=~\"$juju_application\", juju_model=~\"$juju_model\"}[5m])\n  )\n)",
+          "expr": "histogram_quantile (\n  0.99,\n  sum by (le, juju_model, juju_application, juju_unit)(\n    rate(mattermost_api_time_bucket{handler=\"createPost\", juju_application=~\"$juju_application\", juju_model=~\"$juju_model\"}[5m])\n  )\n)",
           "interval": "",
-          "legendFormat": "p99-{{instance}}",
+          "legendFormat": "p99-{{juju_unit}}",
           "refId": "A"
         },
         {
@@ -1506,9 +1497,9 @@
             "type": "prometheus",
             "uid": "${prometheusds}"
           },
-          "expr": "histogram_quantile (\n  0.50,\n  sum by (le, juju_model, juju_application, juju_unit)(\n    rate(mattermost_api_time_bucket{instance=~\"$server\",handler=\"createPost\", juju_application=~\"$juju_application\", juju_model=~\"$juju_model\"}[5m])\n  )\n)",
+          "expr": "histogram_quantile (\n  0.50,\n  sum by (le, juju_model, juju_application, juju_unit)(\n    rate(mattermost_api_time_bucket{handler=\"createPost\", juju_application=~\"$juju_application\", juju_model=~\"$juju_model\"}[5m])\n  )\n)",
           "interval": "",
-          "legendFormat": "p50-{{instance}}",
+          "legendFormat": "p50-{{juju_unit}}",
           "refId": "B"
         }
       ],
@@ -1604,9 +1595,9 @@
             "uid": "${prometheusds}"
           },
           "editorMode": "code",
-          "expr": "mattermost_http_websockets_total{instance=~\"$server\", juju_application=~\"$juju_application\", juju_model=~\"$juju_model\"}",
+          "expr": "mattermost_http_websockets_total{juju_application=~\"$juju_application\", juju_model=~\"$juju_model\"}",
           "interval": "",
-          "legendFormat": "{{instance}} - {{ origin_client}}",
+          "legendFormat": "{{juju_unit}} - {{ origin_client}}",
           "range": true,
           "refId": "A"
         },
@@ -1615,7 +1606,7 @@
             "type": "prometheus",
             "uid": "${prometheusds}"
           },
-          "expr": "sum(mattermost_http_websockets_total{instance=~\"$server\", juju_application=~\"$juju_application\", juju_model=~\"$juju_model\"})",
+          "expr": "sum(mattermost_http_websockets_total{juju_application=~\"$juju_application\", juju_model=~\"$juju_model\"})",
           "interval": "",
           "legendFormat": "Total",
           "refId": "B"
@@ -1626,7 +1617,7 @@
             "uid": "${prometheusds}"
           },
           "editorMode": "code",
-          "expr": "sum(mattermost_http_websockets_total{instance=~\"$server\", juju_application=~\"$juju_application\", juju_model=~\"$juju_model\"}) by (juju_model, juju_application, juju_unit, origin_client)",
+          "expr": "sum(mattermost_http_websockets_total{juju_application=~\"$juju_application\", juju_model=~\"$juju_model\"}) by (juju_model, juju_application, juju_unit, origin_client)",
           "hide": false,
           "interval": "",
           "legendFormat": "Total - {{ origin_client }}",
@@ -1865,7 +1856,7 @@
             "uid": "${prometheusds}"
           },
           "editorMode": "code",
-          "expr": "sum(rate(go_sql_max_idle_closed_total{db_name=~\"replica.*\",instance=~\"$server\", juju_application=~\"$juju_application\", juju_model=~\"$juju_model\"}[5m]))",
+          "expr": "sum(rate(go_sql_max_idle_closed_total{db_name=~\"replica.*\",juju_application=~\"$juju_application\", juju_model=~\"$juju_model\"}[5m]))",
           "hide": false,
           "legendFormat": "max_idle_closed",
           "range": true,
@@ -1877,7 +1868,7 @@
             "uid": "${prometheusds}"
           },
           "editorMode": "code",
-          "expr": "sum(rate(go_sql_max_idle_time_closed_total{db_name=~\"replica.*\",instance=~\"$server\", juju_application=~\"$juju_application\", juju_model=~\"$juju_model\"}[5m]))",
+          "expr": "sum(rate(go_sql_max_idle_time_closed_total{db_name=~\"replica.*\",juju_application=~\"$juju_application\", juju_model=~\"$juju_model\"}[5m]))",
           "hide": false,
           "legendFormat": "max_idle_time_closed",
           "range": true,
@@ -2022,7 +2013,7 @@
             "uid": "${prometheusds}"
           },
           "editorMode": "code",
-          "expr": "sum(rate(go_sql_max_idle_time_closed_total{db_name=\"master\",instance=~\"$server\", juju_application=~\"$juju_application\", juju_model=~\"$juju_model\"}[5m]))",
+          "expr": "sum(rate(go_sql_max_idle_time_closed_total{db_name=\"master\",juju_application=~\"$juju_application\", juju_model=~\"$juju_model\"}[5m]))",
           "hide": false,
           "legendFormat": "max_idle_time_closed",
           "range": true,
@@ -2119,9 +2110,9 @@
             "type": "prometheus",
             "uid": "${prometheusds}"
           },
-          "expr": "mattermost_db_replica_lag_time{instance=~\"$server\", juju_application=~\"$juju_application\", juju_model=~\"$juju_model\"}",
+          "expr": "mattermost_db_replica_lag_time{juju_application=~\"$juju_application\", juju_model=~\"$juju_model\"}",
           "interval": "",
-          "legendFormat": "{{instance}}",
+          "legendFormat": "{{juju_unit}}",
           "refId": "A"
         }
       ],
@@ -2241,9 +2232,9 @@
             "type": "prometheus",
             "uid": "${prometheusds}"
           },
-          "expr": "mattermost_cluster_cluster_health_score{instance=~\"$server\", juju_application=~\"$juju_application\", juju_model=~\"$juju_model\"}",
+          "expr": "mattermost_cluster_cluster_health_score{juju_application=~\"$juju_application\", juju_model=~\"$juju_model\"}",
           "interval": "",
-          "legendFormat": "{{instance}}",
+          "legendFormat": "{{juju_unit}}",
           "refId": "A"
         }
       ],
@@ -2337,9 +2328,9 @@
             "type": "prometheus",
             "uid": "${prometheusds}"
           },
-          "expr": "histogram_quantile(0.99, sum(rate(mattermost_cluster_cluster_request_duration_seconds_bucket{instance=~\"$server\", juju_application=~\"$juju_application\", juju_model=~\"$juju_model\"}[5m])) by (le, juju_model, juju_application, juju_unit))",
+          "expr": "histogram_quantile(0.99, sum(rate(mattermost_cluster_cluster_request_duration_seconds_bucket{juju_application=~\"$juju_application\", juju_model=~\"$juju_model\"}[5m])) by (le, juju_model, juju_application, juju_unit))",
           "interval": "",
-          "legendFormat": "p99-{{instance}}",
+          "legendFormat": "p99-{{juju_unit}}",
           "refId": "A"
         },
         {
@@ -2347,9 +2338,9 @@
             "type": "prometheus",
             "uid": "${prometheusds}"
           },
-          "expr": "histogram_quantile(0.50, sum(rate(mattermost_cluster_cluster_request_duration_seconds_bucket{instance=~\"$server\", juju_application=~\"$juju_application\", juju_model=~\"$juju_model\"}[5m])) by (le, juju_model, juju_application, juju_unit))",
+          "expr": "histogram_quantile(0.50, sum(rate(mattermost_cluster_cluster_request_duration_seconds_bucket{juju_application=~\"$juju_application\", juju_model=~\"$juju_model\"}[5m])) by (le, juju_model, juju_application, juju_unit))",
           "interval": "",
-          "legendFormat": "p50-{{instance}}",
+          "legendFormat": "p50-{{juju_unit}}",
           "refId": "B"
         }
       ],
@@ -2442,9 +2433,9 @@
             "type": "prometheus",
             "uid": "${prometheusds}"
           },
-          "expr": "sum(rate(mattermost_cluster_cluster_request_duration_seconds_count{instance=~\"$server\", juju_application=~\"$juju_application\", juju_model=~\"$juju_model\"}[5m])) by (juju_model, juju_application, juju_unit)",
+          "expr": "sum(rate(mattermost_cluster_cluster_request_duration_seconds_count{juju_application=~\"$juju_application\", juju_model=~\"$juju_model\"}[5m])) by (juju_model, juju_application, juju_unit)",
           "interval": "",
-          "legendFormat": "{{instance}}",
+          "legendFormat": "{{juju_unit}}",
           "refId": "A"
         },
         {
@@ -2452,7 +2443,7 @@
             "type": "prometheus",
             "uid": "${prometheusds}"
           },
-          "expr": "sum(rate(mattermost_cluster_cluster_request_duration_seconds_count{instance=~\"$server\", juju_application=~\"$juju_application\", juju_model=~\"$juju_model\"}[5m]))",
+          "expr": "sum(rate(mattermost_cluster_cluster_request_duration_seconds_count{juju_application=~\"$juju_application\", juju_model=~\"$juju_model\"}[5m]))",
           "interval": "",
           "legendFormat": "Total",
           "refId": "B"
@@ -2573,9 +2564,9 @@
             "type": "prometheus",
             "uid": "${prometheusds}"
           },
-          "expr": "mattermost_jobs_active{instance=~\"$server\", juju_application=~\"$juju_application\", juju_model=~\"$juju_model\"}",
+          "expr": "mattermost_jobs_active{juju_application=~\"$juju_application\", juju_model=~\"$juju_model\"}",
           "interval": "",
-          "legendFormat": "{{instance}}",
+          "legendFormat": "{{juju_unit}}",
           "refId": "A"
         },
         {
@@ -2583,7 +2574,7 @@
             "type": "prometheus",
             "uid": "${prometheusds}"
           },
-          "expr": "sum(mattermost_jobs_active{instance=~\"$server\", juju_application=~\"$juju_application\", juju_model=~\"$juju_model\"})",
+          "expr": "sum(mattermost_jobs_active{juju_application=~\"$juju_application\", juju_model=~\"$juju_model\"})",
           "interval": "",
           "legendFormat": "Total",
           "refId": "B"
@@ -2704,9 +2695,9 @@
             "type": "prometheus",
             "uid": "${prometheusds}"
           },
-          "expr": "irate(mattermost_process_cpu_seconds_total{instance=~\"$server\", juju_application=~\"$juju_application\", juju_model=~\"$juju_model\"}[5m])* 100",
+          "expr": "irate(mattermost_process_cpu_seconds_total{juju_application=~\"$juju_application\", juju_model=~\"$juju_model\"}[5m])* 100",
           "interval": "",
-          "legendFormat": "{{instance}}",
+          "legendFormat": "{{juju_unit}}",
           "refId": "A"
         }
       ],
@@ -2799,9 +2790,9 @@
             "type": "prometheus",
             "uid": "${prometheusds}"
           },
-          "expr": "go_memstats_heap_inuse_bytes{instance=~\"$server\", juju_application=~\"$juju_application\", juju_model=~\"$juju_model\"}",
+          "expr": "go_memstats_heap_inuse_bytes{juju_application=~\"$juju_application\", juju_model=~\"$juju_model\"}",
           "interval": "",
-          "legendFormat": "{{instance}}",
+          "legendFormat": "{{juju_unit}}",
           "refId": "A"
         }
       ],
@@ -2894,9 +2885,9 @@
             "type": "prometheus",
             "uid": "${prometheusds}"
           },
-          "expr": "go_goroutines{instance=~\"$server\", juju_application=~\"$juju_application\", juju_model=~\"$juju_model\"}",
+          "expr": "go_goroutines{juju_application=~\"$juju_application\", juju_model=~\"$juju_model\"}",
           "interval": "",
-          "legendFormat": "{{instance}}",
+          "legendFormat": "{{juju_unit}}",
           "refId": "A"
         },
         {
@@ -2904,7 +2895,7 @@
             "type": "prometheus",
             "uid": "${prometheusds}"
           },
-          "expr": "sum(go_goroutines{instance=~\"$server\", juju_application=~\"$juju_application\", juju_model=~\"$juju_model\"})",
+          "expr": "sum(go_goroutines{juju_application=~\"$juju_application\", juju_model=~\"$juju_model\"})",
           "interval": "",
           "legendFormat": "Total",
           "refId": "B"
@@ -2919,28 +2910,6 @@
   "tags": [],
   "templating": {
     "list": [
-      {
-        "current": {
-          "selected": false,
-          "text": [
-            "All"
-          ],
-          "value": [
-            "$__all"
-          ]
-        },
-        "hide": 0,
-        "includeAll": true,
-        "label": "Loki datasource",
-        "multi": true,
-        "name": "lokids",
-        "options": [],
-        "query": "loki",
-        "refresh": 1,
-        "regex": "",
-        "skipUrlSync": false,
-        "type": "datasource"
-      },
       {
         "current": {
           "selected": false,
@@ -2977,50 +2946,15 @@
         "datasource": {
           "uid": "${prometheusds}"
         },
-        "definition": "label_values(up{juju_model=~\"$juju_model\",juju_model_uuid=~\"$juju_model_uuid\",juju_application=~\"$juju_application\"},juju_unit)",
+        "definition": "label_values(up,juju_model)",
         "hide": 0,
         "includeAll": true,
-        "label": "Juju unit",
+        "label": "Juju model",
         "multi": true,
-        "name": "juju_unit",
+        "name": "juju_model",
         "options": [],
         "query": {
-          "query": "label_values(up{juju_model=~\"$juju_model\",juju_model_uuid=~\"$juju_model_uuid\",juju_application=~\"$juju_application\"},juju_unit)",
-          "refId": "StandardVariableQuery"
-        },
-        "refresh": 1,
-        "regex": "",
-        "skipUrlSync": false,
-        "sort": 0,
-        "tagValuesQuery": "",
-        "tags": [],
-        "tagsQuery": "",
-        "type": "query",
-        "useTags": false
-      },
-      {
-        "allValue": ".*",
-        "current": {
-          "selected": false,
-          "text": [
-            "All"
-          ],
-          "value": [
-            "$__all"
-          ]
-        },
-        "datasource": {
-          "uid": "${prometheusds}"
-        },
-        "definition": "label_values(up{juju_model=~\"$juju_model\",juju_model_uuid=~\"$juju_model_uuid\"},juju_application)",
-        "hide": 0,
-        "includeAll": true,
-        "label": "Juju application",
-        "multi": true,
-        "name": "juju_application",
-        "options": [],
-        "query": {
-          "query": "label_values(up{juju_model=~\"$juju_model\",juju_model_uuid=~\"$juju_model_uuid\"},juju_application)",
+          "query": "label_values(up,juju_model)",
           "refId": "StandardVariableQuery"
         },
         "refresh": 1,
@@ -3082,15 +3016,15 @@
         "datasource": {
           "uid": "${prometheusds}"
         },
-        "definition": "label_values(up,juju_model)",
+        "definition": "label_values(up{juju_model=~\"$juju_model\",juju_model_uuid=~\"$juju_model_uuid\"},juju_application)",
         "hide": 0,
         "includeAll": true,
-        "label": "Juju model",
+        "label": "Juju application",
         "multi": true,
-        "name": "juju_model",
+        "name": "juju_application",
         "options": [],
         "query": {
-          "query": "label_values(up,juju_model)",
+          "query": "label_values(up{juju_model=~\"$juju_model\",juju_model_uuid=~\"$juju_model_uuid\"},juju_application)",
           "refId": "StandardVariableQuery"
         },
         "refresh": 1,
@@ -3102,6 +3036,165 @@
         "tagsQuery": "",
         "type": "query",
         "useTags": false
+      },
+      {
+        "allValue": ".*",
+        "current": {
+          "selected": false,
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        },
+        "datasource": {
+          "uid": "${prometheusds}"
+        },
+        "definition": "label_values(up{juju_model=~\"$juju_model\",juju_model_uuid=~\"$juju_model_uuid\",juju_application=~\"$juju_application\"},juju_unit)",
+        "hide": 0,
+        "includeAll": true,
+        "label": "Juju unit",
+        "multi": true,
+        "name": "juju_unit",
+        "options": [],
+        "query": {
+          "query": "label_values(up{juju_model=~\"$juju_model\",juju_model_uuid=~\"$juju_model_uuid\",juju_application=~\"$juju_application\"},juju_unit)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "tagValuesQuery": "",
+        "tags": [],
+        "tagsQuery": "",
+        "type": "query",
+        "useTags": false
+      },
+      {
+        "allValue": ".*",
+        "current": {
+          "selected": false,
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        },
+        "datasource": {
+          "uid": "${prometheusds}"
+        },
+        "definition": "label_values(mattermost_db_store_time_count{juju_model=~\"$juju_model\",juju_application=~\"$juju_application\"}, method)",
+        "hide": 0,
+        "includeAll": true,
+        "label": "Top DB Count Filter",
+        "multi": true,
+        "name": "top_db_count",
+        "options": [],
+        "query": {
+          "query": "label_values(mattermost_db_store_time_count{juju_model=~\"$juju_model\",juju_application=~\"$juju_application\"}, method)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "allValue": ".*",
+        "current": {
+          "selected": false,
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        },
+        "datasource": {
+          "uid": "${prometheusds}"
+        },
+        "definition": "label_values(mattermost_db_store_time_sum{juju_model=~\"$juju_model\",juju_application=~\"$juju_application\"}, method)",
+        "hide": 0,
+        "includeAll": true,
+        "label": "Top DB Latency Filter",
+        "multi": true,
+        "name": "top_db_latency",
+        "options": [],
+        "query": {
+          "query": "label_values(mattermost_db_store_time_sum{juju_model=~\"$juju_model\",juju_application=~\"$juju_application\"}, method)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "allValue": ".*",
+        "current": {
+          "selected": false,
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        },
+        "datasource": {
+          "uid": "${prometheusds}"
+        },
+        "definition": "label_values(mattermost_api_time_count{juju_model=~\"$juju_model\",juju_application=~\"$juju_application\"}, handler)",
+        "hide": 0,
+        "includeAll": true,
+        "label": "Top API Count Filter",
+        "multi": true,
+        "name": "top_api_count",
+        "options": [],
+        "query": {
+          "query": "label_values(mattermost_api_time_count{juju_model=~\"$juju_model\",juju_application=~\"$juju_application\"}, handler)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "allValue": ".*",
+        "current": {
+          "selected": false,
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        },
+        "datasource": {
+          "uid": "${prometheusds}"
+        },
+        "definition": "label_values(mattermost_api_time_sum{juju_model=~\"$juju_model\",juju_application=~\"$juju_application\"}, handler)",
+        "hide": 0,
+        "includeAll": true,
+        "label": "Top API Latency Filter",
+        "multi": true,
+        "name": "top_api_latency",
+        "options": [],
+        "query": {
+          "query": "label_values(mattermost_api_time_sum{juju_model=~\"$juju_model\",juju_application=~\"$juju_application\"}, handler)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
+        "type": "query"
       }
     ]
   },
