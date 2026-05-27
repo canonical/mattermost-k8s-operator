@@ -10,7 +10,7 @@ Each revision is versioned by the date of the revision.
 
 - Added the following configuration options:
   - `licence`: Mattermost Enterprise Edition licence.
-  - `clustering`: Enable high-availability clustering.
+  - `clustering`: Enable high-availability clustering. Requires Enterprise licence.
   - `debug`: Set log level to DEBUG and enable S3 trace logging.
   - `image-proxy-enabled`: Enable the built-in local image proxy.
   - `max-channels-per-team`: Max channels per team.
