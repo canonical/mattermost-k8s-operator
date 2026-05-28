@@ -18,6 +18,8 @@ CHARM_META = {
     "peers": {"secret-storage": {"interface": "secret-storage"}},
     "requires": {
         "postgresql": {"interface": "postgresql_client", "optional": False, "limit": 1},
+        "s3": {"interface": "s3", "optional": True, "limit": 1},
+        "smtp": {"interface": "smtp", "optional": True, "limit": 1},
         "logging": {"interface": "loki_push_api"},
         "ingress": {"interface": "ingress", "limit": 1},
     },
@@ -58,6 +60,81 @@ CHARM_CONFIG = {
         "app-secret-key-id": {
             "type": "secret",
             "description": "Juju user secret ID for the app secret key.",
+        },
+        "licence": {
+            "type": "string",
+            "default": "",
+            "description": "Mattermost Enterprise Edition licence.",
+        },
+        "clustering": {
+            "type": "boolean",
+            "default": False,
+            "description": "Enable HA clustering.",
+        },
+        "debug": {
+            "type": "boolean",
+            "default": False,
+            "description": "Set log level to DEBUG.",
+        },
+        "image-proxy-enabled": {
+            "type": "boolean",
+            "default": False,
+            "description": "Enable the built-in local image proxy.",
+        },
+        "max-channels-per-team": {
+            "type": "int",
+            "default": 3000,
+            "description": "Max channels per team.",
+        },
+        "max-users-per-team": {
+            "type": "int",
+            "default": 2000,
+            "description": "Max users per team.",
+        },
+        "max-file-size": {
+            "type": "int",
+            "default": 5,
+            "description": "Max file upload size in MB.",
+        },
+        "primary-team": {
+            "type": "string",
+            "default": "",
+            "description": "Primary team URL slug.",
+        },
+        "push-notification-server": {
+            "type": "string",
+            "default": "",
+            "description": "Push notification server URL.",
+        },
+        "push-notifications-include-message-snippet": {
+            "type": "boolean",
+            "default": False,
+            "description": "Include message snippet in push payloads.",
+        },
+        "s3-server-side-encryption": {
+            "type": "boolean",
+            "default": False,
+            "description": "Enable S3 SSE.",
+        },
+        "close-unused-direct-messages": {
+            "type": "boolean",
+            "default": False,
+            "description": "Auto-close inactive DMs.",
+        },
+        "enable-custom-emoji": {
+            "type": "boolean",
+            "default": False,
+            "description": "Allow custom emoji.",
+        },
+        "enable-link-previews": {
+            "type": "boolean",
+            "default": False,
+            "description": "Enable link previews.",
+        },
+        "enable-user-access-tokens": {
+            "type": "boolean",
+            "default": False,
+            "description": "Allow Personal Access Tokens.",
         },
     },
 }
