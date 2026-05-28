@@ -1,0 +1,20 @@
+# Copyright 2026 Canonical Ltd.
+# See LICENSE file for licensing details.
+
+# Version of the artifact schema
+version_schema: 2
+
+# The key holding the change(s)
+changes:
+- title: Added oauth integration.
+  author: DeeKay3
+  type: minor
+  description: Added OAuth integration to the Mattermost charm, allowing it to authenticate users through OAuth providers.
+  urls:
+    pr: 
+      - "https://github.com/canonical/mattermost-k8s-operator/pull/60"
+    related_doc:
+    related_issue:
+  visibility: public
+  highlight: false
+
