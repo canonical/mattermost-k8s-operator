@@ -172,4 +172,13 @@ if [ -n "$SMTP_HOST" ]; then
     fi
 fi
 
+# OpenID Connect (OAuth) configuration
+if [ -n "$APP_OAUTH_CLIENT_ID" ]; then
+    export MM_OPENIDSETTINGS_ENABLE=true
+    export MM_OPENIDSETTINGS_ID="$APP_OAUTH_CLIENT_ID"
+    export MM_OPENIDSETTINGS_SECRET="$APP_OAUTH_CLIENT_SECRET"
+    # Construct the OIDC discovery endpoint from the issuer URL
+    export MM_OPENIDSETTINGS_DISCOVERYENDPOINT="${APP_OAUTH_API_BASE_URL}/.well-known/openid-configuration"
+fi
+
 exec /app/bin/mattermost
