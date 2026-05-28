@@ -11,7 +11,7 @@ jobs:
       canonical/operator-workflows/.github/workflows/integration_test.yaml@main
     permissions:
       contents: write
-      pull-requests: write
+      packages: write
     secrets: inherit
     with:
       pre-run-script: s3-installation.sh
