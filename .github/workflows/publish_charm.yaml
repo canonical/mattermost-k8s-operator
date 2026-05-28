@@ -11,7 +11,7 @@ jobs:
     uses: canonical/operator-workflows/.github/workflows/publish_charm.yaml@main
     permissions:
       contents: write
-      pull-requests: write
+      packages: write
     secrets: inherit
     with:
       channel: latest/edge
