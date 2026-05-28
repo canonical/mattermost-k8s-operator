@@ -9,6 +9,9 @@ on:
 jobs:
   publish-to-edge:
     uses: canonical/operator-workflows/.github/workflows/publish_charm.yaml@main
+    permissions:
+      contents: write
+      pull-requests: write
     secrets: inherit
     with:
       channel: latest/edge
