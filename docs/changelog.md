@@ -29,6 +29,10 @@ Each revision is versioned by the date of the revision.
   - `enable-link-previews`: Enable link previews in messages.
   - `enable-user-access-tokens`: Allow Personal Access Tokens.
 
+## 2026-05-01
+
+- Added `grant-admin-role` action to promote users to system administrators.
+
 ## 2026-04-30
 
 - Added SMTP integration.

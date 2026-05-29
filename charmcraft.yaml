@@ -24,6 +24,15 @@ description: |
 extensions:
   - go-framework
 
+actions:
+  grant-admin-role:
+    description: Grant the "system_admin" role to a user.
+    params:
+      user:
+        type: string
+        description: The user to grant the "system_admin" role to.
+    required: [user]
+
 requires:
   postgresql:
     interface: postgresql_client
