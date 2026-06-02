@@ -36,9 +36,11 @@ variable "postgresql" {
 variable "s3_integrator" {
   description = "S3 integrator charm configuration."
   type = object({
-    channel  = string
-    revision = number
-    config   = optional(map(string), {})
+    channel    = string
+    revision   = number
+    config     = optional(map(string), {})
+    access_key = string
+    secret_key = string
   })
 }
 

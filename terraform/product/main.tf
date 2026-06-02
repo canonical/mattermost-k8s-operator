@@ -39,6 +39,10 @@ resource "juju_application" "s3_integrator" {
 
   config = var.s3_integrator.config
   units  = 1
+
+  provisioner "local-exec" {
+    command = "sleep 60; juju run ${self.name}/leader sync-s3-credentials access-key=${var.s3_integrator.access_key} secret-key=${var.s3_integrator.secret_key}"
+  }
 }
 
 resource "juju_application" "smtp_integrator" {
@@ -55,13 +59,20 @@ resource "juju_application" "smtp_integrator" {
   units  = 1
 }
 
-module "ingress_configurator" {
-  source     = "git::https://github.com/canonical/ingress-configurator-operator//terraform?ref=rev72&depth=1"
-  app_name   = "ingress-configurator"
+resource "juju_application" "ingress_configurator" {
+  name       = "ingress-configurator"
   model_uuid = var.model_uuid
-  channel    = var.ingress_configurator.channel
-  revision   = var.ingress_configurator.revision
-  config     = { hostname = var.external_hostname }
+
+  charm {
+    name     = "ingress-configurator"
+    channel  = var.ingress_configurator.channel
+    revision = var.ingress_configurator.revision
+    base     = "ubuntu@24.04"
+  }
+
+  config = { hostname = var.external_hostname }
+  trust  = true
+  units  = 1
 }
 
 # --- Integrations ---
@@ -117,7 +128,7 @@ resource "juju_integration" "mattermost_ingress" {
   }
 
   application {
-    name     = module.ingress_configurator.app_name
-    endpoint = module.ingress_configurator.endpoints.ingress
+    name     = juju_application.ingress_configurator.name
+    endpoint = "ingress"
   }
 }

@@ -12,6 +12,12 @@ output "postgresql_app_name" {
 }
 
 output "ingress_configurator" {
-  description = "Ingress configurator module outputs."
-  value       = module.ingress_configurator
+  description = "Ingress configurator outputs."
+  value = {
+    app_name = juju_application.ingress_configurator.name
+    endpoints = {
+      ingress       = "ingress"
+      haproxy_route = "haproxy-route"
+    }
+  }
 }
