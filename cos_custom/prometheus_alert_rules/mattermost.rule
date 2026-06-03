@@ -1,0 +1,50 @@
+# Copyright 2026 Canonical Ltd.
+# See LICENSE file for licensing details.
+
+groups:
+  - name: mattermost-prometheus-alerts
+    rules:
+      - alert: MattermostHighCpuUtilization
+        expr: rate(process_cpu_seconds_total[1m]) * 100 > 85
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: Mattermost High CPU Utilization
+          description: "Mattermost CPU utilization averaged over the last minute is above 85%."
+
+      - alert: MattermostHighMemoryUsage
+        expr: (avg_over_time(process_resident_memory_bytes[1m]) / 1024 / 1024) > 4000
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: Mattermost High Memory Usage
+          description: "Mattermost RAM usage averaged over the last minute is above 4000 MB."
+
+      - alert: MattermostHighGoroutinesCount
+        expr: avg_over_time(go_goroutines[1m]) > 5000
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: Mattermost Climbing Goroutines
+          description: "Mattermost active goroutines averaged over the last minute have exceeded 5,000, indicating potential thread lockup."
+
+      - alert: MattermostHighApiErrorsPerSecond
+        expr: sum by (instance) (rate(mattermost_api_time_count{status_code=~"[45].."}[1m])) > 10
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: High Mattermost API Errors Per Second
+          description: "Mattermost is experiencing more than 10 API errors (4xx/5xx) per second over the last minute."
+
+      - alert: MattermostHighMeanApiRequestTime
+        expr: (sum by (instance) (rate(mattermost_api_time_sum[1m])) / sum by (instance) (rate(mattermost_api_time_count[1m]))) > 1.5
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: High Mattermost API Request Latency
+          description: "The mean API request time is averaging above 1.5 seconds over the last minute."

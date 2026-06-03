@@ -1,0 +1,78 @@
+# Copyright 2026 Canonical Ltd.
+# See LICENSE file for licensing details.
+
+rule_files:
+  - ../../cos_custom/prometheus_alert_rules/mattermost.rule
+
+evaluation_interval: 1m
+
+tests:
+  - interval: 1m
+    input_series:
+      - series: 'process_cpu_seconds_total{instance="mattermost-0"}'
+        values: '0+0x3 60+60x5'
+      - series: 'process_resident_memory_bytes{instance="mattermost-0"}'
+        values: '1000000000+0x3 4500000000+0x5'
+      - series: 'go_goroutines{instance="mattermost-0"}'
+        values: '1000+0x3 6000+0x5' 
+      - series: 'mattermost_api_time_count{instance="mattermost-0", status_code="500"}'
+        values: '0+0x3 1000+1000x5' 
+      - series: 'mattermost_api_time_sum{instance="mattermost-0", status_code="500"}'
+        values: '0+0x3 2000+2000x5'
+
+    alert_rule_test:
+      - eval_time: 3m
+        alertname: MattermostHighCpuUtilization
+        exp_alerts: []
+      - eval_time: 3m
+        alertname: MattermostHighMemoryUsage
+        exp_alerts: []
+      - eval_time: 3m
+        alertname: MattermostHighGoroutinesCount
+        exp_alerts: []
+      - eval_time: 3m
+        alertname: MattermostHighApiErrorsPerSecond
+        exp_alerts: []
+      - eval_time: 3m
+        alertname: MattermostHighMeanApiRequestTime
+        exp_alerts: []
+
+      - eval_time: 6m
+        alertname: MattermostHighCpuUtilization
+        exp_alerts:
+          - exp_labels: { severity: warning, instance: mattermost-0 }
+            exp_annotations:
+              summary: "Mattermost High CPU Utilization"
+              description: "Mattermost CPU utilization averaged over the last minute is above 85%."
+
+      - eval_time: 6m
+        alertname: MattermostHighMemoryUsage
+        exp_alerts:
+          - exp_labels: { severity: warning, instance: mattermost-0 }
+            exp_annotations:
+              summary: "Mattermost High Memory Usage"
+              description: "Mattermost RAM usage averaged over the last minute is above 4000 MB."
+
+      - eval_time: 6m
+        alertname: MattermostHighGoroutinesCount
+        exp_alerts:
+          - exp_labels: { severity: warning, instance: mattermost-0 }
+            exp_annotations:
+              summary: "Mattermost Climbing Goroutines"
+              description: "Mattermost active goroutines averaged over the last minute have exceeded 5,000, indicating potential thread lockup."
+
+      - eval_time: 6m
+        alertname: MattermostHighApiErrorsPerSecond
+        exp_alerts:
+          - exp_labels: { severity: critical, instance: mattermost-0 }
+            exp_annotations:
+              summary: "High Mattermost API Errors Per Second"
+              description: "Mattermost is experiencing more than 10 API errors (4xx/5xx) per second over the last minute."
+
+      - eval_time: 6m
+        alertname: MattermostHighMeanApiRequestTime
+        exp_alerts:
+          - exp_labels: { severity: warning, instance: mattermost-0 }
+            exp_annotations:
+              summary: "High Mattermost API Request Latency"
+              description: "The mean API request time is averaging above 1.5 seconds over the last minute."
