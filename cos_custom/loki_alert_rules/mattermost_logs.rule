@@ -1,0 +1,41 @@
+# Copyright 2026 Canonical Ltd.
+# See LICENSE file for licensing details.
+
+groups:
+  - name: mattermost-loki-log-alerts
+    rules:
+      - alert: MattermostLogErrorsSpike
+        expr: sum(count_over_time({service_name="mattermost", %%juju_topology%%} | json | detected_level="error" [1m])) > 15
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: Mattermost Application Log Errors Spiking
+          description: "Mattermost is generating more than 15 'error' level log lines per minute on instance {{ $labels.instance }}."
+
+      - alert: MattermostHttp5xxServerErrors
+        expr: sum(count_over_time({service_name="mattermost", %%juju_topology%%} | json | status_code >= 500 [1m])) > 5
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: Mattermost HTTP 5xx Errors Detected
+          description: "Mattermost is throwing internal server errors (HTTP 5xx) to users at a rate of >5 per minute."
+
+      - alert: MattermostAuthFailureFlood
+        expr: sum(count_over_time({service_name="mattermost", %%juju_topology%%} |~ "(?i)(failed|unauthorized|invalid password)" [1m])) > 25
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: Potential Authentication Flood Detected
+          description: "An unusually high volume of authentication/login failures (>25 in 1 minute) has been tracked in the logs."
+
+      - alert: MattermostPluginFailureSpike
+        expr: sum(count_over_time({service_name="mattermost", %%juju_topology%%} |~ "plugin" | json | detected_level="error" [1m])) > 5
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: Mattermost Plugin Runtime Errors
+          description: "Mattermost extensions or integrations are actively crashing or throwing errors frequently."
