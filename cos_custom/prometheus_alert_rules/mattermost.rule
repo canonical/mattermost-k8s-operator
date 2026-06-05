@@ -33,7 +33,7 @@ groups:
 
       - alert: MattermostHighApiErrorsPerSecond
         expr: sum by (instance) (rate(mattermost_api_time_count{status_code=~"[45].."}[5m])) > 10
-        for: 5m
+        for: 1m
         labels:
           severity: critical
         annotations:

@@ -4,7 +4,7 @@
 rule_files:
   - ../../cos_custom/prometheus_alert_rules/mattermost.rule
 
-evaluation_interval: 5m
+evaluation_interval: 1m
 
 tests:
   - interval: 1m
@@ -37,6 +37,14 @@ tests:
         alertname: MattermostHighMeanApiRequestTime
         exp_alerts: []
 
+      - eval_time: 12m
+        alertname: MattermostHighApiErrorsPerSecond
+        exp_alerts:
+          - exp_labels: { severity: critical, instance: mattermost-0 }
+            exp_annotations:
+              summary: "High Mattermost API Errors Per Second"
+              description: "Mattermost is experiencing more than 10 API errors (4xx/5xx) per second over the last 5 minutes."
+
       - eval_time: 16m
         alertname: MattermostHighCpuUtilization
         exp_alerts:
@@ -60,14 +68,6 @@ tests:
             exp_annotations:
               summary: "Mattermost Climbing Goroutines"
               description: "Mattermost active goroutines averaged over the last 5 minutes have exceeded 5,000, indicating potential thread lockup."
-
-      - eval_time: 16m
-        alertname: MattermostHighApiErrorsPerSecond
-        exp_alerts:
-          - exp_labels: { severity: critical, instance: mattermost-0 }
-            exp_annotations:
-              summary: "High Mattermost API Errors Per Second"
-              description: "Mattermost is experiencing more than 10 API errors (4xx/5xx) per second over the last 5 minutes."
 
       - eval_time: 16m
         alertname: MattermostHighMeanApiRequestTime
