@@ -1,0 +1,18 @@
+# Copyright 2026 Canonical Ltd.
+# See LICENSE file for licensing details.
+
+# Version of the artifact schema
+version_schema: 2
+
+# The key holding the change(s)
+changes:
+- title: Added custom Grafana performance monitoring dashboard
+  author: danielvnguyen
+  type: minor
+  description: Added an adapted Grafana dashboard via the cos_custom layout, providing out-of-the-box visibility into Mattermost API latency, database connection pools, and websocket performance.
+    pr: 
+      - "https://github.com/canonical/mattermost-k8s-operator/pull/62"
+    related_doc:
+    related_issue:
+  visibility: public
+  highlight: false
