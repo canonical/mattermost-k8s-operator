@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 Each revision is versioned by the date of the revision.
 
+## 2026-06-03
+
+- Added custom Prometheus alert rules.
+
 ## 2026-05-22
 
 - Add custom Grafana performance monitoring dashboard via `cos_custom` framework layout.
