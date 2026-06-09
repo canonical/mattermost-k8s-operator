@@ -1,0 +1,41 @@
+# Copyright 2026 Canonical Ltd.
+# See LICENSE file for licensing details.
+
+groups:
+  - name: mattermost-loki-log-alerts
+    rules:
+      - alert: MattermostLogErrorsSpike
+        expr: sum by (instance) (count_over_time({service_name="mattermost", %%juju_topology%%} | json | detected_level="error" [5m])) > 500
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: Mattermost Application Log Errors Spiking
+          description: "Mattermost has generated more than 500 'error' level log lines over the last 5 minutes, sustained for 2 minutes on instance {{ $labels.instance }}."
+
+      - alert: MattermostHttp5xxServerErrors
+        expr: sum by (instance) (count_over_time({service_name="mattermost", %%juju_topology%%} | json | status_code >= 500 [5m])) > 150
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: Mattermost HTTP 5xx Errors Detected
+          description: "Mattermost is consistently throwing internal server errors (>150 HTTP 5xx errors over the last 5 minutes) on instance {{ $labels.instance }}."
+
+      - alert: MattermostAuthFailureFlood
+        expr: sum by (instance) (count_over_time({service_name="mattermost", %%juju_topology%%} |~ "(?i)(failed|unauthorized|invalid password)" [5m])) > 300
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: Potential Authentication Flood Detected
+          description: "A sustained volume of authentication/login failures (>300 over the last 5 minutes) has been tracked on instance {{ $labels.instance }}."
+
+      - alert: MattermostPluginFailureSpike
+        expr: sum by (instance) (count_over_time({service_name="mattermost", %%juju_topology%%} |~ "plugin" | json | detected_level="error" [5m])) > 100
+        for: 3m
+        labels:
+          severity: warning
+        annotations:
+          summary: Mattermost Plugin Runtime Errors
+          description: "Mattermost extensions are frequently throwing errors (>100 errors over the last 5 minutes) on instance {{ $labels.instance }}."
