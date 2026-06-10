@@ -1,0 +1,164 @@
+# Charm architecture
+
+At its core, [Mattermost](https://mattermost.com/) is a Go application that provides a self-hosted messaging platform for secure team collaboration. It integrates with [PostgreSQL](https://www.postgresql.org/) as its database and optionally with [S3](https://aws.amazon.com/s3/)-compatible storage for file management.
+
+The charm design leverages the [sidecar](https://kubernetes.io/blog/2015/06/the-distributed-system-toolkit-patterns/#example-1-sidecar-containers) pattern to allow multiple containers in each pod with [Pebble](https://documentation.ubuntu.com/pebble/) running as the workload container's entrypoint.
+
+Pebble is a lightweight, API-driven process supervisor that is responsible for configuring processes to run in a container and controlling those processes throughout the workload lifecycle.
+
+Pebble `services` are configured through [layers](https://github.com/canonical/pebble#layer-specification), and the following container represents a layer forming the effective Pebble configuration, or `plan`:
+
+1. A [Mattermost](https://mattermost.com/) container, which runs the Mattermost server application via a startup script that translates charm integration data into Mattermost environment variables.
+
+As a result, if you run a `kubectl get pods` on a namespace named for the Juju model you've deployed the Mattermost charm into, you'll see something like the following:
+
+```bash
+NAME                             READY   STATUS    RESTARTS   AGE
+mattermost-k8s-0                 2/2     Running   0          6h4m
+```
+
+This shows there are two containers - the one named above, as well as a container for the charm code itself.
+
+And if you run `kubectl describe pod mattermost-k8s-0`, all the containers will have as Command ```/charm/bin/pebble```. That's because Pebble is responsible for the processes startup as explained above.
+
+## Charm architecture diagram
+
+Below is a diagram of the application architecture of Mattermost.
+```mermaid
+C4Container
+  System_Boundary(sb_mattermost, "Mattermost Charm") {
+    Container_Boundary(cb_app, "App Container") {
+      Component(comp_server, "Mattermost Server", "Go Application", "Serves the messaging platform on port 8080")
+      Component(comp_start, "start.sh", "Bash Script", "Maps integration data to Mattermost environment variables")
+    }
+    Container_Boundary(cb_charm, "Charm Container") {
+      Component(comp_logic, "Charm Logic", "paas-charm Go Framework", "Controls application deployment & config")
+    }
+  }
+  Rel(comp_logic, comp_server, "Supervises process via Pebble")
+  Rel(comp_start, comp_server, "Configures & launches")
+
+```
+
+<!-- TODO: Generate a Mermaid diagram with the following structure:
+
+A C4Container diagram titled "Mattermost Charm" with:
+
+1. A System_Boundary named "Mattermost Charm" containing:
+   - A Container_Boundary named "App Container" (the workload container) with:
+     - A Component "Mattermost Server" (Go Application, "Serves the messaging platform on port 8080")
+     - A Component "start.sh" (Bash Script, "Maps integration data to Mattermost environment variables")
+   - A Container_Boundary named "Charm Container" with:
+     - A Component "Charm Logic" (paas-charm Go Framework, "Controls application deployment & config")
+
+2. Relations:
+   - Charm Logic -> Mattermost Server: "Supervises process via Pebble"
+   - start.sh -> Mattermost Server: "Configures & launches"
+-->
+
+## High-level overview of a Mattermost deployment
+
+The following diagram shows a typical deployment of the Mattermost charm on a Kubernetes cloud. It consists of the Mattermost charm and a required PostgreSQL charm, with optional integrations for S3 storage, SMTP email, OAuth authentication, and ingress.
+
+```mermaid
+C4Container
+title System Architecture: Mattermost Deployment
+
+Container_Boundary(mattermost_boundary, "Mattermost") {
+  System(mattermost, "Mattermost Charm", "Handles team communication and collaboration.")
+}
+
+System_Boundary(postgres_boundary, "PostgreSQL") {
+  SystemDb(postgres, "PostgreSQL", "Required database for storing persistent data.")
+}
+
+System_Boundary(s3_boundary, "S3 Integrator") {
+  SystemDb(s3, "S3 Integrator", "Optional file storage for attachments.")
+}
+
+System_Boundary(smtp_boundary, "SMTP Integrator") {
+  System(smtp, "SMTP Integrator", "Optional email relay service.")
+}
+
+Person(user, "User", "End user connecting to the Mattermost instance.")
+
+Rel(user, mattermost, "connects to")
+BiRel(mattermost, postgres, "stores data")
+BiRel(mattermost, s3, "stores files")
+BiRel(mattermost, smtp, "sends email")
+```
+
+## Containers
+
+Configuration files for the container can be found in the respective directory that defines the rock, see the section below.
+
+### Mattermost
+
+Mattermost is a Go application started via a `start.sh` script that maps environment variables provided by the charm integrations (PostgreSQL, S3, SMTP, OAuth) into Mattermost's native `MM_*` configuration format.
+
+The Mattermost server listens on port `8080` and serves the messaging platform, including its web client, REST API, and WebSocket connections.
+
+The container also includes a set of third-party plugins:
+
+- [Autolink](https://github.com/mattermost-community/mattermost-plugin-autolink)
+- [Matterpoll](https://github.com/matterpoll/matterpoll)
+- [Giphy](https://github.com/moussetc/mattermost-plugin-giphy)
+- [Remind](https://github.com/scottleedavis/mattermost-plugin-remind)
+
+The workload that this container is running is defined in the [Mattermost rock](https://github.com/canonical/mattermost-k8s-operator/tree/main/mattermost_rock).
+
+## OCI images
+
+We use [Rockcraft](https://canonical-rockcraft.readthedocs-hosted.com/en/latest/) to build the OCI image for Mattermost. The image is defined in the [Mattermost rock](https://github.com/canonical/mattermost-k8s-operator/tree/main/mattermost_rock) and is published to [Charmhub](https://charmhub.io/), the official repository of charms. This is done by publishing a resource to Charmhub as described in the [Charmcraft how-to guides](https://canonical-charmcraft.readthedocs-hosted.com/en/stable/howto/manage-charms/#publish-a-charm-on-charmhub).
+
+## Integrations
+
+### PostgreSQL
+
+PostgreSQL is an open-source object-relational database used by Mattermost to store all persistent data, including users, teams, channels and messages. This is a required integration, the charm will remain in a blocked state until PostgreSQL is integrated.
+
+### S3
+
+S3-compatible object storage allows Mattermost to store and retrieve uploaded files (attachments, images, and other media) externally rather than using local filesystem storage. This is an optional integration.
+
+### SMTP
+
+SMTP integration enables Mattermost to send outgoing email notifications such as password resets, team invitations, and message alerts through an external SMTP relay. This is an optional integration.
+
+### OAuth
+
+OAuth integration via [Hydra](https://charmhub.io/hydra) enables OpenID Connect-based single sign-on (SSO), allowing users to authenticate through an external identity provider. This is an optional integration.
+
+### Ingress
+
+The Mattermost charm supports integration with [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/#what-is-ingress), provided automatically by the `go-framework` extension. This allows external traffic to be routed to the Mattermost workload.
+
+### Observability
+
+The Mattermost charm supports integration with the [Canonical Observability Stack (COS)](https://charmhub.io/topics/canonical-observability-stack):
+
+- **Prometheus**: metrics are exposed and can be scraped by the [Prometheus operator](https://charmhub.io/prometheus-k8s) via the `metrics-endpoint` integration.
+- **Grafana**: dashboards can be provided to the [Grafana operator](https://charmhub.io/grafana-k8s) via the `grafana-dashboard` integration.
+- **Loki**: logs can be pushed to the [Loki operator](https://charmhub.io/loki-k8s) via the `logging` integration.
+
+## Juju events
+
+For this charm, the following events are observed:
+
+1. [`pebble_ready`](https://documentation.ubuntu.com/juju/latest/user/reference/hook/#container-pebble-ready): fired on Kubernetes charms when the requested container is ready. Action: check that all required integrations are present and configure the Mattermost container.
+2. [`config_changed`](https://documentation.ubuntu.com/juju/latest/user/reference/hook/#config-changed): usually fired in response to a configuration change using the CLI. Action: validate the configuration and restart the workload.
+3. [`update_status`](https://documentation.ubuntu.com/juju/latest/user/reference/hook/#update-status): periodic event. Action: reconcile the workload state and refresh ingress data.
+4. Integration events for `postgresql`, `s3`, `smtp`, and `oauth`: fired when integration data changes. Action: update the workload configuration and restart the service.
+5. [`grant_admin_role_action`](https://charmhub.io/mattermost-k8s/actions): fired when the `grant-admin-role` action is executed. Action: Grant the `system_admin` role to a user. 
+
+> See more in the Juju docs: [Hook](https://documentation.ubuntu.com/juju/latest/user/reference/hook/)
+
+## Charm code overview
+
+The `src/charm.py` is the default entry point for a charm and has the `MattermostK8sCharm` Python class which inherits from `paas_charm.go.Charm`.
+
+`paas_charm.go.Charm` is a base class provided by the [paas-charm](https://github.com/canonical/paas-charm) library, which extends [Ops](https://documentation.ubuntu.com/ops/latest/) (Python framework for developing charms) with built-in support for Go workloads, Pebble service management, and standard integrations (PostgreSQL, S3, ingress, observability).
+
+The charm itself is minimal, the `go-framework` [Charmcraft extension](https://canonical-charmcraft.readthedocs-hosted.com/en/stable/reference/extensions/) provides the majority of the operational logic, including Pebble layer management, integration handling, and status reporting. Workload-specific configuration is handled by the `start.sh` script inside the rock, which converts environment variables set by the charm framework into Mattermost's native `MM_*` environment variable format.
+
+See more information in [Charm](https://documentation.ubuntu.com/juju/latest/user/reference/charm/).
