@@ -169,6 +169,6 @@ The ``src/charm.py`` is the default entry point for a charm and has the ``Matter
 
 ``paas_charm.go.Charm`` is a base class provided by the `paas-charm <https://github.com/canonical/paas-charm>`__ library, which extends `Ops <https://documentation.ubuntu.com/ops/latest/>`__ (Python framework for developing charms) with built-in support for Go workloads, Pebble service management, and standard integrations (PostgreSQL, S3, ingress, observability).
 
-The charm itself is minimal, the ``go-framework`` `Charmcraft extension <https://canonical-charmcraft.readthedocs-hosted.com/en/stable/reference/extensions/>`__ provides the majority of the operational logic, including Pebble layer management, integration handling, and status reporting. Workload-specific configuration is handled by the ``start.sh`` script inside the rock, which converts environment variables set by the charm framework into Mattermost's native ``MM_*`` environment variable format.
+The charm itself is minimal, the ``go-framework`` `Charmcraft extension <https://documentation.ubuntu.com/charmcraft/stable/reference/extensions/>`__ provides the majority of the operational logic, including Pebble layer management, integration handling, and status reporting. Workload-specific configuration is handled by the ``start.sh`` script inside the rock, which converts environment variables set by the charm framework into Mattermost's native ``MM_*`` environment variable format.
 
 See more information in `Charm <https://documentation.ubuntu.com/juju/latest/user/reference/charm/>`__.
