@@ -41,6 +41,8 @@ Below is a diagram of the application architecture of Mattermost.
      }
      Rel(comp_logic, comp_server, "Supervises process via Pebble")
      Rel(comp_start, comp_server, "Configures & launches")
+     UpdateRelStyle(comp_logic, comp_server, $offsetY="10", $offsetX="-60")
+     UpdateRelStyle(comp_start, comp_server, $offsetX="20")
 
 High-level overview of a Mattermost deployment
 ----------------------------------------------
