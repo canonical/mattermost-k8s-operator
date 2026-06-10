@@ -76,6 +76,9 @@ The following diagram shows a typical deployment of the Mattermost charm on a Ku
    BiRel(mattermost, postgres, "stores data")
    BiRel(mattermost, s3, "stores files")
    BiRel(mattermost, smtp, "sends email")
+   
+   UpdateRelStyle(mattermost, s3, $offsetX="10")
+   UpdateRelStyle(mattermost, postgres, $offsetX="-20", $offsetY="10")
 
 Containers
 ----------
