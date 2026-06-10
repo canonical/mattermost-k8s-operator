@@ -45,7 +45,7 @@ Below is a diagram of the application architecture of Mattermost.
 High-level overview of a Mattermost deployment
 ----------------------------------------------
 
-The following diagram shows a typical deployment of the Mattermost charm on a Kubernetes cloud. It consists of the Mattermost charm and a required PostgreSQL charm, with optional integrations for S3 storage, SMTP email, ``OAuth`` authentication, and ingress.
+The following diagram shows a typical deployment of the Mattermost charm on a Kubernetes cloud. It consists of the Mattermost charm and a required PostgreSQL charm, with optional integrations for S3 storage, SMTP email, OAuth authentication, and ingress.
 
 .. mermaid::
 
@@ -128,10 +128,10 @@ SMTP
 
 SMTP integration enables Mattermost to send outgoing email notifications such as password resets, team invitations, and message alerts through an external SMTP relay. This is an optional integration.
 
-``OAuth``
+OAuth
 ~~~~~~~~~
 
-``OAuth`` integration via `Hydra <https://charmhub.io/hydra>`__ enables OpenID Connect-based single sign-on (SSO), allowing users to authenticate through an external identity provider. This is an optional integration.
+OAuth integration via `Hydra <https://charmhub.io/hydra>`__ enables OpenID Connect-based single sign-on (SSO), allowing users to authenticate through an external identity provider. This is an optional integration.
 
 Ingress
 ~~~~~~~
@@ -152,11 +152,11 @@ Juju events
 
 For this charm, the following events are observed:
 
-1. ```pebble_ready`` <https://documentation.ubuntu.com/juju/latest/user/reference/hook/#container-pebble-ready>`__: fired on Kubernetes charms when the requested container is ready. Action: check that all required integrations are present and configure the Mattermost container.
-2. ```config_changed`` <https://documentation.ubuntu.com/juju/latest/user/reference/hook/#config-changed>`__: usually fired in response to a configuration change using the CLI. Action: validate the configuration and restart the workload.
-3. ```update_status`` <https://documentation.ubuntu.com/juju/latest/user/reference/hook/#update-status>`__: periodic event. Action: reconcile the workload state and refresh ingress data.
+1. ``pebble_ready`` (`link <https://documentation.ubuntu.com/juju/latest/user/reference/hook/#container-pebble-ready>`__): fired on Kubernetes charms when the requested container is ready. Action: check that all required integrations are present and configure the Mattermost container.
+2. ``config_changed`` (`link <https://documentation.ubuntu.com/juju/latest/user/reference/hook/#config-changed>`__): usually fired in response to a configuration change using the CLI. Action: validate the configuration and restart the workload.
+3. ``update_status`` (`link <https://documentation.ubuntu.com/juju/latest/user/reference/hook/#update-status>`__): periodic event. Action: reconcile the workload state and refresh ingress data.
 4. Integration events for ``postgresql``, ``s3``, ``smtp``, and ``oauth``: fired when integration data changes. Action: update the workload configuration and restart the service.
-5. ```grant_admin_role_action`` <https://charmhub.io/mattermost-k8s/actions>`__: fired when the ``grant-admin-role`` action is executed. Action: Grant the ``system_admin`` role to a user.
+5. ``grant_admin_role_action`` (`link <https://charmhub.io/mattermost-k8s/actions>`__): fired when the ``grant-admin-role`` action is executed. Action: Grant the ``system_admin`` role to a user.
 
 ..
 
