@@ -1,0 +1,17 @@
+# Version of the artifact schema
+version_schema: 2
+
+# The key holding the change(s)
+changes:
+- title: Added Charm architecture docs
+  author: DeeKay3
+  type: minor
+  description: Added Charm architecture documentation in RST format.
+  urls:
+    pr: 
+      - "https://github.com/canonical/mattermost-k8s-operator/pull/69"
+    related_doc:
+    related_issue:
+  visibility: false
+  highlight: false
+
