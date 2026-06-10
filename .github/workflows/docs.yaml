@@ -6,57 +6,10 @@ on:
   pull_request:
 
 jobs:
-  vale:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
-      - name: Run Vale Linter
-        uses: vale-cli/vale-action@v2.1.1
-        with:
-          files: '["README.md","CONTRIBUTING.md","docs/"]'
-          vale_flags: "--glob=*.md"
-          fail_on_error: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  linkcheck:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
-
-      - name: Restore lychee cache
-        id: restore-cache
-        uses: actions/cache/restore@v4
-        with:
-          path: .lycheecache
-          key: cache-lychee-${{ github.sha }}
-          restore-keys: cache-lychee-
-
-      - name: Link Checker
-        id: lychee
-        uses: lycheeverse/lychee-action@v2.8.0
-        with:
-          fail: false
-          args: >-
-            --user-agent "Lychee CI run ${{ github.sha }}"
-            --verbose
-            --no-progress
-            --max-concurrency 2
-            --retry-wait-time 5
-            --max-retries 5
-            --cache
-            --max-cache-age 5d
-            --cache-exclude-status '400..'
-            --exclude terraform.io
-            --exclude hashicorp.com
-            './**/*.md' './**/*.rst'
-
-      - name: Save lychee cache
-        uses: actions/cache/save@v4
-        if: always()
-        with:
-          path: .lycheecache
-          key: ${{ steps.restore-cache.outputs.cache-primary-key }}
+  docs-checks:
+    uses: canonical/operator-workflows/.github/workflows/docs.yaml@main
+    secrets: inherit
+    with:
+      vale-files: '["README.md","CONTRIBUTING.md","docs/"]'
+      linkcheck-fail-on-error: false
 
