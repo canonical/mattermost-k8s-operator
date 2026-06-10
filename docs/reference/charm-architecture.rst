@@ -11,7 +11,7 @@ Pebble ``services`` are configured through `layers <https://github.com/canonical
 
 1. A `Mattermost <https://mattermost.com/>`__ container, which runs the Mattermost server application via a startup script that translates charm integration data into Mattermost environment variables.
 
-As a result, if you run a ``kubectl get pods`` on a namespace named for the Juju model you've deployed the Mattermost charm into, you'll see something like the following:
+As a result, if you run ``kubectl get pods`` on a namespace named for the Juju model you've deployed the Mattermost charm into, you'll see something like the following:
 
 .. code:: bash
 
