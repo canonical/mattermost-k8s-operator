@@ -25,6 +25,7 @@ And if you run `kubectl describe pod mattermost-k8s-0`, all the containers will 
 
 Below is a diagram of the application architecture of Mattermost.
 ```mermaid
+
 C4Container
   System_Boundary(sb_mattermost, "Mattermost Charm") {
     Container_Boundary(cb_app, "App Container") {
@@ -40,27 +41,13 @@ C4Container
 
 ```
 
-<!-- TODO: Generate a Mermaid diagram with the following structure:
-
-A C4Container diagram titled "Mattermost Charm" with:
-
-1. A System_Boundary named "Mattermost Charm" containing:
-   - A Container_Boundary named "App Container" (the workload container) with:
-     - A Component "Mattermost Server" (Go Application, "Serves the messaging platform on port 8080")
-     - A Component "start.sh" (Bash Script, "Maps integration data to Mattermost environment variables")
-   - A Container_Boundary named "Charm Container" with:
-     - A Component "Charm Logic" (paas-charm Go Framework, "Controls application deployment & config")
-
-2. Relations:
-   - Charm Logic -> Mattermost Server: "Supervises process via Pebble"
-   - start.sh -> Mattermost Server: "Configures & launches"
--->
 
 ## High-level overview of a Mattermost deployment
 
 The following diagram shows a typical deployment of the Mattermost charm on a Kubernetes cloud. It consists of the Mattermost charm and a required PostgreSQL charm, with optional integrations for S3 storage, SMTP email, OAuth authentication, and ingress.
 
 ```mermaid
+
 C4Container
 title System Architecture: Mattermost Deployment
 
@@ -86,6 +73,7 @@ Rel(user, mattermost, "connects to")
 BiRel(mattermost, postgres, "stores data")
 BiRel(mattermost, s3, "stores files")
 BiRel(mattermost, smtp, "sends email")
+
 ```
 
 ## Containers
