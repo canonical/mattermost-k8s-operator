@@ -4,38 +4,43 @@
 groups:
   - name: mattermost-loki-log-alerts
     rules:
+      - alert: MattermostFatalOrPanicLogs
+        expr: sum by (instance) (rate({service_name="mattermost", %%juju_topology%%} | json | detected_level=~"fatal|panic"[2m])) > 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: Mattermost Fatal or Panic Error
+          description: "Instance {{ $labels.instance }} has logged a fatal error or panic in the last 2 minutes. Immediate investigation required."
+      - alert: MattermostDatabaseErrors
+        expr: sum by (instance) (rate({service_name="mattermost", %%juju_topology%%} | json | detected_level="error" |~ "(?i)(database|postgres|db |sql)"[5m])) > 1
+        for: 3m
+        labels:
+          severity: critical
+        annotations:
+          summary: Mattermost Database Connectivity/Query Errors
+          description: "More than 1 database-related error per second detected over the last 5 minutes on {{ $labels.instance }}."
       - alert: MattermostLogErrorsSpike
         expr: sum by (instance) (count_over_time({service_name="mattermost", %%juju_topology%%} | json | detected_level="error" [5m])) > 500
-        for: 2m
+        for: 3m
         labels:
           severity: warning
         annotations:
           summary: Mattermost Application Log Errors Spiking
-          description: "Mattermost has generated more than 500 'error' level log lines over the last 5 minutes, sustained for 2 minutes on instance {{ $labels.instance }}."
-
-      - alert: MattermostHttp5xxServerErrors
-        expr: sum by (instance) (count_over_time({service_name="mattermost", %%juju_topology%%} | json | status_code >= 500 [5m])) > 150
-        for: 2m
-        labels:
-          severity: critical
-        annotations:
-          summary: Mattermost HTTP 5xx Errors Detected
-          description: "Mattermost is consistently throwing internal server errors (>150 HTTP 5xx errors over the last 5 minutes) on instance {{ $labels.instance }}."
-
-      - alert: MattermostAuthFailureFlood
-        expr: sum by (instance) (count_over_time({service_name="mattermost", %%juju_topology%%} |~ "(?i)(failed|unauthorized|invalid password)" [5m])) > 300
-        for: 5m
-        labels:
-          severity: warning
-        annotations:
-          summary: Potential Authentication Flood Detected
-          description: "A sustained volume of authentication/login failures (>300 over the last 5 minutes) has been tracked on instance {{ $labels.instance }}."
-
+          description: "Mattermost has generated more than 500 'error' level log lines over the last 5 minutes, sustained for 3 minutes on instance {{ $labels.instance }}."
       - alert: MattermostPluginFailureSpike
-        expr: sum by (instance) (count_over_time({service_name="mattermost", %%juju_topology%%} |~ "plugin" | json | detected_level="error" [5m])) > 100
+        expr: sum by (instance) (count_over_time({service_name="mattermost", %%juju_topology%%} |~ "plugin" | json | detected_level="error" [5m])) > 20
         for: 3m
         labels:
           severity: warning
         annotations:
           summary: Mattermost Plugin Runtime Errors
-          description: "Mattermost extensions are frequently throwing errors (>100 errors over the last 5 minutes) on instance {{ $labels.instance }}."
+          description: "Mattermost extensions are frequently throwing errors (>20 errors over the last 5 minutes) on instance {{ $labels.instance }}."
+      - alert: MattermostAuthFailureFlood
+        expr: sum by (instance) (count_over_time({service_name="mattermost", %%juju_topology%%} |~ "(?i)(failed|unauthorized|invalid password)" [5m])) > 30
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: Potential Authentication Flood Detected
+          description: "A sustained volume of authentication/login failures (>30 over the last 5 minutes) has been tracked on instance {{ $labels.instance }}."
