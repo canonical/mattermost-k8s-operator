@@ -42,7 +42,7 @@ groups:
 
       - alert: MattermostAuthFailureFlood
         expr: sum by (instance) (count_over_time({service_name="mattermost", %%juju_topology%%} |~ "(?i)(failed|unauthorized|invalid password)" [5m])) > 30
-        for: 5m
+        for: 3m
         labels:
           severity: warning
         annotations:
