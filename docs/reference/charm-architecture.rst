@@ -78,13 +78,8 @@ The following diagram shows a typical deployment of the Mattermost charm on a Ku
    UpdateRelStyle(mattermost, s3, $offsetX="10")
    UpdateRelStyle(mattermost, postgres, $offsetX="-20", $offsetY="10")
 
-Containers
+Mattermost container
 ----------
-
-Configuration files for the container can be found in the respective directory that defines the rock, see the section below.
-
-Mattermost
-~~~~~~~~~~
 
 Mattermost is a Go application started via a ``start.sh`` script that maps environment variables provided by the charm integrations (PostgreSQL, S3, SMTP, ``OAuth``) into Mattermost's native ``MM_*`` configuration format.
 
