@@ -25,7 +25,7 @@ And if you run ``kubectl describe pod mattermost-k8s-0``, all the containers wil
 Charm architecture diagram
 --------------------------
 
-Below is a diagram of the application architecture of Mattermost. Mattermost is the main application container, which is configured and managed by the charm logic running in a separate container. The charm logic uses Pebble to interact with the Mattermost process and ensure it is running with the correct configuration, renaming the environment variables to work with Mattermost using `start.sh`.
+Below is a diagram of the application architecture of Mattermost. Mattermost is the main application container, which is configured and managed by the charm logic running in a separate container. The charm logic uses Pebble to interact with the Mattermost process and ensure it is running with the correct configuration, renaming the environment variables to work with Mattermost using ``start.sh``.
 
 .. mermaid::
 
@@ -77,6 +77,7 @@ The following diagram shows a typical deployment of the Mattermost charm on a Ku
    BiRel(mattermost, s3, "stores files")
    BiRel(mattermost, smtp, "sends email")
    
+   UpdateRelStyle(user, mattermost, $offsetY="-20")
    UpdateRelStyle(mattermost, s3, $offsetX="10")
    UpdateRelStyle(mattermost, postgres, $offsetX="-20", $offsetY="10")
 
@@ -131,12 +132,12 @@ S3-compatible object storage allows Mattermost to store and retrieve uploaded fi
 SMTP
 ~~~~
 
-SMTP integration enables Mattermost to send outgoing email notifications such as password resets, team invitations, and message alerts through an external SMTP relay. This is an optional integration.
+SMTP enables Mattermost to send outgoing email notifications such as password resets, team invitations, and message alerts through an external SMTP relay. This is an optional integration.
 
 ``OAuth``
 ~~~~~~~~~
 
-``OAuth`` integration via `Hydra <https://charmhub.io/hydra>`__ enables OpenID Connect-based single sign-on (SSO), allowing users to authenticate through an external identity provider. This is an optional integration.
+The ``OAuth`` integration via `Hydra <https://charmhub.io/hydra>`__ enables OpenID Connect-based single sign-on (SSO), allowing users to authenticate through an external identity provider. This is an optional integration.
 
 Ingress
 ~~~~~~~
