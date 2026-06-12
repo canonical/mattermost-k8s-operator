@@ -22,9 +22,6 @@ This shows there are two containers - the one named above, as well as a containe
 
 And if you run ``kubectl describe pod mattermost-k8s-0``, all the containers will have as Command ``/charm/bin/pebble``. That's because Pebble is responsible for the processes startup as explained above.
 
-Charm architecture diagram
---------------------------
-
 Below is a diagram of the application architecture of Mattermost. Mattermost is the main application container, which is configured and managed by the charm logic running in a separate container. The charm logic uses Pebble to interact with the Mattermost process and ensure it is running with the correct configuration, renaming the environment variables to work with Mattermost using ``start.sh``.
 
 .. mermaid::
