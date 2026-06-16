@@ -2,7 +2,7 @@
 
 Mattermost provides the following performance monitoring statistics to integrate with Prometheus and Grafana.
 
-A Mattermost Entry, Enterprise, or Enterprise Advanced license is required to connect to the `/metrics` endpoint at port 8067 by default.
+A Mattermost Entry, Enterprise, or Enterprise Advanced license is required to connect to the `/metrics` endpoint at port 8067 (default).
 
 ## API metrics
 
