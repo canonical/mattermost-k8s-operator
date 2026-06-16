@@ -10,10 +10,10 @@ A Mattermost Entry, Enterprise, or Enterprise Advanced license is required to co
 
 ## Caching metrics
 
-* **mattermost_cache_etag_hit_total**: The total number of ETag cache hits for a specific cache.
-* **mattermost_cache_etag_miss_total**: The total number of ETag cache misses for an API call.
+* **mattermost_cache_etag_hit_total**: The total number of entity-tag cache hits for a specific cache.
+* **mattermost_cache_etag_miss_total**: The total number of entity-tag cache misses for an API call.
 * **mattermost_cache_mem_hit_total**: The total number of memory cache hits for a specific cache.
-* **mattermost_cache_mem_invalidation_total**: The total number of memory cache invalidations for a specific cache.
+* **mattermost_cache_mem_invalidation_total**: The total number of memory cache invalidation events for a specific cache.
 * **mattermost_cache_mem_miss_total**: The total number of cache misses for a specific cache.
 
 ## Cluster metrics
@@ -27,11 +27,11 @@ A Mattermost Entry, Enterprise, or Enterprise Advanced license is required to co
 
 * **mattermost_db_active_users**: The total number of active users.
 * **mattermost_db_cache_time**: Time to execute the cache handler.
-* **mattermost_db_master_connections_total**: The total number of connections to the master database.
+* **mattermost_db_master_connections_total**: The total number of connections to the primary database.
 * **mattermost_db_read_replica_connections_total**: The total number of connections to all the read replica databases.
 * **mattermost_db_search_replica_connections_total**: The total number of connections to all the search replica databases.
 * **mattermost_db_store_time**: The total time in seconds to execute a given database store method.
-* **mattermost_db_replica_lag_abs**: Absolute lag time based on binlog distance/transaction queue length.
+* **mattermost_db_replica_lag_abs**: Absolute lag time based on binary log distance or transaction queue length.
 * **mattermost_db_replica_lag_time**: The time taken for the replica to catch up.
 
 ## Database connection metrics
@@ -50,7 +50,7 @@ A Mattermost Entry, Enterprise, or Enterprise Advanced license is required to co
 
 * **mattermost_http_errors_total**: The total number of http API errors.
 * **mattermost_http_requests_total**: The total number of http API requests.
-* **mattermost_http_websockets_total**: The total number of websocket connections to this server.
+* **mattermost_http_websockets_total**: The total number of WebSocket connections to this server.
 
 ## Login and session metrics
 
@@ -59,7 +59,7 @@ A Mattermost Entry, Enterprise, or Enterprise Advanced license is required to co
 
 ## Mattermost channels metrics
 
-* **mattermost_post_broadcasts_total**: The total number of websocket broadcasts sent because a post was created.
+* **mattermost_post_broadcasts_total**: The total number of WebSocket broadcasts sent because a post was created.
 * **mattermost_post_emails_sent_total**: The total number of emails sent because a post was created.
 * **mattermost_post_file_attachments_total**: The total number of file attachments created because a post was created.
 * **mattermost_post_pushes_sent_total**: The total number of mobile push notifications sent because a post was created.
@@ -72,7 +72,7 @@ A Mattermost Entry, Enterprise, or Enterprise Advanced license is required to co
 * **mattermost_process_max_fds**: Maximum number of open file descriptors.
 * **mattermost_process_open_fds**: Number of open file descriptors.
 * **mattermost_process_resident_memory_bytes**: Resident memory size in bytes.
-* **mattermost_process_start_time_seconds**: Start time of the process since unix epoch in seconds.
+* **mattermost_process_start_time_seconds**: Start time of the process since Unix epoch in seconds.
 * **mattermost_process_virtual_memory_bytes**: Virtual memory size in bytes.
 * **mattermost_process_virtual_memory_max_bytes**: Maximum amount of virtual memory available in bytes.
 
@@ -86,15 +86,15 @@ A Mattermost Entry, Enterprise, or Enterprise Advanced license is required to co
 * **mattermost_search_post_index_total**: The total number of posts indexes carried out.
 * **mattermost_search_posts_searches_total**: The total number of post searches carried out.
 * **mattermost_search_user_index_total**: The total number of user indexes carried out.
-* **mattermost_search_engine_status**: Status of the configured search engine: 1 = healthy or not configured, 0 = configured but unavailable. Use this metric to set up alerts for search engine outages.
+* **mattermost_search_engine_status**: Status of the configured search engine: one = healthy or not configured, zero = configured but unavailable. Use this metric to set up alerts for search engine outages.
 
-## WebSocket metrics
+## Websocket metrics
 
-* **mattermost_websocket_broadcast_buffer_size**: Number of events in the websocket broadcasts buffer waiting to be processed.
+* **mattermost_websocket_broadcast_buffer_size**: Number of events in the WebSocket broadcasts buffer waiting to be processed.
 * **mattermost_websocket_broadcast_buffer_users_registered**: Number of users registered in a broadcast buffer hub.
-* **mattermost_websocket_broadcasts_total**: The total number of websocket broadcasts sent for any type.
-* **mattermost_websocket_event_total**: Total number of websocket events.
-* **mattermost_websocket_reconnects_total**: Total number of websocket reconnect attempts.
+* **mattermost_websocket_broadcasts_total**: The total number of WebSocket broadcasts sent for any type.
+* **mattermost_websocket_event_total**: Total number of WebSocket events.
+* **mattermost_websocket_reconnects_total**: Total number of WebSocket reconnect attempts.
 
 ## Logging metrics
 
@@ -145,11 +145,11 @@ A Mattermost Entry, Enterprise, or Enterprise Advanced license is required to co
 * **mattermost_notifications_success**: Total number of successfully sent notifications.
 * **mattermost_notifications_total**: Total number of notification events.
 * **mattermost_notifications_total_ack**: Total number of notification events acknowledged.
-* **mattermost_notifications_unsupported**: Total number of untrackable notifications due to an unsupported app version.
+* **mattermost_notifications_unsupported**: Total number of notifications that cannot be tracked because of an unsupported app version.
 
 ## Mobile app metrics
 
-* **mattermost_mobileapp_mobile_channel_switch**: Duration of the time taken from when a user clicks on a channel name, and the full channel sreen is loaded (seconds).
+* **mattermost_mobileapp_mobile_channel_switch**: Duration of the time taken from when a user clicks on a channel name, and the full channel screen is loaded (seconds).
 * **mattermost_mobileapp_mobile_load**: Duration of the time taken from when a user opens the app and the app finally loads all relevant information (seconds).
 * **mattermost_mobileapp_mobile_team_switch**: Duration of the time taken from when a user clicks on a team, and the full categories screen is loaded (seconds).
 
@@ -167,11 +167,11 @@ A Mattermost Entry, Enterprise, or Enterprise Advanced license is required to co
 * **mattermost_webapp_team_switch**: Duration of the time taken from when a user clicks on a team in the LHS to when posts in that team become visible (seconds).
 * **mattermost_webapp_time_to_first_byte**: Duration from when a browser starts to request a page from a server until when it starts to receive data in response (seconds).
 
-# Standard Go metrics
+# Standard metrics for Go
 
 The performance monitoring feature provides standard Go metrics for HTTP server runtime profiling data and system monitoring. These metrics are available in every Mattermost plan.
 
 * **go_memstats_alloc_bytes**: for memory usage.
-* **go_goroutines**: for number of goroutines.
+* **go_goroutines**: for number of active runtime routines.
 * **go_gc_duration_seconds**: for garbage collection duration.
 * **go_memstats_heap_objects**: for object tracking on the heap.
