@@ -75,6 +75,19 @@ resource "juju_application" "ingress_configurator" {
   units  = 1
 }
 
+resource "juju_application" "self_signed_certificates" {
+  name       = "self-signed-certificates"
+  model_uuid = var.model_uuid
+
+  charm {
+    name     = "self-signed-certificates"
+    channel  = var.self_signed_certificates.channel
+    revision = var.self_signed_certificates.revision
+  }
+
+  units = 1
+}
+
 # --- Integrations ---
 
 resource "juju_integration" "mattermost_postgresql" {
@@ -116,6 +129,20 @@ resource "juju_integration" "mattermost_smtp" {
   application {
     name     = juju_application.smtp_integrator.name
     endpoint = "smtp"
+  }
+}
+
+resource "juju_integration" "postgresql_tls" {
+  model_uuid = var.model_uuid
+
+  application {
+    name     = juju_application.postgresql.name
+    endpoint = "certificates"
+  }
+
+  application {
+    name     = juju_application.self_signed_certificates.name
+    endpoint = "certificates"
   }
 }
 

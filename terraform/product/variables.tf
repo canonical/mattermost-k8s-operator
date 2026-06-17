@@ -53,6 +53,15 @@ variable "smtp_integrator" {
   })
 }
 
+variable "self_signed_certificates" {
+  description = "Self-signed certificates charm configuration."
+  type = object({
+    channel  = optional(string, "latest/stable")
+    revision = optional(number, null)
+  })
+  default = {}
+}
+
 variable "ingress_configurator" {
   description = "Ingress configurator charm configuration."
   type = object({
