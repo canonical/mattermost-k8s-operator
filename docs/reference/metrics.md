@@ -1,3 +1,9 @@
+---
+myst:
+    html_meta:
+        "description lang=en": "Technical details for Mattermost charm performance monitoring metrics, including available statistics for Prometheus and Grafana."
+---
+
 # Metrics
 
 Mattermost provides the following performance monitoring statistics to integrate with Prometheus and Grafana.
@@ -167,7 +173,11 @@ A Mattermost Entry, Enterprise, or Enterprise Advanced license is required to co
 * **mattermost_webapp_team_switch**: Duration of the time taken from when a user clicks on a team in the LHS to when posts in that team become visible (seconds).
 * **mattermost_webapp_time_to_first_byte**: Duration from when a browser starts to request a page from a server until when it starts to receive data in response (seconds).
 
+<!-- vale Canonical.007-Headings-sentence-case = NO -->
+
 # Standard metrics for Go
+
+<!-- vale Canonical.007-Headings-sentence-case = YES -->
 
 The performance monitoring feature provides standard Go metrics for HTTP server runtime profiling data and system monitoring. These metrics are available in every Mattermost plan.
 
