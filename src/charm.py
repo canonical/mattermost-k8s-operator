@@ -1,107 +1,113 @@
 #!/usr/bin/env python3
-
-# Copyright 2025 Canonical Ltd.
+# Copyright 2026 Canonical Ltd.
 # See LICENSE file for licensing details.
 
-# Learn more at: https://documentation.ubuntu.com/juju/3.6/howto/manage-charms/#build-a-charm
-
-"""Charm the service.
-
-Refer to the following post for a quick-start guide that will help you
-develop a new k8s charm using the Operator Framework:
-
-https://discourse.charmhub.io/t/4208
-"""
+"""Go Charm entrypoint."""
 
 import logging
+import time
 import typing
 
 import ops
-from ops import pebble
+import paas_charm.go
+from ops.pebble import ExecError, LayerDict
 
-# Log messages can be retrieved using juju debug-log
 logger = logging.getLogger(__name__)
 
-VALID_LOG_LEVELS = ["info", "debug", "warning", "error", "critical"]
+SOCKET_PATH = "/var/tmp/mattermost_local.socket"
 
 
-class Charm(ops.CharmBase):
-    """Charm implementing holistic reconciliation pattern.
+class MattermostK8sCharm(paas_charm.go.Charm):
+    """Go Charm service."""
 
-    The holistic pattern centralizes all state reconciliation logic into a single
-    reconcile method that is called from all event handlers. This ensures consistency
-    and reduces code duplication.
-    See https://documentation.ubuntu.com/ops/latest/explanation/holistic-vs-delta-charms/
-    for more information.
-    """
-
-    def __init__(self, *args: typing.Any):
-        """Construct.
+    def __init__(self, *args: typing.Any) -> None:
+        """Initialize the instance.
 
         Args:
-            args: Arguments passed to the CharmBase parent constructor.
+            args: passthrough to CharmBase.
         """
         super().__init__(*args)
-        self.framework.observe(self.on.httpbin_pebble_ready, self._on_httpbin_pebble_ready)
-        self.framework.observe(self.on.config_changed, self._on_config_changed)
 
-    def reconcile(self) -> None:
-        """Holistic reconciliation method.
+        # actions
+        self.framework.observe(self.on.grant_admin_role_action, self._on_grant_admin_role_action)
 
-        This method contains all the logic needed to reconcile the charm state.
-        It is idempotent and can be called from any event handler.
+    def _on_grant_admin_role_action(self, event: ops.ActionEvent) -> None:
+        """Grant the "system_admin" role to a specified user.
 
-        Learn more about interacting with Pebble at
-        https://documentation.ubuntu.com/juju/3.6/reference/pebble/
+        Args:
+            event: Event triggering the grant-admin-role action.
         """
-        # Validate configuration
-        log_level = str(self.model.config["log-level"]).lower()
-        if log_level not in VALID_LOG_LEVELS:
-            self.unit.status = ops.BlockedStatus(f"invalid log level: '{log_level}'")
-            return
-
-        # Get container
-        container = self.unit.get_container("httpbin")
+        container = self.unit.get_container("app")
         if not container.can_connect():
-            self.unit.status = ops.WaitingStatus("waiting for Pebble API")
+            event.fail("Unable to connect to container, container is not ready")
             return
 
-        # Configure and ensure workload is running
-        container.add_layer("httpbin", self._pebble_layer, combine=True)
-        container.replan()
+        user = event.params.get("user")
+        if not user:
+            event.fail("User parameter is required")
+            return
 
-        logger.debug("Workload reconciled with log level: %s", log_level)
-        # Learn more about statuses in the SDK docs:
-        # https://documentation.ubuntu.com/juju/latest/reference/status/index.html
-        self.unit.status = ops.ActiveStatus()
+        try:
+            if not self._set_local_mode(container, enable=True):
+                event.fail("Mattermost socket failed to initialize after 30 seconds")
+                return
 
-    def _on_httpbin_pebble_ready(self, _: ops.PebbleReadyEvent) -> None:
-        """Handle httpbin pebble ready event."""
-        self.reconcile()
+            cmd = ["/app/bin/mmctl", "--local", "roles", "system-admin", user]
+            process = container.exec(cmd)
+            stdout, _ = process.wait_output()
+            msg = (
+                f"Action completed. If user '{user}' was not already a system administrator, "
+                "they will need to log out and log back in to fully receive their permissions"
+            )
+            event.set_results({"info": msg, "output": stdout})
+        except ExecError as ex:
+            event.fail(f"Failed to grant admin role to user {user}: {ex.stderr}")
+        finally:
+            self._set_local_mode(container, enable=False)
+            try:
+                container.remove_path(SOCKET_PATH)
+            except ops.pebble.PathError:
+                pass
 
-    def _on_config_changed(self, _: ops.ConfigChangedEvent) -> None:
-        """Handle changed configuration."""
-        self.reconcile()
+    def _set_local_mode(self, container: ops.Container, enable: bool) -> bool:
+        """Toggle local mode via Pebble layer and wait for readiness if enabling.
 
-    @property
-    def _pebble_layer(self) -> pebble.LayerDict:
-        """Return a dictionary representing a Pebble layer."""
-        return {
-            "summary": "httpbin layer",
-            "description": "pebble config layer for httpbin",
+        Args:
+            container: The Pebble container for the app.
+            enable: True to enable local mode, False to disable it.
+
+        Returns:
+            bool: True if successful, False if the socket fails to initialize on startup.
+        """
+        layer: LayerDict = {
             "services": {
-                "httpbin": {
-                    "override": "replace",
-                    "summary": "httpbin",
-                    "command": "gunicorn -b 0.0.0.0:80 httpbin:app -k gevent",
-                    "startup": "enabled",
+                "go": {
+                    "override": "merge",
                     "environment": {
-                        "GUNICORN_CMD_ARGS": f"--log-level {self.model.config['log-level']}"
+                        "MM_SERVICESETTINGS_ENABLELOCALMODE": ("true" if enable else "false")
                     },
                 }
-            },
+            }
         }
+        container.add_layer("local-mode-patch", layer, combine=True)
+        container.replan()
+
+        if not enable:
+            return True
+
+        timeout = 30
+        poll_interval = 2
+        time_elapsed = 0
+
+        while time_elapsed < timeout:
+            try:
+                container.exec(["/app/bin/mmctl", "--local", "system", "status"]).wait_output()
+                return True
+            except ExecError:
+                time.sleep(poll_interval)
+                time_elapsed += poll_interval
+        return False
 
 
-if __name__ == "__main__":  # pragma: nocover
-    ops.main(Charm)
+if __name__ == "__main__":
+    ops.main(MattermostK8sCharm)

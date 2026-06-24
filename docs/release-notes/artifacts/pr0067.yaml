@@ -1,0 +1,16 @@
+# Version of the artifact schema
+version_schema: 2
+
+# The key holding the change(s)
+changes:
+- title: Added custom Loki alert rules
+  author: danielvnguyen
+  type: minor
+  description: Added Loki log alert rules for Mattermost observability - covering application log error spikes, HTTP 5xx server crashes, authentication floods, and plugin runtime failures.
+  urls:
+    pr: 
+      - "https://github.com/canonical/mattermost-k8s-operator/pull/67"
+    related_doc:
+    related_issue:
+  visibility: public
+  highlight: false

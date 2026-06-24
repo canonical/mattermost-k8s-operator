@@ -1,0 +1,111 @@
+# Copyright 2026 Canonical Ltd.
+# See LICENSE file for licensing details.
+
+name: mattermost
+base: ubuntu@24.04
+version: '10.11.6-1'
+summary: Mattermost is an open source, self-hosted Slack-alternative.
+description: |
+  Mattermost offers secure, flexible, and integrated messaging 
+  for technical teams.
+license: AGPL-3.0
+platforms:
+  amd64:
+run-user: _daemon_
+
+services:
+  go:
+    override: replace
+    command: bash /app/start.sh
+    startup: enabled
+    working-dir: /app
+    user: _daemon_
+
+parts:
+  # ---------------------------------------------------------
+  # Part A: Local Patches (Helper)
+  # Moves local files into the staging area so other parts can use them.
+  # ---------------------------------------------------------
+  build-patches:
+    plugin: dump
+    source: .
+    organize:
+      start.sh: app/start.sh
+    stage:
+      - app/start.sh
+
+  # ---------------------------------------------------------
+  # Part B: Fetch Mattermost Server
+  # ---------------------------------------------------------
+  mattermost:
+    plugin: dump
+    source: https://releases.mattermost.com/10.11.6/mattermost-10.11.6-linux-amd64.tar.gz
+    source-type: tar
+    organize:
+      bin: app/bin
+      client: app/client
+      config: app/config
+      logs: app/logs
+      prepackaged_plugins: app/prepackaged_plugins
+      templates: app/templates
+      i18n: app/i18n
+      manifest.txt: app/manifest.txt
+    override-build: |
+      craftctl default
+      rm -rf $CRAFT_PART_INSTALL/fonts
+    stage:
+      - app/*
+    permissions:
+      - owner: 584792
+        group: 584792
+
+  # ---------------------------------------------------------
+  # Part C: Plugins
+  # ---------------------------------------------------------
+  plugins:
+    plugin: nil
+    after: [mattermost]
+    build-packages: [curl, tar]
+    override-build: |
+      mkdir -p $CRAFT_PART_INSTALL/app/plugins
+      cd $CRAFT_PART_INSTALL/app/plugins
+      
+      download_plugin() {
+        curl -L -s "$1" | tar -xz
+      }
+      # 3rd Party
+      download_plugin "https://github.com/mattermost-community/mattermost-plugin-autolink/releases/download/v1.4.1/mattermost-autolink-1.4.1.tar.gz"
+      download_plugin "https://github.com/matterpoll/matterpoll/releases/download/v1.8.0/com.github.matterpoll.matterpoll-1.8.0.tar.gz"
+      download_plugin "https://github.com/moussetc/mattermost-plugin-giphy/releases/download/v4.0.0/com.github.moussetc.mattermost.plugin.giphy-4.0.0.tar.gz"
+      download_plugin "https://github.com/scottleedavis/mattermost-plugin-remind/releases/download/v1.0.0/com.github.scottleedavis.mattermost-plugin-remind-1.0.0.tar.gz"
+    permissions:
+      - owner: 584792
+        group: 584792
+
+  # ---------------------------------------------------------
+  # Part D: Runtime Dependencies
+  # ---------------------------------------------------------
+  dependencies:
+    plugin: nil
+    stage-packages:
+      - curl
+      - python3-yaml
+      - xmlsec1
+      - ca-certificates
+      - openssl
+
+  # ---------------------------------------------------------
+  # Part E: Directory Setup
+  # ---------------------------------------------------------
+  setup-dirs:
+    plugin: nil
+    after: [mattermost, plugins]
+    override-build: |
+      mkdir -p $CRAFT_PART_INSTALL/app/data
+      mkdir -p $CRAFT_PART_INSTALL/app/logs
+      mkdir -p $CRAFT_PART_INSTALL/app/config
+      mkdir -p $CRAFT_PART_INSTALL/app/plugins
+      mkdir -p $CRAFT_PART_INSTALL/app/client/plugins
+    permissions:
+      - owner: 584792
+        group: 584792

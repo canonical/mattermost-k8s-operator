@@ -28,3 +28,9 @@ def pytest_addoption(parser):
         action="store",
         help="temporarily-created model name",
     )
+    parser.addoption(
+        "--mattermost-image",
+        action="store",
+        help="mattermost OCI rock image URI",
+    )
+    parser.addoption("--s3-address", action="store")

@@ -1,0 +1,20 @@
+# Copyright 2026 Canonical Ltd.
+# See LICENSE file for licensing details.
+
+# Version of the artifact schema
+version_schema: 2
+
+# The key holding the change(s)
+changes:
+- title: Created new charm base and rock
+  author: DeeKay3
+  type: major
+  description: The Mattermost charm has been refactored. Now the charm has been initialized using the 12-factor go framework with the `postgresql` relation, and we created the first ever Mattermost rock as the first part of the refactorization.
+  urls:
+    pr: 
+      - "https://github.com/canonical/mattermost-k8s-operator/pull/48"
+    related_doc:
+    related_issue:
+  visibility: public
+  highlight: true
+

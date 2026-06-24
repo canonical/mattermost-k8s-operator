@@ -1,65 +1,146 @@
-# Copyright 2025 Canonical Ltd.
+# Copyright 2026 Canonical Ltd.
 # See LICENSE file for licensing details.
+
 # This file configures Charmcraft.
-# See https://canonical-charmcraft.readthedocs-hosted.com/stable/howto/manage-charmcraft/ 
-# for guidance.
-
+# See https://juju.is/docs/sdk/charmcraft-config for guidance.
+name: mattermost-k8s
 type: charm
-name: platform-engineering-charm-template
-title: Charm Template
-summary: A very short one-line summary of the charm.
-links:
-  documentation: https://discourse.charmhub.io
-  issues: 
-    https://github.com/canonical/platform-engineering-charm-template/issues
-  source: https://github.com/canonical/platform-engineering-charm-template
-  contact: https://launchpad.net/~canonical-is-devops
-
-description: |
-  A single sentence that says what the charm is, concisely and memorably.
-
-  A paragraph of one to three short sentences, that describe what the charm does.
-
-  A third paragraph that explains what need the charm meets.
-
-  Finally, a paragraph that describes whom the charm is useful for.
-
-
 base: ubuntu@24.04
+
+# the platforms this charm should be built on and run on.
+# you can check your architecture with `dpkg --print-architecture`
 platforms:
   amd64:
 
-parts:
-  charm:
-    source: .
-    plugin: uv
-    build-snaps:
-    - astral-uv
-containers:
-  httpbin:
-    resource: httpbin-image
+# (Required)
+summary: Mattermost is a flexible, open source messaging platform that enables secure team collaboration.
 
-# This field populates the Resources tab on Charmhub.
-resources:
-  # An OCI image resource for each container listed above.
-  # You may remove this if your charm will run without a workload sidecar container.
-  httpbin-image:
-    type: oci-image
-    description: OCI image for httpbin
-    # The upstream-source field is ignored by Juju. It is included here as a reference
-    # so the integration testing suite knows which image to deploy during testing. This field
-    # is also used by the 'canonical/charming-actions' Github action for automated releasing.
-    upstream-source: kennethreitz/httpbin
+# (Required)
+description: |
+  Mattermost is a flexible, open source messaging platform that enables secure team collaboration. 
+  It provides a self-hosted alternative to proprietary messaging services, allowing teams to communicate and collaborate effectively while maintaining control over their data.
+  Check https://mattermost.com for more information.
 
-# See https://canonical-charmcraft.readthedocs-hosted.com/stable/reference/files/config-yaml-file/
-# for guidance.
+extensions:
+  - go-framework
+
+actions:
+  grant-admin-role:
+    description: Grant the "system_admin" role to a user.
+    params:
+      user:
+        type: string
+        description: The user to grant the "system_admin" role to.
+    required: [user]
+
+requires:
+  postgresql:
+    interface: postgresql_client
+    optional: false
+    limit: 1
+  s3:
+    interface: s3
+    optional: true
+    limit: 1
+  oauth:
+    interface: oauth
+    optional: true
+    limit: 1
+  smtp:
+    interface: smtp
+    optional: true
+    limit: 1
+
 config:
   options:
-    # An example config option to customise the log level of the workload
-    log-level:
-      description: |
-        Configures the log level of gunicorn. 
-
-        Acceptable values are: "info", "debug", "warning", "error" and "critical"
-      default: "info"
+    licence:
       type: string
+      description: |
+        The contents of the Mattermost Enterprise Edition licence file.
+        Required for enterprise features such as clustering, S3 server-side
+        encryption, and SAML SSO.
+      default: ""
+    clustering:
+      type: boolean
+      description: |
+        Enable Mattermost high-availability clustering mode.
+        Requires a Mattermost Enterprise Edition licence.
+      default: false
+    debug:
+      type: boolean
+      description: |
+        Set the Mattermost log level to DEBUG. When false, the log level is INFO.
+        Also enables S3 request tracing when S3 storage is active.
+      default: false
+    image-proxy-enabled:
+      type: boolean
+      description: |
+        Enable the built-in local image proxy. This prevents Mattermost clients
+        from connecting directly to remote image servers, anonymizing their
+        connections and blocking insecure content.
+      default: false
+    max-channels-per-team:
+      type: int
+      description: |
+        Maximum number of channels per team, including both active and
+        deleted channels.
+      default: 3000
+    max-users-per-team:
+      type: int
+      description: |
+        Maximum number of users per team, including active and inactive users.
+      default: 2000
+    max-file-size:
+      type: int
+      description: |
+        Maximum file upload size in megabytes.
+      default: 5
+    primary-team:
+      type: string
+      description: |
+        The primary team of which users on the server are members. When set,
+        the options to join other teams or leave the primary team are disabled.
+        Value is the team URL slug (e.g. "myteam").
+      default: ""
+    push-notification-server:
+      type: string
+      description: |
+        The URL of the push notification server (e.g. Mattermost HPNS or a
+        self-hosted push proxy). Required for mobile push notifications.
+      default: ""
+    push-notifications-include-message-snippet:
+      type: boolean
+      description: |
+        If true, push notification payloads include a message snippet (which
+        may contain confidential information). If false, payloads include only
+        an ID for the client to fetch the message directly.
+      default: false
+    s3-server-side-encryption:
+      type: boolean
+      description: |
+        Enable S3 Server-Side Encryption (SSE) for file attachments at rest.
+        Requires S3-side configuration and a Mattermost Enterprise Edition licence.
+      default: false
+    close-unused-direct-messages:
+      type: boolean
+      description: |
+        Automatically close direct message conversations that have been
+        inactive. If disabled, users cannot enable this themselves.
+      default: false
+    enable-custom-emoji:
+      type: boolean
+      description: |
+        Allow users to create and use custom emoji.
+      default: false
+    enable-link-previews:
+      type: boolean
+      description: |
+        Enable link/URL previews in messages. If disabled, users cannot
+        enable this themselves.
+      default: false
+    enable-user-access-tokens:
+      type: boolean
+      description: |
+        Allow users to create Personal Access Tokens.
+      default: false
+
