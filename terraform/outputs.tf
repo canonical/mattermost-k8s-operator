@@ -3,11 +3,14 @@
 
 output "app_name" {
   description = "Name of the deployed application."
-  value       = juju_application.__charm_name__.name
+  value       = juju_application.mattermost_k8s.name
 }
 
-output "endpoints" {
+output "requires" {
   value = {
-    ingress = "ingress"
+    postgresql = "postgresql"
+    s3         = "s3"
+    smtp       = "smtp"
+    ingress    = "ingress"
   }
 }
