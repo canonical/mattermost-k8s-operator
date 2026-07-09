@@ -11,6 +11,7 @@ output "requires" {
     postgresql = "postgresql"
     s3         = "s3"
     smtp       = "smtp"
+    oauth      = "oauth"
     ingress    = "ingress"
   }
 }

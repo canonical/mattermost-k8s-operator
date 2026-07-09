@@ -9,6 +9,19 @@ variable "model_uuid" {
 variable "external_hostname" {
   description = "External hostname for ingress (used by ingress-configurator)."
   type        = string
+  default     = ""
+}
+
+variable "deploy_postgresql" {
+  description = "Whether to deploy the bundled postgresql-k8s charm (with self-signed TLS). Set to false to integrate an external PostgreSQL via an offer instead."
+  type        = bool
+  default     = true
+}
+
+variable "deploy_ingress" {
+  description = "Whether to deploy the bundled ingress-configurator charm. Set to false to manage ingress externally."
+  type        = bool
+  default     = true
 }
 
 variable "mattermost" {
@@ -51,6 +64,17 @@ variable "smtp_integrator" {
     revision = number
     config   = optional(map(string), {})
   })
+}
+
+variable "oauth" {
+  description = "OAuth external IdP integrator charm configuration."
+  type = object({
+    channel  = optional(string, "edge")
+    revision = optional(number, null)
+    base     = optional(string, "ubuntu@22.04")
+    config   = optional(map(string), {})
+  })
+  default = {}
 }
 
 variable "self_signed_certificates" {

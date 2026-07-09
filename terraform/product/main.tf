@@ -13,6 +13,7 @@ module "mattermost" {
 }
 
 resource "juju_application" "postgresql" {
+  count      = var.deploy_postgresql ? 1 : 0
   name       = "postgresql-k8s"
   model_uuid = var.model_uuid
 
@@ -59,7 +60,23 @@ resource "juju_application" "smtp_integrator" {
   units  = 1
 }
 
+resource "juju_application" "oauth_integrator" {
+  name       = "oauth-external-idp-integrator"
+  model_uuid = var.model_uuid
+
+  charm {
+    name     = "oauth-external-idp-integrator"
+    channel  = var.oauth.channel
+    revision = var.oauth.revision
+    base     = var.oauth.base
+  }
+
+  config = var.oauth.config
+  units  = 1
+}
+
 resource "juju_application" "ingress_configurator" {
+  count      = var.deploy_ingress ? 1 : 0
   name       = "ingress-configurator"
   model_uuid = var.model_uuid
 
@@ -76,6 +93,7 @@ resource "juju_application" "ingress_configurator" {
 }
 
 resource "juju_application" "self_signed_certificates" {
+  count      = var.deploy_postgresql ? 1 : 0
   name       = "self-signed-certificates"
   model_uuid = var.model_uuid
 
@@ -91,6 +109,7 @@ resource "juju_application" "self_signed_certificates" {
 # --- Integrations ---
 
 resource "juju_integration" "mattermost_postgresql" {
+  count      = var.deploy_postgresql ? 1 : 0
   model_uuid = var.model_uuid
 
   application {
@@ -99,7 +118,7 @@ resource "juju_integration" "mattermost_postgresql" {
   }
 
   application {
-    name     = juju_application.postgresql.name
+    name     = juju_application.postgresql[0].name
     endpoint = "database"
   }
 }
@@ -132,21 +151,37 @@ resource "juju_integration" "mattermost_smtp" {
   }
 }
 
-resource "juju_integration" "postgresql_tls" {
+resource "juju_integration" "mattermost_oauth" {
   model_uuid = var.model_uuid
 
   application {
-    name     = juju_application.postgresql.name
+    name     = module.mattermost.app_name
+    endpoint = module.mattermost.requires.oauth
+  }
+
+  application {
+    name     = juju_application.oauth_integrator.name
+    endpoint = "oauth"
+  }
+}
+
+resource "juju_integration" "postgresql_tls" {
+  count      = var.deploy_postgresql ? 1 : 0
+  model_uuid = var.model_uuid
+
+  application {
+    name     = juju_application.postgresql[0].name
     endpoint = "certificates"
   }
 
   application {
-    name     = juju_application.self_signed_certificates.name
+    name     = juju_application.self_signed_certificates[0].name
     endpoint = "certificates"
   }
 }
 
 resource "juju_integration" "mattermost_ingress" {
+  count      = var.deploy_ingress ? 1 : 0
   model_uuid = var.model_uuid
 
   application {
@@ -155,7 +190,7 @@ resource "juju_integration" "mattermost_ingress" {
   }
 
   application {
-    name     = juju_application.ingress_configurator.name
+    name     = juju_application.ingress_configurator[0].name
     endpoint = "ingress"
   }
 }
