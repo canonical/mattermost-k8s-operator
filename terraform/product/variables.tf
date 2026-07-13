@@ -76,7 +76,7 @@ variable "smtp_password" {
 variable "oauth" {
   description = "OAuth external IdP integrator charm configuration."
   type = object({
-    channel  = optional(string, "edge")
+    channel  = optional(string, "latest/edge")
     revision = optional(number, null)
     base     = optional(string, "ubuntu@22.04")
     config   = optional(map(string), {})
