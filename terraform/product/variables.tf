@@ -66,6 +66,13 @@ variable "smtp_integrator" {
   })
 }
 
+variable "smtp_password" {
+  description = "SMTP AUTH password. When set, it is stored as a Juju secret and referenced by smtp-integrator via password_secret."
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
 variable "oauth" {
   description = "OAuth external IdP integrator charm configuration."
   type = object({

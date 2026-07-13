@@ -46,6 +46,16 @@ resource "juju_application" "s3_integrator" {
   }
 }
 
+resource "juju_secret" "smtp_password" {
+  count      = var.smtp_password != "" ? 1 : 0
+  name       = "smtp-password"
+  info       = "SMTP AUTH password for smtp-integrator"
+  model_uuid = var.model_uuid
+  value = {
+    password = var.smtp_password
+  }
+}
+
 resource "juju_application" "smtp_integrator" {
   name       = "smtp-integrator"
   model_uuid = var.model_uuid
@@ -56,8 +66,18 @@ resource "juju_application" "smtp_integrator" {
     revision = var.smtp_integrator.revision
   }
 
-  config = var.smtp_integrator.config
-  units  = 1
+  config = var.smtp_password != "" ? merge(
+    var.smtp_integrator.config,
+    { password_secret = "secret:${juju_secret.smtp_password[0].secret_id}" }
+  ) : var.smtp_integrator.config
+  units = 1
+}
+
+resource "juju_access_secret" "smtp_password" {
+  count        = var.smtp_password != "" ? 1 : 0
+  model_uuid   = var.model_uuid
+  secret_id    = juju_secret.smtp_password[0].secret_id
+  applications = [juju_application.smtp_integrator.name]
 }
 
 resource "juju_application" "oauth_integrator" {
