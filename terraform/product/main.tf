@@ -77,7 +77,7 @@ resource "juju_access_secret" "smtp_password" {
   count        = var.smtp_password != "" ? 1 : 0
   model_uuid   = var.model_uuid
   secret_id    = juju_secret.smtp_password[0].secret_id
-  applications = [juju_application.smtp_integrator.name]
+  applications = [juju_application.smtp_integrator.name, module.mattermost.app_name]
 }
 
 resource "juju_application" "oauth_integrator" {
