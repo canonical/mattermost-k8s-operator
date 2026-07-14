@@ -1,0 +1,16 @@
+# Version of the artifact schema
+version_schema: 2
+
+# The key holding the change(s)
+changes:
+- title: Added Security docs
+  author: DeeKay3
+  type: minor
+  description: Added Security documentation in RST format.
+  urls:
+    pr: 
+      - "https://github.com/canonical/mattermost-k8s-operator/pull/74"
+    related_doc:
+    related_issue:
+  visibility: false
+  highlight: false
