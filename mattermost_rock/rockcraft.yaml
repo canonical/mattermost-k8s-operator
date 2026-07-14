@@ -76,7 +76,7 @@ parts:
       # 3rd Party
       download_plugin "https://github.com/mattermost-community/mattermost-plugin-autolink/releases/download/v1.4.1/mattermost-autolink-1.4.1.tar.gz"
       download_plugin "https://github.com/matterpoll/matterpoll/releases/download/v1.8.0/com.github.matterpoll.matterpoll-1.8.0.tar.gz"
-      download_plugin "https://github.com/moussetc/mattermost-plugin-giphy/releases/download/v4.0.0/com.github.moussetc.mattermost.plugin.giphy-4.0.0.tar.gz"
+      download_plugin "https://github.com/moussetc/mattermost-plugin-giphy/releases/download/v5.0.0/com.github.moussetc.mattermost.plugin.giphy-5.0.0.tar.gz"
       download_plugin "https://github.com/scottleedavis/mattermost-plugin-remind/releases/download/v1.0.0/com.github.scottleedavis.mattermost-plugin-remind-1.0.0.tar.gz"
     permissions:
       - owner: 584792
