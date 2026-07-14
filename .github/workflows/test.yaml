@@ -12,7 +12,3 @@ jobs:
     secrets: inherit
     with:
       with-uv: true
-      # TODO: re-enable once charmcraft 4.3.x / check-libraries compatibility is fixed
-      # charmcraft 4.3.0+ crashes silently (exit 1, no output) during `fetch-lib` in CI,
-      # breaking the check regardless of library state. Tracked upstream in charming-actions.
-      require-check-lib: false
