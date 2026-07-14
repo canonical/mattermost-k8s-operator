@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 Each revision is versioned by the date of the revision.
 
+## 2026-07-14
+
+- Added the Terraform product module to be used in staging and production deployments.
+
 ## 2026-06-16
 
 - Added documentation for COS integration how-to guide and metrics reference.
