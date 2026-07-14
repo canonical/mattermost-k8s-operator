@@ -67,7 +67,7 @@ LIBAPI = 0
 
 # Increment this PATCH version before using `charmcraft publish-lib` or reset
 # to 0 if you are raising the major API version
-LIBPATCH = 12
+LIBPATCH = 11
 
 PYDEPS = ["jsonschema"]
 
@@ -165,24 +165,7 @@ OAUTH_REQUIRER_JSON_SCHEMA = {
             "default": "client_secret_basic",
         },
     },
-    "required": ["audience", "scope", "grant_types", "token_endpoint_auth_method"],
-    "allOf": [
-        {
-            "if": {
-                "properties": {
-                    "grant_types": {
-                        "contains": {
-                            "const": "authorization_code",
-                        }
-                    }
-                },
-                "required": ["grant_types"],
-            },
-            "then": {
-                "required": ["redirect_uri"],
-            },
-        }
-    ],
+    "required": ["redirect_uri", "audience", "scope", "grant_types", "token_endpoint_auth_method"],
 }
 
 
@@ -281,7 +264,7 @@ def _validate_data(data: Dict, schema: Dict) -> None:
 class ClientConfig:
     """Helper class containing a client's configuration."""
 
-    redirect_uri: str | None
+    redirect_uri: str
     scope: str
     grant_types: List[str]
     audience: List[str] = field(default_factory=lambda: [])
@@ -290,23 +273,18 @@ class ClientConfig:
 
     def validate(self) -> None:
         """Validate the client configuration."""
-        if "authorization_code" in self.grant_types and not self.redirect_uri:
-            raise ClientConfigError(
-                "redirect_uri is required when using authorization_code grant_type"
-            )
-
-        # Validate redirect_uri when configured
-        if self.redirect_uri is not None and not re.match(url_regex, self.redirect_uri):
+        # Validate redirect_uri
+        if not re.match(url_regex, self.redirect_uri):
             raise ClientConfigError(f"Invalid URL {self.redirect_uri}")
 
-        if self.redirect_uri is not None and self.redirect_uri.startswith("http://"):
+        if self.redirect_uri.startswith("http://"):
             logger.warning("Provided Redirect URL uses http scheme. Don't do this in production")
 
         # Validate grant_types
         for grant_type in self.grant_types:
             if grant_type not in ALLOWED_GRANT_TYPES:
                 raise ClientConfigError(
-                    f"Invalid grant_type {grant_type}, must be one of {ALLOWED_GRANT_TYPES}"
+                    f"Invalid grant_type {grant_type}, must be one " f"of {ALLOWED_GRANT_TYPES}"
                 )
 
         # Validate client authentication methods
