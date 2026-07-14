@@ -1,26 +1,98 @@
-# Security overview
+# Security
 
-<!-- Remember to update this file for your charm!!
+This document explains the possible security risks in the Mattermost charm and
+best practices to avoid them. It revolves around the practices from the charm
+side. For details regarding upstream Mattermost configuration and broader
+security considerations, please refer to the
+[official Mattermost documentation](https://docs.mattermost.com/about/security.html).
 
-This document outlines the security design of the charm along common risks and
-possible best practices.
+## Outdated software
 
-Elaborate on topics such as common risks, good practices, built-in protection, etc.
+Outdated software components, such as the upstream Mattermost workload or charm
+dependencies, can introduce exploitable security vulnerabilities.
 
-Are there upstream security docs that we can point to? If so, include a
-sentence like:
-For details regarding upstream __charm_name__ configuration and broader security
-considerations, please refer to the [official <software> documentation](link-to-upstream-docs).
+### Best practices
 
-## Risks
-In most cases, it will be appropriate to include a specific heading
-Risks under which known risks are listed and described. Include a subheading for best
-practices for the user to follow to avoid or limit risks.
+- Regularly [upgrade the charm](https://charmhub.io/mattermost-k8s) revision to
+  include the latest charm components. Updates include security fixes from
+  dependencies and the workload, as charm dependencies are regularly updated.
+- Regularly update Juju to the latest version to include security fixes.
+- Deploy observability, such as the
+  [Canonical Observability Stack](https://charmhub.io/topics/canonical-observability-stack),
+  to detect unusual behaviours. See [How to integrate with COS](/how-to/integrate-with-cos.md).
 
-## Information security
-In some cases a product will have particular information security implications
-(concerned with potential for information loss, incorrect retention, unlawful disclosure
-and so on). Notes on these should be gathered separately in the overview topic, or
-in a topic of their own.
+## Loss of data
 
--->
+The Mattermost database or uploaded files can be lost or corrupted for various
+reasons, including hardware failure, accidental deletion, or software errors.
+
+### Best practices
+
+- Use S3 for file storage so that uploads are stored externally and can be
+  recovered independently of the workload. See [Integrations](/reference/integrations.md).
+- Use a dedicated [Charmed PostgreSQL](https://charmhub.io/postgresql-k8s) and
+  regularly back up the database through the charm's
+  [backup action](https://canonical-charmed-postgresql.readthedocs-hosted.com/14/how-to/back-up-and-restore/create-a-backup/).
+- Enable S3 server-side encryption by setting the `s3-server-side-encryption`
+  configuration option to `true` (requires a Mattermost Enterprise licence and
+  S3-side configuration).
+
+## Unencrypted traffic
+
+If Mattermost serves plain HTTP, the traffic between Mattermost and its clients
+is unencrypted, risking eavesdropping and tampering.
+
+### Best practices
+
+- Integrate the Mattermost charm with an ingress controller that provides TLS
+  termination, such as
+  [Traefik](https://charmhub.io/traefik-k8s). The `go-framework` extension used
+  by this charm provides built-in ingress support.
+- Ensure the SMTP relay connection is encrypted. When configuring the
+  [smtp-integrator](https://charmhub.io/smtp-integrator), use a transport
+  security mode that enforces TLS (such as `starttls`).
+
+## Authentication and access control
+
+Weak or misconfigured authentication increases the risk of unauthorized access
+to sensitive team communications.
+
+### Best practices
+
+- Integrate the charm with an OAuth identity provider (such as
+  [Hydra](https://charmhub.io/hydra)) to enable OpenID Connect-based single
+  sign-on (SSO). This centralises authentication and enforces organisational
+  login policies.
+- Limit the use of the `grant-admin-role` action to only the users who strictly
+  require administrative privileges.
+- Keep the `enable-user-access-tokens` configuration option disabled (`false`)
+  unless your workflows explicitly require Personal Access Tokens. If enabled,
+  regularly audit issued tokens.
+
+## Push notification privacy
+
+Push notification payloads that include message content can leak confidential
+information if the push notification service or the device is compromised.
+
+### Best practices
+
+- Keep the `push-notifications-include-message-snippet` configuration option
+  set to `false` (the default). This ensures push payloads include only a
+  message identifier, and the full content is fetched by the mobile client
+  directly from the Mattermost server.
+- Only configure `push-notification-server` to point to a trusted push proxy
+  (for example, the Mattermost Hosted Push Notification Service or a
+  self-hosted push proxy).
+
+## Image proxy
+
+Without an image proxy, Mattermost clients fetch remote images directly, which
+can expose client IP addresses to external servers and allow loading of insecure
+or malicious content.
+
+### Best practices
+
+- Enable the built-in local image proxy by setting the `image-proxy-enabled`
+  configuration option to `true`. This routes all remote image requests through
+  the Mattermost server, anonymising client connections and blocking insecure
+  content.
