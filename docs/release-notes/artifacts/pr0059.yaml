@@ -1,0 +1,20 @@
+# Copyright 2026 Canonical Ltd.
+# See LICENSE file for licensing details.
+
+# Version of the artifact schema
+version_schema: 2
+
+# The key holding the change(s)
+changes:
+- title: Added grant-admin-role action
+  author: danielvnguyen
+  type: minor
+  description: Added a new Juju action that allows administrators to promote any Mattermost user to the system_admin role directly via the Juju CLI.
+  urls:
+    pr: 
+      - "https://github.com/canonical/mattermost-k8s-operator/pull/59"
+    related_doc:
+    related_issue:
+  visibility: public
+  highlight: false
+

@@ -1,0 +1,17 @@
+# Version of the artifact schema
+version_schema: 2
+
+# The key holding the change(s)
+changes:
+- title: Added custom Prometheus alert rules
+  author: danielvnguyen
+  type: minor
+  description: Added Prometheus alert rules for core Mattermost metrics - covering API errors, latency, goroutine leaks, and memory bottlenecks.
+  urls:
+    pr: 
+      - "https://github.com/canonical/mattermost-k8s-operator/pull/66"
+    related_doc:
+    related_issue:
+  visibility: public
+  highlight: false
+

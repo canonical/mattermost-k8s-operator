@@ -42,3 +42,16 @@ Integrate command:
 juju integrate mattermost-k8s smtp-integrator:smtp
 ```
 
+### `oauth`
+
+_Interface_: `oauth`
+_Supported charms_: [`hydra-operator`](https://github.com/canonical/hydra-operator)
+
+`oauth` integration allows the capability of authenticating users through `oauth`
+Identity providers.
+
+Integrate command:
+```
+juju integrate mattermost-k8s hydra-operator:oauth
+```
+

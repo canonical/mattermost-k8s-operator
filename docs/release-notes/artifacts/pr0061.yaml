@@ -1,0 +1,28 @@
+# Copyright 2026 Canonical Ltd.
+# See LICENSE file for licensing details.
+
+# Version of the artifact schema
+version_schema: 2
+
+# The key holding the change(s)
+changes:
+- title: Added configurations to the charm.
+  author: DeeKay3
+  type: minor
+  description: >-
+    Added 15 configuration options to the Mattermost charm: licence (Enterprise
+    Edition licence), clustering (HA mode), debug (DEBUG log level and S3 trace),
+    image-proxy-enabled (local image proxy), max-channels-per-team,
+    max-users-per-team, max-file-size (upload limit in MB),
+    primary-team (lock users to a team), push-notification-server,
+    push-notifications-include-message-snippet, s3-server-side-encryption,
+    close-unused-direct-messages, enable-custom-emoji, enable-link-previews,
+    and enable-user-access-tokens.
+  urls:
+    pr: 
+      - "https://github.com/canonical/mattermost-k8s-operator/pull/61"
+    related_doc:
+    related_issue:
+  visibility: public
+  highlight: false
+

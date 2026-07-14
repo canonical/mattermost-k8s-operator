@@ -9,6 +9,9 @@ jobs:
   integration-tests:
     uses: 
       canonical/operator-workflows/.github/workflows/integration_test.yaml@main
+    permissions:
+      contents: write
+      packages: write
     secrets: inherit
     with:
       pre-run-script: s3-installation.sh
@@ -23,6 +26,9 @@ jobs:
   # integration-tests-juju-4:
   #   uses: 
   #     canonical/operator-workflows/.github/workflows/integration_test.yaml@main
+  #    permissions:
+  #        contents: write
+  #        pull-requests: write
   #   secrets: inherit
   #   with:
   #     trivy-fs-enabled: true
