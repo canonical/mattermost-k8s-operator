@@ -13,7 +13,7 @@ changes:
     automatically updated as part of the Mattermost binary upgrade.
   urls:
     pr:
-      - "https://github.com/canonical/mattermost-k8s-operator/pull/TODO_PR_NUMBER"
+      - "https://github.com/canonical/mattermost-k8s-operator/pull/75"
     related_doc:
     related_issue:
   visibility: public
