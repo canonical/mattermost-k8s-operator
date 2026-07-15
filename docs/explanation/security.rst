@@ -57,7 +57,7 @@ Best practices
 
 -  Integrate the Mattermost charm with an ingress controller that provides TLS
    termination, such as
-   `Traefik <https://charmhub.io/traefik-k8s>`__. The ``go-framework`` extension used
+   `Traefik <https://charmhub.io/traefik-k8s>`__. The `Go framework extension <https://canonical.com/juju/docs/charmcraft/4.3/reference/extensions/go-framework-extension/>`_ used
    by this charm provides built-in ingress support.
 -  Ensure the SMTP relay connection is encrypted. When configuring the
    `smtp-integrator <https://charmhub.io/smtp-integrator>`__, use a transport
