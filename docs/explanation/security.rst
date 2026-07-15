@@ -39,7 +39,7 @@ Best practices
    recovered independently of the workload. See `Integrations </reference/integrations.md>`__.
 -  Use a dedicated `Charmed PostgreSQL <https://charmhub.io/postgresql-k8s>`__ and
    regularly back up the database through the charm's
-   `backup action <https://canonical-charmed-postgresql.readthedocs-hosted.com/14/how-to/back-up-and-restore/create-a-backup/>`__.
+   `backup action <https://canonical.com/data/postgresql/docs/14/how-to/back-up-and-restore/create-a-backup/>`__.
 -  Enable S3 server-side encryption by setting the ``s3-server-side-encryption``
    configuration option to ``true`` (requires a Mattermost Enterprise licence and
    S3-side configuration).
@@ -66,7 +66,7 @@ Best practices
 Authentication and access control
 ---------------------------------
 
-Weak or mis-configured authentication increases the risk of unauthorized access
+Weak or misconfigured authentication increases the risk of unauthorized access
 to sensitive team communications.
 
 .. _best-practices-3:
@@ -76,7 +76,7 @@ Best practices
 
 -  Integrate the charm with an ``OAuth`` identity provider (such as
    `Hydra <https://charmhub.io/hydra>`__) to enable OpenID Connect-based single
-   sign-on (SSO). This centralises authentication and enforces organisational
+   sign-on (SSO). This centralizes authentication and enforces organizational
    login policies.
 -  Limit the use of the ``grant-admin-role`` action to only the users who strictly
    require administrative privileges.
