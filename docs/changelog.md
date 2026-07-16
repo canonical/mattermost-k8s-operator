@@ -6,6 +6,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 Each revision is versioned by the date of the revision.
 
+## 2026-06-16
+
+- Added documentation for COS integration how-to guide and metrics reference.
+
+## 2026-06-09
+
+- Added custom Loki alert rules.
+
+## 2026-06-03
+
+- Added custom Prometheus alert rules.
+
+## 2026-05-22
+
+- Add custom Grafana performance monitoring dashboard via `cos_custom` framework layout.
+
 ## 2026-05-09
 
 - Added the following configuration options:

@@ -1,4 +1,5 @@
 /venv
 *.py[cod]
 *.charm
+*.rock
 /.github

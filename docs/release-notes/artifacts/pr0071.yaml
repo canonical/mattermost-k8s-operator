@@ -1,0 +1,18 @@
+# Version of the artifact schema
+version_schema: 2
+
+# The key holding the change(s)
+changes:
+- title: Added documentation pages for COS integration and metrics
+  author: danielvnguyen
+  type: minor
+  description: Adds a COS integration guide and a metrics reference page.
+  urls:
+    pr: 
+      - "https://github.com/canonical/mattermost-k8s-operator/pull/71"
+    related_doc:
+      - "https://github.com/canonical/mattermost-k8s-operator/docs/how-to/integrate-with-cos.md"
+      - "https://github.com/canonical/mattermost-k8s-operator/docs/reference/metrics.md"
+    related_issue:
+  visibility: public
+  highlight: false
