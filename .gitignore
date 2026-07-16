@@ -24,3 +24,4 @@ terraform/tests/.terraform
 !.vale/styles/config/vocabularies/local
 # END VALE WORKFLOW IGNORE
 
+.superpowers/
