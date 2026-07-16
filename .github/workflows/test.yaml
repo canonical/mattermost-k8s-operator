@@ -12,4 +12,3 @@ jobs:
     secrets: inherit
     with:
       with-uv: true
-      require-check-lib: false
