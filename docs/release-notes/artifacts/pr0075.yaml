@@ -1,0 +1,20 @@
+# Version of the artifact schema
+version_schema: 2
+
+# The key holding the change(s)
+changes:
+- title: Upgrade Mattermost workload to v11.7.6 (latest ESR)
+  author: sbouffard
+  type: minor
+  description: |
+    Bumps the Mattermost server from 10.11.6 to 11.7.6 (latest Extended Support
+    Release). Also updates the bundled giphy community plugin from v4.0.0 to v5.0.0.
+    Prepackaged plugins (github v2.7.0, gitlab v1.12.3, jira v4.7.0) are
+    automatically updated as part of the Mattermost binary upgrade.
+  urls:
+    pr:
+      - "https://github.com/canonical/mattermost-k8s-operator/pull/75"
+    related_doc:
+    related_issue:
+  visibility: public
+  highlight: false
