@@ -1,0 +1,22 @@
+# Version of the artifact schema
+version_schema: 2
+
+# The key holding the change(s)
+changes:
+- title: Upgrade Mattermost workload to v11.7.7 (latest ESR)
+  author: sbouffard
+  type: minor
+  description: |
+    Bumped the Mattermost server from 11.7.6 to 11.7.7 (latest Extended Support
+    Release). Community plugin pins remain at current upstream releases
+    (autolink v1.4.1, matterpoll v1.8.0, giphy v5.0.0, remind v1.0.0).
+    Prepackaged plugins shipped by the Mattermost tarball were updated as part
+    of the server bump, including jira v4.7.1 (from v4.7.0), playbooks v2.9.2
+    (from v2.9.1), and boards v9.2.6 (from v9.2.4).
+  urls:
+    pr:
+      - "https://github.com/canonical/mattermost-k8s-operator/pull/81"
+    related_doc:
+    related_issue:
+  visibility: public
+  highlight: false
