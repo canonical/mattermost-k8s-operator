@@ -6,6 +6,9 @@ domain: architecture
 replaced-by: 
 ---
 
+(adr_001_removing_custom_canonical_themes_patch_from_the_rock)=
+
+
 # Removing custom Canonical themes patch from the rock
 
 As part of the Mattermost charm refactoring, a Mattermost rock replaced

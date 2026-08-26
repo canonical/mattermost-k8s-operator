@@ -1,3 +1,5 @@
+(explanation_charm_architecture)=
+
 # Charm architecture
 
 <!-- 

@@ -1,3 +1,5 @@
+.. _reference_charm_architecture:
+
 Charm architecture
 ==================
 
@@ -79,7 +81,7 @@ The following diagram shows a typical deployment of the Mattermost charm on a Ku
    UpdateRelStyle(mattermost, postgres, $offsetX="-20", $offsetY="10")
 
 Mattermost container
-----------
+--------------------
 
 Mattermost is a Go application started via a ``start.sh`` script that maps environment variables provided by the charm integrations (PostgreSQL, S3, SMTP, ``OAuth``) into Mattermost's native ``MM_*`` configuration format.
 

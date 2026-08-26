@@ -1,3 +1,5 @@
+(how_to_contribute)=
+
 # How to contribute
 
 <!-- TODO: Update the links to point to the correct repo!! -->
