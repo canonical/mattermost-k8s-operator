@@ -6,7 +6,6 @@ myst:
 
 (reference_metrics)=
 
-
 # Metrics
 
 Mattermost provides the following performance monitoring statistics to integrate with Prometheus and Grafana.

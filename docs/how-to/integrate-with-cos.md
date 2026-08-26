@@ -6,7 +6,6 @@ myst:
 
 (how_to_integrate_with_cos)=
 
-
 # Integrate with COS
 
 ## Integrate with Prometheus K8s operator

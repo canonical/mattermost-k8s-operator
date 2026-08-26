@@ -8,7 +8,6 @@ replaced-by:
 
 (adr_001_removing_custom_canonical_themes_patch_from_the_rock)=
 
-
 # Removing custom Canonical themes patch from the rock
 
 As part of the Mattermost charm refactoring, a Mattermost rock replaced
@@ -16,7 +15,6 @@ the old `Dockerfile` approach. The new rock does not include a web app patch tha
 adds custom Canonical themes to the Mattermost frontend client.
 
 This way, the rock is more generic, and the web app does not need to be rebuilt.
-
 
 ## Context
 

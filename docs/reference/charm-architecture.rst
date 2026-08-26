@@ -158,6 +158,10 @@ For this charm, the following events are observed:
 4. Integration events for ``postgresql``, ``s3``, ``smtp``, and ``oauth``: fired when integration data changes. Action: update the workload configuration and restart the service.
 5. |grant_admin_role_action|_: fired when the ``grant-admin-role`` action is executed. Action: Grant the ``system_admin`` role to a user.
 
+.. TODO: These Juju hook links point to specific sub-sections
+   (#container-pebble-ready, #config-changed, #update-status) that have no
+   dedicated intersphinx target. Replace with juju: intersphinx refs if
+   labelled anchors become available.
 .. |pebble_ready| replace:: :code:`pebble_ready`
 .. _pebble_ready: https://documentation.ubuntu.com/juju/latest/user/reference/hook/#container-pebble-ready
 .. |config_changed| replace:: :code:`config_changed`
@@ -169,7 +173,7 @@ For this charm, the following events are observed:
 
 ..
 
-   See more in the Juju docs: `Hook <https://documentation.ubuntu.com/juju/latest/user/reference/hook/>`__
+   See more in the Juju docs: :ref:`Hook <juju:hook>`
 
 Charm code overview
 -------------------
@@ -180,4 +184,4 @@ The ``src/charm.py`` is the default entry point for a charm and has the ``Matter
 
 The charm itself is minimal, the ``go-framework`` `Charmcraft extension <https://documentation.ubuntu.com/charmcraft/stable/reference/extensions/>`__ provides the majority of the operational logic, including Pebble layer management, integration handling, and status reporting. Workload-specific configuration is handled by the ``start.sh`` script inside the rock, which converts environment variables set by the charm framework into Mattermost's native ``MM_*`` environment variable format.
 
-See more information in `Charm <https://documentation.ubuntu.com/juju/latest/user/reference/charm/>`__.
+See more information in :ref:`Charm <juju:charm>`.

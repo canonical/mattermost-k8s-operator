@@ -5,10 +5,12 @@ myst:
 ---
 
 <!-- vale Canonical.007-Headings-sentence-case = NO -->
+
 # Mattermost K8s charm
+
 <!-- vale Canonical.007-Headings-sentence-case = YES -->
 
-A [Juju](https://juju.is/) [charm](https://documentation.ubuntu.com/juju/3.6/reference/charm/)
+A [Juju](https://juju.is/) {ref}`charm <juju:charm>`
 deploying and managing [Mattermost](https://mattermost.com/) on Kubernetes. Mattermost is a
 flexible, open source messaging platform that enables secure team collaboration.
 
