@@ -1,3 +1,5 @@
+.. _deploy_the_mattermost_charm_for_the_first_time:
+
 Deploy the Mattermost charm for the first time
 ===============================================
 

@@ -1,5 +1,9 @@
+(reference_actions)=
+
 # Actions
 
-See [Actions](link to actions page).
+See [Actions](https://charmhub.io/mattermost-k8s/actions).
 
-> Read more about actions in the Juju docs: [Action](https://documentation.ubuntu.com/juju/latest/user/reference/action/)
+```{note}
+Read more about actions in the Juju docs: {ref}`Action <juju:action>`
+```

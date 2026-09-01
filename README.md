@@ -9,7 +9,7 @@ Like any Juju charm, this charm supports one-line deployment, configuration, int
 * Integration with SSO
 * Integration with S3 for redundant file storage
 
-For information about how to deploy, integrate, and manage this charm, see the Official [Mattermost Operator Documentation](https://charmhub.io/mattermost-k8s/docs).
+For information about how to deploy, integrate, and manage this charm, see the official [Mattermost K8s charm documentation](https://canonical.com/juju/docs/mattermost-k8s-charm).
 
 ## Get started
 To be added.
@@ -52,7 +52,7 @@ Otherwise, include a link the Charmhub documentation on integrations.
 --> 
 
 ## Learn more
-* [Read more](https://charmhub.io/mattermost-k8s/docs) 
+* [Read more](https://canonical.com/juju/docs/mattermost-k8s-charm) 
 * [Developer documentation](https://docs.mattermost.com/index.html) 
 * [Official webpage](https://mattermost.com/) 
 
@@ -60,5 +60,34 @@ Otherwise, include a link the Charmhub documentation on integrations.
 * [Issues](https://github.com/canonical/mattermost-k8s-operator/issues) 
 * [Contributing](https://github.com/canonical/mattermost-k8s-operator/blob/main/CONTRIBUTING.md) 
 * [Matrix](https://matrix.to/#/#charmhub-charmdev:ubuntu.com) 
+
+## Documentation
+
+Our documentation is stored in the `docs` directory.
+It is based on the Canonical Sphinx Stack
+and hosted on [Read the Docs](https://about.readthedocs.com/). In structuring,
+the documentation employs the [Diátaxis](https://diataxis.fr/) approach.
+
+You may open a pull request with your documentation changes, or you can
+[file a bug](https://github.com/canonical/mattermost-k8s-operator/issues) to provide constructive feedback or suggestions.
+
+To run the documentation locally before submitting your changes:
+
+```bash
+cd docs
+make run
+```
+
+GitHub runs automatic checks on the documentation
+to verify spelling, validate links and style guide compliance.
+
+You can (and should) run the same checks locally:
+
+```bash
+make spelling
+make linkcheck
+make vale
+make lint-md
+```
 
 
