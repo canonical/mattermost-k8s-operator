@@ -1,8 +1,5 @@
 // Replaces rtd-address with new-address in links
-
-// TODO: After the Read the Docs project is created, replace 'rtd-address'
-// below with the RTD-hosted domain (e.g. 'mattermost-k8s-operator.readthedocs-hosted.com').
-const rtd_address = 'rtd-address';
+const rtd_address = 'https://canonical-mattermost-k8s-charm.readthedocs-hosted.com/en/latest/';
 const new_address = 'canonical.com/juju/docs/mattermost-k8s-charm';
 
 function escapeRegExp(value) {

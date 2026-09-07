@@ -24,7 +24,7 @@ Best practices
 -  Regularly update Juju to the latest version to include security fixes.
 -  Deploy observability, such as the
    `Canonical Observability Stack <https://charmhub.io/topics/canonical-observability-stack>`__,
-   to detect unusual behaviours. See `How to integrate with COS </how-to/integrate-with-cos.md>`__.
+   to detect unusual behaviours. See :doc:`How to integrate with COS </how-to/integrate-with-cos>`.
 
 Loss of data
 ------------
@@ -38,7 +38,7 @@ Best practices
 ~~~~~~~~~~~~~~
 
 -  Use S3 for file storage so that uploads are stored externally and can be
-   recovered independently of the workload. See `Integrations </reference/integrations.md>`__.
+   recovered independently of the workload. See :doc:`Integrations </reference/integrations>`.
 -  Use a dedicated `Charmed PostgreSQL <https://charmhub.io/postgresql-k8s>`__ and
    regularly back up the database through the charm's
    `backup action <https://canonical.com/data/postgresql/docs/14/how-to/back-up-and-restore/create-a-backup/>`__.

@@ -20,7 +20,6 @@ import textwrap
 #######################
 
 # Project name
-# TODO: Update with the official name of your project or product (e.g., "Ubuntu Server")
 project = "Mattermost K8s charm"
 
 # Author name; used in the default copyright statement in the page footer
@@ -34,14 +33,14 @@ copyright = f"{datetime.date.today().year}"
 html_title = project + " documentation"
 
 # Documentation website URL
-ogp_site_url = os.environ.get("READTHEDOCS_CANONICAL_URL", "/")
+ogp_site_url = (
+    "https://canonical-mattermost-k8s-charm.readthedocs-hosted.com/en/latest/"
+)
 
 # Preview name of the documentation website
-# TODO: To use a different name for the project in previews, update the next line.
 ogp_site_name = project
 
 # Preview image URL
-# TODO: To customise the preview image, update the next line.
 ogp_image = "https://assets.ubuntu.com/v1/cc828679-docs_illustration.svg"
 
 # Product favicon; shown in bookmarks, browser tabs, etc.
@@ -57,21 +56,16 @@ html_context = {
     #       link from the _templates/header.html file.
     "product_page": "charmhub.io/mattermost-k8s",
     # Product tag image; the orange part of your logo, shown in the page header
-    # TODO: To add a tag image, uncomment and update as needed.
     # 'product_tag': '_static/tag.png',
     # Your Discourse instance URL
-    # TODO: Change to your Discourse instance URL or leave empty.
-    "discourse": "https://discourse.charmhub.io",
+    "discourse": "",
     # Your Mattermost channel URL
-    # TODO: Change to your Mattermost channel URL or leave empty.
     "mattermost": "",
     # Your Matrix channel URL
-    # TODO: Change to your Matrix channel URL or leave empty.
     "matrix": "https://matrix.to/#/#charmhub-charmdev:ubuntu.com",
     # Your documentation GitHub repository URL If set, links for viewing the
     # documentation source files and creating GitHub issues are added at the bottom of
     # each page.
-    # TODO: Change to your documentation GitHub repository URL or leave empty.
     "github_url": "https://github.com/canonical/mattermost-k8s-operator",
     # Docs branch in the repo; used in links for viewing the source files
     "repo_default_branch": "main",
@@ -80,7 +74,6 @@ html_context = {
     # TODO: To enable or disable the Previous / Next buttons at the bottom of pages
     # Valid options: none, prev, next, both
     # "sequential_nav": "",
-    # TODO: To enable listing contributors on individual pages, set to True
     "display_contributors": False,
     # Required for feedback button
     "github_issues": "enabled",
@@ -88,16 +81,12 @@ html_context = {
     "author": author,
     # Documentation license information
     "license": {
-        # TODO: Specify your project's license.
-        # For the name, we recommend using the standard shorthand identifier from
-        # https://spdx.org/licenses
-        "name": "",
-        # TODO: Link directly to your project's license statement.
-        "url": "",
+        "name": "Apache-2.0",
+        "url": "https://github.com/canonical/mattermost-k8s-operator/blob/main/LICENSE",
     },
 }
 
-# TODO: To enable the edit button on pages, uncomment and change the link to a
+# To enable the edit button on pages, uncomment and change the link to a
 # public repository on GitHub or Launchpad. Any of the following link domains
 # are accepted:
 # - https://github.com/example-org/example"
@@ -166,12 +155,10 @@ rediraffe_dir_only = True
 # product docs.
 # TODO: Add a description in the form "This is the documentation for <product name>,
 # <first sentence of home page>".
-llms_txt_description = textwrap.dedent(
-    """\
+llms_txt_description = textwrap.dedent("""\
     This is the documentation for the Sphinx Stack, a template repository that helps you
     set up, build, and publish Sphinx documentation.
-    """
-)
+    """)
 
 # The base URL for references built by sphinx-markdown-builder.
 if os.environ.get("READTHEDOCS"):
@@ -292,5 +279,8 @@ rst_prolog = """
 #
 intersphinx_mapping = {
     "juju": ("https://documentation.ubuntu.com/juju/3.6/", None),
-    "sphinx-stack": ("https://canonical-sphinx-stack.readthedocs-hosted.com/latest/", None),
+    "sphinx-stack": (
+        "https://canonical-sphinx-stack.readthedocs-hosted.com/latest/",
+        None,
+    ),
 }

@@ -108,7 +108,7 @@ The workload that this container is running is defined in the `Mattermost rock <
 OCI images
 ----------
 
-We use `Rockcraft <https://canonical-rockcraft.readthedocs-hosted.com/en/latest/>`__ to build the OCI image for Mattermost. The image is defined in the `Mattermost rock <https://github.com/canonical/mattermost-k8s-operator/tree/main/mattermost_rock>`__ and is published to `Charmhub <https://charmhub.io/>`__, the official repository of charms. This is done by publishing a resource to Charmhub as described in the `Charmcraft how-to guides <https://canonical-charmcraft.readthedocs-hosted.com/en/stable/howto/manage-charms/#publish-a-charm-on-charmhub>`__.
+We use `Rockcraft <https://ubuntu.com/containers/rockcraft/docs/1/>`__ to build the OCI image for Mattermost. The image is defined in the `Mattermost rock <https://github.com/canonical/mattermost-k8s-operator/tree/main/mattermost_rock>`__ and is published to `Charmhub <https://charmhub.io/>`__, the official repository of charms. This is done by publishing a resource to Charmhub as described in the `Charmcraft how-to guides <https://canonical.com/juju/docs/charmcraft/4/howto/manage-charms/#publish-a-charm>`__.
 
 Integrations
 ------------
@@ -163,11 +163,11 @@ For this charm, the following events are observed:
    dedicated intersphinx target. Replace with juju: intersphinx refs if
    labelled anchors become available.
 .. |pebble_ready| replace:: :code:`pebble_ready`
-.. _pebble_ready: https://documentation.ubuntu.com/juju/latest/user/reference/hook/#container-pebble-ready
+.. _pebble_ready: https://canonical.com/juju/docs/juju-cli/latest/reference/hook/#container-pebble-ready
 .. |config_changed| replace:: :code:`config_changed`
-.. _config_changed: https://documentation.ubuntu.com/juju/latest/user/reference/hook/#config-changed
+.. _config_changed: https://canonical.com/juju/docs/juju-cli/latest/reference/hook/#config-changed
 .. |update_status| replace:: :code:`update_status`
-.. _update_status: https://documentation.ubuntu.com/juju/latest/user/reference/hook/#update-status
+.. _update_status: https://canonical.com/juju/docs/juju-cli/latest/reference/hook/#update-status
 .. |grant_admin_role_action| replace:: :code:`grant_admin_role_action`
 .. _grant_admin_role_action: https://charmhub.io/mattermost-k8s/actions
 

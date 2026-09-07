@@ -88,4 +88,7 @@ rtd
 AI
 placeholder
 podspec
+misconfigured
+Websocket
+postgres
 

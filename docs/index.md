@@ -20,7 +20,7 @@ and more. For the Mattermost K8s charm, this includes:
 * High-availability clustering with Mattermost Enterprise Edition.
 * S3-backed file storage and backups.
 * Integration with the Canonical Observability Stack (COS).
-* SMTP and OAuth integrations.
+* SMTP and `OAuth` integrations.
 
 The Mattermost K8s charm allows for deployment on many different Kubernetes platforms, from
 [MicroK8s](https://microk8s.io/) to [Charmed Kubernetes](https://ubuntu.com/kubernetes) to public
