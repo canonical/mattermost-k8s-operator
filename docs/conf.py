@@ -28,14 +28,15 @@ author = "Canonical Ltd."
 # The year in the copyright statement
 copyright = f"{datetime.date.today().year}"
 
+# Version
+version = f"{os.environ.get('READTHEDOCS_VERSION', 'local')}"
+
 # Sidebar documentation title
 # To disable the title, set it to an empty string.
 html_title = project + " documentation"
 
 # Documentation website URL
-ogp_site_url = (
-    "https://canonical-mattermost-k8s-charm.readthedocs-hosted.com/en/latest/"
-)
+ogp_site_url = f"https://canonical.com/juju/docs/mattermost-k8s-charm/{version}/"
 
 # Preview name of the documentation website
 ogp_site_name = project
@@ -51,9 +52,6 @@ ogp_image = "https://assets.ubuntu.com/v1/cc828679-docs_illustration.svg"
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#confval-html_context
 html_context = {
     # Product page URL; can be different from product docs URL
-    # TODO: Change to your product website URL, dropping the 'https://' prefix (e.g.,
-    #       'ubuntu.com/lxd'). If there's no such website, remove the {{ product_page }}
-    #       link from the _templates/header.html file.
     "product_page": "charmhub.io/mattermost-k8s",
     # Product tag image; the orange part of your logo, shown in the page header
     # 'product_tag': '_static/tag.png',
@@ -100,7 +98,7 @@ html_theme_options = {
 # Project slug
 # TODO: If your documentation is hosted on https://documentation.ubuntu.com/,
 #       uncomment and set to the RTD slug.
-# slug = ''
+slug = "juju/docs/mattermost-k8s-charm"
 
 #######################
 # Sitemap configuration: https://sphinx-sitemap.readthedocs.io/
@@ -111,6 +109,8 @@ html_baseurl = os.environ.get("READTHEDOCS_CANONICAL_URL", "/")
 
 # sphinx-sitemap uses html_baseurl to generate the full URL for each page:
 sitemap_url_scheme = "{link}"
+
+sitemap_filename = "doc-sitemap.xml"
 
 # Include `lastmod` dates in the sitemap:
 sitemap_show_lastmod = True
@@ -153,11 +153,9 @@ rediraffe_dir_only = True
 
 # This description is included in llms.txt to provide some initial context for your
 # product docs.
-# TODO: Add a description in the form "This is the documentation for <product name>,
-# <first sentence of home page>".
 llms_txt_description = textwrap.dedent("""\
-    This is the documentation for the Sphinx Stack, a template repository that helps you
-    set up, build, and publish Sphinx documentation.
+    This is the documentation for the Mattermost K8s charm, a Juju charm deploying
+    and managing Mattermost on Kubernetes.
     """)
 
 # The base URL for references built by sphinx-markdown-builder.
@@ -278,9 +276,6 @@ rst_prolog = """
 # Configuration for Intersphinx projects
 #
 intersphinx_mapping = {
-    "juju": ("https://documentation.ubuntu.com/juju/3.6/", None),
-    "sphinx-stack": (
-        "https://canonical-sphinx-stack.readthedocs-hosted.com/latest/",
-        None,
-    ),
+    "juju": ("https://canonical.com/juju/docs/juju-cli/3.6/", None),
+    "sphinx-stack": ("https://documentation.ubuntu.com/sphinx-stack/latest/", None),
 }

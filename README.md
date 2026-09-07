@@ -52,7 +52,7 @@ Otherwise, include a link the Charmhub documentation on integrations.
 --> 
 
 ## Learn more
-* [Read more](https://canonical.com/juju/docs/mattermost-k8s-charm) 
+* [Charm documentation](https://canonical.com/juju/docs/mattermost-k8s-charm) 
 * [Developer documentation](https://docs.mattermost.com/index.html) 
 * [Official webpage](https://mattermost.com/) 
 

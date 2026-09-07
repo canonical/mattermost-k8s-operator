@@ -152,28 +152,19 @@ Juju events
 
 For this charm, the following events are observed:
 
-1. |pebble_ready|_: fired on Kubernetes charms when the requested container is ready. Action: check that all required integrations are present and configure the Mattermost container.
-2. |config_changed|_: usually fired in response to a configuration change using the CLI. Action: validate the configuration and restart the workload.
-3. |update_status|_: periodic event. Action: reconcile the workload state and refresh ingress data.
+1. |pebble_ready|: fired on Kubernetes charms when the requested container is ready. Action: check that all required integrations are present and configure the Mattermost container.
+2. |config_changed|: usually fired in response to a configuration change using the CLI. Action: validate the configuration and restart the workload.
+3. |update_status|: periodic event. Action: reconcile the workload state and refresh ingress data.
 4. Integration events for ``postgresql``, ``s3``, ``smtp``, and ``oauth``: fired when integration data changes. Action: update the workload configuration and restart the service.
 5. |grant_admin_role_action|_: fired when the ``grant-admin-role`` action is executed. Action: Grant the ``system_admin`` role to a user.
 
-.. TODO: These Juju hook links point to specific sub-sections
-   (#container-pebble-ready, #config-changed, #update-status) that have no
-   dedicated intersphinx target. Replace with juju: intersphinx refs if
-   labelled anchors become available.
 .. |pebble_ready| replace:: :code:`pebble_ready`
-.. _pebble_ready: https://canonical.com/juju/docs/juju-cli/latest/reference/hook/#container-pebble-ready
 .. |config_changed| replace:: :code:`config_changed`
-.. _config_changed: https://canonical.com/juju/docs/juju-cli/latest/reference/hook/#config-changed
 .. |update_status| replace:: :code:`update_status`
-.. _update_status: https://canonical.com/juju/docs/juju-cli/latest/reference/hook/#update-status
 .. |grant_admin_role_action| replace:: :code:`grant_admin_role_action`
 .. _grant_admin_role_action: https://charmhub.io/mattermost-k8s/actions
 
-..
-
-   See more in the Juju docs: :ref:`Hook <juju:hook>`
+See more about hooks in the Juju docs: :ref:`Hook <juju:hook>`.
 
 Charm code overview
 -------------------
