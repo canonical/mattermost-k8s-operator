@@ -68,5 +68,4 @@ how-to/index
 reference/index
 explanation/index
 release-notes/landing-page
-adr/index
 ```

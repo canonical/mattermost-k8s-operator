@@ -56,7 +56,7 @@ html_context = {
     # Product tag image; the orange part of your logo, shown in the page header
     # 'product_tag': '_static/tag.png',
     # Your Discourse instance URL
-    "discourse": "",
+    "discourse": "https://discourse.charmhub.io/t/mattermost-documentation-overview/3758",
     # Your Mattermost channel URL
     "mattermost": "",
     # Your Matrix channel URL
@@ -226,11 +226,7 @@ extensions = [
 ]
 
 # Excludes files or directories from processing
-exclude_patterns = [
-    "doc-cheat-sheet*",
-    ".venv*",
-    "_dev",
-]
+exclude_patterns = ["doc-cheat-sheet*", ".venv*", "_dev", "adr/*"]
 
 # Adds custom CSS files, located remotely or in 'html_static_path'.
 html_css_files = ["https://assets.ubuntu.com/v1/d86746ef-cookie_banner.css"]

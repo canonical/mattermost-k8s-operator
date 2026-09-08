@@ -22,7 +22,7 @@ description: |
   Check https://mattermost.com for more information.
 
 links:
-  documentation: https://canonical-mattermost-k8s-charm.readthedocs-hosted.com/en/latest/
+  documentation: https://canonical.com/juju/docs/mattermost-k8s-charm/latest/
   issues:
   - https://github.com/canonical/mattermost-k8s-operator/issues
   source:
