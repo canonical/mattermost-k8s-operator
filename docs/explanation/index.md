@@ -13,6 +13,5 @@ Discussion and clarification of key concepts behind the Mattermost K8s charm.
 ```{toctree}
 :maxdepth: 1
 
-charm-architecture
 security
 ```
