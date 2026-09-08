@@ -1,5 +1,5 @@
 // Replaces rtd-address with new-address in links
-const rtd_address = 'https://canonical-mattermost-k8s-charm.readthedocs-hosted.com/en/latest/';
+const rtd_address = 'canonical-mattermost-k8s-charm.readthedocs-hosted.com';
 const new_address = 'canonical.com/juju/docs/mattermost-k8s-charm';
 
 function escapeRegExp(value) {
