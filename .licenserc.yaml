@@ -11,6 +11,8 @@ header:
   paths:
   - '**'
   paths-ignore:
+  - '.readthedocs.yaml'
+  - 'docs/**'
   - '.github/**'
   - '**/*.json'
   - '**/*.md'

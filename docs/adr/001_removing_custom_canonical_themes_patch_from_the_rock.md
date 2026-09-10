@@ -14,7 +14,6 @@ adds custom Canonical themes to the Mattermost frontend client.
 
 This way, the rock is more generic, and the web app does not need to be rebuilt.
 
-
 ## Context
 
 In the old podspec Mattermost charm, the Mattermost image was created with a

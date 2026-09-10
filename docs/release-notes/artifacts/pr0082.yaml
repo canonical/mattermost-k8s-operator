@@ -1,0 +1,16 @@
+# Version of the artifact schema
+version_schema: 2
+
+# The key holding the change(s)
+changes:
+- title: Set up Read the Docs project with the Canonical Sphinx Stack
+  author: DeeKay3
+  type: minor
+  description: Set up a Read the Docs documentation project based on the Canonical Sphinx Stack, restructuring the existing docs content following the Diátaxis approach.
+  urls:
+    pr: 
+      - "https://github.com/canonical/mattermost-k8s-operator/pull/82"
+    related_doc:
+    related_issue:
+  visibility: false
+  highlight: false
