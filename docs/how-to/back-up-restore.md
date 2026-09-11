@@ -2,10 +2,8 @@
 
 # How to back up and restore
 
-<!-- 
-    Remember to update this file for your charm!! 
-    If applicable, use this placeholder to provide information on how to
-    back up and restore the charm. Some questions to answer:
-    * Does this charm have a database that needs to be backed up?
-    * Are there are upstream docs we can link here?
--->
+Mattermost is a stateless web application, and all states, including the chat
+history and login, are stored inside the PostgreSQL database.
+
+Refer to the [PostgreSQL charm's backup and restore guide](https://canonical.com/data/postgresql/docs/latest/how-to/back-up-and-restore/)
+to back up and restore data in Mattermost.
