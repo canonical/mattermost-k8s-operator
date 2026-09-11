@@ -31,10 +31,34 @@ through Juju's clean interface.
 
 ## In this documentation
 
-| | |
-|--|--|
-| {ref}`Tutorial <deploy_the_mattermost_charm_for_the_first_time>`</br> Get started - a hands-on introduction to using the charm for new users </br> | {ref}`How-to guides <how_to_index>` </br> Step-by-step guides covering key operations and common tasks |
-| {ref}`Reference <reference_index>` </br> Technical information - specifications, APIs, architecture | {ref}`Explanation <explanation_index>` </br> Concepts - discussion and clarification of key topics |
+```{list-table}
+:header-rows: 1
+:widths: 10 25
+
+* -
+  -
+* - **Get started**
+  - {ref}`Guided tutorial <deploy_the_mattermost_charm_for_the_first_time>` | {ref}`High-level deployment <reference_charm_architecture>`
+* - **Deployment**
+  - {ref}`Charm configuration <reference_configurations>`
+* - **Operations**
+  - {ref}`Backup and restore <how_to_back_up_restore>` | {ref}`Integrate with COS <how_to_integrate_with_cos>` | {ref}`Upgrade <how_to_upgrade>`
+* - **Design**
+  - {ref}`Architecture <reference_charm_architecture>`
+* - **Security**
+  - {ref}`Overview <explanation_security>`
+```
+
+## How this documentation is organized
+
+This documentation uses the
+[Diátaxis documentation structure](https://diataxis.fr/).
+
+* The {ref}`Tutorial <deploy_the_mattermost_charm_for_the_first_time>` takes you step-by-step through a basic deployment of the Mattermost charm.
+* The {ref}`How-to guides <how_to_index>` assume you have basic familiarity with the Mattermost charm. Learn more about setting up, using, maintaining, and contributing to this charm.
+* {ref}`Reference <reference_index>` provides a guide to actions, configurations, relations, and other technical details.
+* {ref}`Explanation <explanation_index>` holds discussion and clarification of key concepts behind the charm, such as security.
+* {ref}`Release notes <release_notes_landing_page>` holds all the release notes for the charm, including any system or upgrade requirements.
 
 ## Contributing to this documentation
 

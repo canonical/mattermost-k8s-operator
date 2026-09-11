@@ -2,11 +2,9 @@
 
 # How to upgrade
 
-<!-- 
-    Remember to update this file for your charm!! 
-    If applicable, use this placeholder to provide information on how to
-    upgrade the charm. Some questions to answer:
-    * Should we suggest that the user back up the charm or its database
-      before upgrading?
-    * Does the user need to reset any configurations? 
--->
+The Mattermost charm is a stateless Kubernetes charm. To upgrade the Mattermost
+charm to the latest version, simply run the `juju refresh` command, for example:
+
+```bash
+juju refresh mattermost-k8s
+```
