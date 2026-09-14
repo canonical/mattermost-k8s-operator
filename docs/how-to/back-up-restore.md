@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    "description lang=en": "Learn about the backup and restoration process for the Mattermost charm."
+---
+
 (how_to_back_up_restore)=
 
 # How to back up and restore
