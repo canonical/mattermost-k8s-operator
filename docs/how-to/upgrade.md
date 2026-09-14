@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    "description lang=en": "Learn how to upgrade the Mattermost charm to a new revision."
+---
+
 (how_to_upgrade)=
 
 # How to upgrade

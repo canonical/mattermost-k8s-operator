@@ -42,7 +42,7 @@ through Juju's clean interface.
 * - **Deployment**
   - {ref}`Charm configuration <reference_configurations>`
 * - **Operations**
-  - {ref}`Backup and restore <how_to_back_up_restore>` | {ref}`Integrate with COS <how_to_integrate_with_cos>` | {ref}`Upgrade <how_to_upgrade>`
+  - {ref}`Back up and restore <how_to_back_up_restore>` | {ref}`Integrate with COS <how_to_integrate_with_cos>` | {ref}`Upgrade <how_to_upgrade>`
 * - **Design**
   - {ref}`Architecture <reference_charm_architecture>`
 * - **Security**
