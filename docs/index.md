@@ -38,11 +38,11 @@ through Juju's clean interface.
 * -
   -
 * - **Get started**
-  - {ref}`Guided tutorial <deploy_the_mattermost_charm_for_the_first_time>` | {ref}`High-level deployment <reference_charm_architecture>`
+  - {ref}`Guided tutorial <deploy_the_mattermost_charm_for_the_first_time>`
 * - **Deployment**
-  - {ref}`Charm configuration <reference_configurations>`
+  - {ref}`Charm configuration <reference_configurations>` | {ref}`High-level deployment <reference_charm_architecture>`
 * - **Operations**
-  - {ref}`Back up and restore <how_to_back_up_restore>` | {ref}`Integrate with COS <how_to_integrate_with_cos>` | {ref}`Upgrade <how_to_upgrade>`
+  - {ref}`Backup and restore <how_to_back_up_restore>` | {ref}`Integrate with COS <how_to_integrate_with_cos>` | {ref}`Upgrade <how_to_upgrade>`
 * - **Design**
   - {ref}`Architecture <reference_charm_architecture>`
 * - **Security**
