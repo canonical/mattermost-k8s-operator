@@ -59,5 +59,7 @@ For production deployments, use a certificate provider suited to your environmen
 instead of `self-signed-certificates`. See the
 [X.509 certificates topic](https://charmhub.io/topics/security-with-x-509-certificates)
 for an overview of the certificate provider charms available and guidance on choosing
-one. Any charm that implements the `tls-certificates` interface can be integrated with
-`postgresql-k8s` in the same way, through its `certificates` endpoint.
+one. 
+
+Choose a certificate provider charm that implements the `tls-certificates` interface, and
+integrate the charm with `postgresql-k8s` through its `certificates` endpoint.
