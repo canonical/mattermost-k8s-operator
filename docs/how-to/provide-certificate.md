@@ -6,7 +6,7 @@ myst:
 
 (how_to_provide_certificate)=
 
-# Provide a certificate
+# How to provide a certificate
 
 The `mattermost-k8s` charm requires TLS to be enabled on the PostgreSQL database it's
 integrated with. To enable TLS, `postgresql-k8s` must be integrated with a charm that
@@ -34,11 +34,9 @@ juju integrate postgresql-k8s:certificates self-signed-certificates:certificates
 
 When the certificate is available, both applications report an active status:
 
-```
+```{terminal}
 juju status
-```
 
-```
 App                        Status  Scale  Charm
 postgresql-k8s              active      1  postgresql-k8s
 self-signed-certificates    active      1  self-signed-certificates
@@ -50,8 +48,10 @@ self-signed-certificates/0*   active    idle
 
 You can now integrate `mattermost-k8s` with `postgresql-k8s` as usual.
 
-**Caution**: Clients do not trust self-signed certificates by default. Do not use
+```{caution}
+Clients do not trust self-signed certificates by default. Do not use
 `self-signed-certificates` in a production environment.
+```
 
 ## Use a different certificate provider
 

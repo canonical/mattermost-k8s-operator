@@ -15,7 +15,7 @@ and common tasks.
 :maxdepth: 1
 
 back-up-restore
-provide-certificate
+Provide a certificate <provide-certificate>
 integrate-with-cos
 upgrade
 contribute
