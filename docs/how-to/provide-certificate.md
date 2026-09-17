@@ -46,7 +46,7 @@ postgresql-k8s/0*             active    idle   Primary
 self-signed-certificates/0*   active    idle
 ```
 
-You can now integrate `mattermost-k8s` with `postgresql-k8s` as usual.
+Integrate `mattermost-k8s` with `postgresql-k8s` as usual.
 
 ```{caution}
 Clients do not trust self-signed certificates by default. Do not use
