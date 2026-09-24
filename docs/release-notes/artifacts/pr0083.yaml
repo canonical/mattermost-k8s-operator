@@ -1,0 +1,19 @@
+# Copyright 2026 Canonical Ltd.
+# See LICENSE file for licensing details.
+
+# Version of the artifact schema
+version_schema: 2
+
+# The key holding the change(s)
+changes:
+- title: Added optional Terraform-managed COS Lite integration
+  author: danielvnguyen
+  type: minor
+  description: Added conditional juju_integration resources to the product module so deployments can opt into COS Lite metrics, logging, and Grafana dashboards purely via Terraform variables.
+  urls:
+    pr:
+      - "https://github.com/canonical/mattermost-k8s-operator/pull/83"
+    related_doc:
+    related_issue:
+  visibility: public
+  highlight: false
