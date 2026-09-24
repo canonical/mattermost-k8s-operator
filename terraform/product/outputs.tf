@@ -2,10 +2,11 @@
 # See LICENSE file for licensing details.
 
 output "mattermost" {
-  description = "Mattermost application name and required endpoints."
+  description = "Mattermost application name and required/provided endpoints."
   value = {
     app_name = module.mattermost.app_name
     requires = module.mattermost.requires
+    provides = module.mattermost.provides
   }
 }
 

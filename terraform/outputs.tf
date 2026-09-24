@@ -13,5 +13,13 @@ output "requires" {
     smtp       = "smtp"
     oauth      = "oauth"
     ingress    = "ingress"
+    logging    = "logging"
+  }
+}
+
+output "provides" {
+  value = {
+    metrics_endpoint  = "metrics-endpoint"
+    grafana_dashboard = "grafana-dashboard"
   }
 }
