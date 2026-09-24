@@ -12,7 +12,7 @@ changes:
   description: Added conditional juju_integration resources to the product module so deployments can opt into COS Lite metrics, logging, and Grafana dashboards purely via Terraform variables.
   urls:
     pr:
-      - "https://github.com/canonical/mattermost-k8s-operator/pull/83"
+      - "https://github.com/canonical/mattermost-k8s-operator/pull/94"
     related_doc:
     related_issue:
   visibility: public
