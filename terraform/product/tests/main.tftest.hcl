@@ -44,6 +44,21 @@ run "basic_deploy" {
     condition     = output.mattermost.app_name == "mattermost-k8s"
     error_message = "mattermost app_name did not match expected"
   }
+
+  assert {
+    condition     = length(juju_integration.mattermost_metrics) == 0
+    error_message = "metrics-endpoint integration should be skipped when metrics_offer_url is null"
+  }
+
+  assert {
+    condition     = length(juju_integration.mattermost_logging) == 0
+    error_message = "logging integration should be skipped when logging_offer_url is null"
+  }
+
+  assert {
+    condition     = length(juju_integration.mattermost_grafana_dashboard) == 0
+    error_message = "grafana-dashboard integration should be skipped when grafana_dashboard_offer_url is null"
+  }
 }
 
 run "cos_lite_integrated" {
@@ -94,5 +109,20 @@ run "cos_lite_integrated" {
   assert {
     condition     = output.mattermost.requires.logging == "logging"
     error_message = "logging requires endpoint did not match expected"
+  }
+
+  assert {
+    condition     = length(juju_integration.mattermost_metrics) == 1
+    error_message = "metrics-endpoint integration should be created when metrics_offer_url is set"
+  }
+
+  assert {
+    condition     = length(juju_integration.mattermost_logging) == 1
+    error_message = "logging integration should be created when logging_offer_url is set"
+  }
+
+  assert {
+    condition     = length(juju_integration.mattermost_grafana_dashboard) == 1
+    error_message = "grafana-dashboard integration should be created when grafana_dashboard_offer_url is set"
   }
 }
