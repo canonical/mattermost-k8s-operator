@@ -14,9 +14,9 @@ llms_txt_description: This is the documentation for the Mattermost K8s charm, a 
     charm deploying and managing Mattermost on Kubernetes.
 matrix: https://matrix.to/#/#charmhub-charmdev:ubuntu.com
 mattermost: ''
-new_domain: ''
+new_domain: canonical.com/juju/docs/mattermost-k8s-charm
 ogp_image: https://assets.ubuntu.com/v1/cc828679-docs_illustration.svg
-old_domain: ''
+old_domain: canonical-mattermost-k8s-charm.readthedocs-hosted.com
 product_page: charmhub.io/mattermost-k8s
 product_tag: ''
 project: Mattermost K8s charm
