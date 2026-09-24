@@ -214,3 +214,45 @@ resource "juju_integration" "mattermost_ingress" {
     endpoint = "ingress"
   }
 }
+
+resource "juju_integration" "mattermost_metrics" {
+  count      = var.metrics_offer_url != null ? 1 : 0
+  model_uuid = var.model_uuid
+
+  application {
+    name     = module.mattermost.app_name
+    endpoint = module.mattermost.provides.metrics_endpoint
+  }
+
+  application {
+    offer_url = var.metrics_offer_url
+  }
+}
+
+resource "juju_integration" "mattermost_logging" {
+  count      = var.logging_offer_url != null ? 1 : 0
+  model_uuid = var.model_uuid
+
+  application {
+    name     = module.mattermost.app_name
+    endpoint = module.mattermost.requires.logging
+  }
+
+  application {
+    offer_url = var.logging_offer_url
+  }
+}
+
+resource "juju_integration" "mattermost_grafana_dashboard" {
+  count      = var.grafana_dashboard_offer_url != null ? 1 : 0
+  model_uuid = var.model_uuid
+
+  application {
+    name     = module.mattermost.app_name
+    endpoint = module.mattermost.provides.grafana_dashboard
+  }
+
+  application {
+    offer_url = var.grafana_dashboard_offer_url
+  }
+}

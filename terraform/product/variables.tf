@@ -101,3 +101,21 @@ variable "ingress_configurator" {
   })
   default = {}
 }
+
+variable "metrics_offer_url" {
+  description = "Juju offer URL for an existing Prometheus metrics scraper (e.g. the PS7 COS Lite 'prometheus-metrics-endpoint' offer). When set, mattermost's metrics-endpoint is integrated to this offer. Leave null to skip."
+  type        = string
+  default     = null
+}
+
+variable "logging_offer_url" {
+  description = "Juju offer URL for an existing Loki logging provider (e.g. the PS7 COS Lite 'loki-logging' offer). When set, mattermost's logging endpoint is integrated to this offer. Leave null to skip."
+  type        = string
+  default     = null
+}
+
+variable "grafana_dashboard_offer_url" {
+  description = "Juju offer URL for an existing Grafana dashboard provider (e.g. the PS7 COS Lite 'grafana-dashboards' offer). When set, mattermost's grafana-dashboard endpoint is integrated to this offer. Leave null to skip."
+  type        = string
+  default     = null
+}
