@@ -29,7 +29,7 @@ sphinx-last-updated-by-git==0.3.8
 sphinx-sitemap==2.9.0
 sphinx-llm==1.0.0
 
-# Mermaid diagram support
+# Mermaid diagrams
 sphinxcontrib-mermaid==2.1.1
 
 # Vale dependencies

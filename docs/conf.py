@@ -36,7 +36,9 @@ version = f"{os.environ.get('READTHEDOCS_VERSION', 'local')}"
 html_title = project + " documentation"
 
 # Documentation website URL
+
 ogp_site_url = f"https://canonical.com/juju/docs/mattermost-k8s-charm/{version}/"
+
 
 # Preview name of the documentation website
 ogp_site_name = project
@@ -45,18 +47,16 @@ ogp_site_name = project
 ogp_image = "https://assets.ubuntu.com/v1/cc828679-docs_illustration.svg"
 
 # Product favicon; shown in bookmarks, browser tabs, etc.
-# TODO: To customise the favicon, uncomment and update the next line.
-# html_favicon = "_static/favicon.png"
+
 
 # Dictionary of values to pass into the Sphinx context for all pages:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#confval-html_context
 html_context = {
     # Product page URL; can be different from product docs URL
     "product_page": "charmhub.io/mattermost-k8s",
-    # Product tag image; the orange part of your logo, shown in the page header
-    # 'product_tag': '_static/tag.png',
+
     # Your Discourse instance URL
-    "discourse": "https://discourse.charmhub.io/t/mattermost-documentation-overview/3758",
+    "discourse": "https://discourse.charmhub.io",
     # Your Mattermost channel URL
     "mattermost": "",
     # Your Matrix channel URL
@@ -72,6 +72,7 @@ html_context = {
     # TODO: To enable or disable the Previous / Next buttons at the bottom of pages
     # Valid options: none, prev, next, both
     # "sequential_nav": "",
+    # TODO: To enable listing contributors on individual pages, set to True
     "display_contributors": False,
     # Required for feedback button
     "github_issues": "enabled",
@@ -84,28 +85,26 @@ html_context = {
     },
 }
 
-# To enable the edit button on pages, uncomment and change the link to a
-# public repository on GitHub or Launchpad. Any of the following link domains
-# are accepted:
-# - https://github.com/example-org/example"
-# - https://launchpad.net/example
-# - https://git.launchpad.net/example
-#
+
+# Enable the edit button on pages
 html_theme_options = {
     "source_edit_link": "https://github.com/canonical/mattermost-k8s-operator",
 }
 
-# Project slug
-# TODO: If your documentation is hosted on https://documentation.ubuntu.com/,
-#       uncomment and set to the RTD slug.
+
+
+# Project slug for Read the Docs
 slug = "juju/docs/mattermost-k8s-charm"
+
 
 #######################
 # Sitemap configuration: https://sphinx-sitemap.readthedocs.io/
 #######################
 
 # Use RTD canonical URL to ensure duplicate pages have a specific canonical URL
+
 html_baseurl = f"https://canonical.com/juju/docs/mattermost-k8s-charm/{version}/"
+
 
 # sphinx-sitemap uses html_baseurl to generate the full URL for each page:
 sitemap_url_scheme = "{link}"
@@ -153,10 +152,11 @@ rediraffe_dir_only = True
 
 # This description is included in llms.txt to provide some initial context for your
 # product docs.
-llms_txt_description = textwrap.dedent("""\
-    This is the documentation for the Mattermost K8s charm, a Juju charm deploying
-    and managing Mattermost on Kubernetes.
-    """)
+llms_txt_description = textwrap.dedent(
+    """\
+    This is the documentation for the Mattermost K8s charm, a Juju charm deploying and managing Mattermost on Kubernetes.
+    """
+)
 
 # The base URL for references built by sphinx-markdown-builder.
 if os.environ.get("READTHEDOCS"):
@@ -180,26 +180,18 @@ linkcheck_ignore = [
 linkcheck_anchors_ignore_for_url = [r"https://github\.com/.*"]
 
 # How long the link checker will wait for a response for each request
-# TODO: Decrease to improve run time or increase if links frequently time out.
-# linkcheck_timeout = 30
+linkcheck_timeout = 30
 
 # Give linkcheck multiple tries on failure
 linkcheck_retries = 3
+
 
 ########################
 # Configuration extras #
 ########################
 
-# Custom MyST syntax extensions; see
-# https://myst-parser.readthedocs.io/en/latest/syntax/optional.html
-# NOTE: By default, the following MyST extensions are enabled:
-#   - substitution
-#   - deflist
-#   - linkify
-# myst_enable_extensions = set()
-
-# Custom Sphinx extensions; see
-# https://www.sphinx-doc.org/en/master/usage/extensions/index.html
+# Custom Sphinx extensions beyond what the template provides.
+# Re-add any project-specific extensions here during onboarding (Phase 6).
 extensions = [
     "canonical_sphinx",
     "notfound.extension",
@@ -208,6 +200,7 @@ extensions = [
     "sphinx_reredirects",
     "sphinx_tabs.tabs",
     "sphinxcontrib.jquery",
+    "sphinxcontrib.mermaid",
     "sphinxext.opengraph",
     "sphinx_config_options",
     "sphinx_contributor_listing",
@@ -222,40 +215,31 @@ extensions = [
     "sphinx_last_updated_by_git",
     "sphinx.ext.intersphinx",
     "sphinx_sitemap",
-    "sphinxcontrib.mermaid",
 ]
 
+# Lets a plain ```mermaid fence (which GitHub also renders natively) be
+# treated as the {mermaid} directive, instead of requiring that directive
+# syntax explicitly.
+myst_fence_as_directive = {"mermaid"}
+
 # Excludes files or directories from processing
-exclude_patterns = ["doc-cheat-sheet*", ".venv*", "_dev", "adr/*"]
+exclude_patterns = [
+    "doc-cheat-sheet*",
+    ".venv*",
+    "_dev",
+    "adr/*",
+]
 
-# Adds custom CSS files, located remotely or in 'html_static_path'.
-html_css_files = ["https://assets.ubuntu.com/v1/d86746ef-cookie_banner.css"]
+html_css_files = [
+    "https://assets.ubuntu.com/v1/d86746ef-cookie_banner.css",
+]
 
-# Adds custom JavaScript files, located remotely or in 'html_static_path'.
 html_js_files = [
     "https://assets.ubuntu.com/v1/287a5e8f-bundle.js",
     "js/overwrite_links.js",
 ]
 
-# Appends extra markup to the end of every document written in reST
-# rst_epilog = """
-# """
-
-# Feedback button at the top; enabled by default
-# TODO: Disable the button if your project is unsuitable for public feedback.
-# disable_feedback_button = True
-
-# Your manpage URL
-# TODO: To enable manpage links, uncomment and replace {codename} with required
-#       release, preferably an LTS release (e.g. noble). Do *not* substitute
-#       {section} or {page}; these will be replaced by sphinx at build time
-#
-# NOTE: If set, adding ':manpage:' to an .rst file
-#       adds a link to the corresponding man section at the bottom of the page.
-# manpages_url = 'https://manpages.ubuntu.com/manpages/{codename}/en/' + \
-#     'man{section}/{page}.{section}.html'
-
-# Specifies a reST snippet to be prepended to each .rst file
+# A string of reStructuredText included at the beginning of every source file.
 # This defines a :center: role that centers table cell content.
 # This defines a :h2: role that styles content for use with PDF generation.
 rst_prolog = """
@@ -269,8 +253,7 @@ rst_prolog = """
     :class: vale-ignore
 """
 
-# Configuration for Intersphinx projects
-#
+# Intersphinx mappings for cross-referencing external documentation.
 intersphinx_mapping = {
     "juju": ("https://canonical.com/juju/docs/juju-cli/3.6/", None),
     "sphinx-stack": ("https://documentation.ubuntu.com/sphinx-stack/latest/", None),
