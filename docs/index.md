@@ -40,7 +40,7 @@ through Juju's clean interface.
 * - **Get started**
   - {ref}`Guided tutorial <deploy_the_mattermost_charm_for_the_first_time>`
 * - **Deployment**
-  - {ref}`Charm configuration <reference_configurations>` | {ref}`High-level deployment <reference_charm_architecture>`
+  - {ref}`Charm configuration <reference_configurations>` | {ref}`High-level deployment <reference_charm_architecture>` | {ref}`Provide a certificate <how_to_provide_certificate>`
 * - **Operations**
   - {ref}`Back up and restore <how_to_back_up_restore>` | {ref}`Integrate with COS <how_to_integrate_with_cos>` | {ref}`Upgrade <how_to_upgrade>`
 * - **Design**

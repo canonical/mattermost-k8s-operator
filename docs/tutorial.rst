@@ -98,6 +98,8 @@ The Mattermost database driver requires a secure SSL/TLS connection by default. 
    juju deploy self-signed-certificates
    juju integrate postgresql-k8s self-signed-certificates:certificates
 
+For more information about providing a certificate, see :ref:`How to provide a certificate <how_to_provide_certificate>`.
+
 Integrate with the PostgreSQL charm
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
