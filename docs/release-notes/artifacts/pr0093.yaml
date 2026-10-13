@@ -1,0 +1,19 @@
+# Version of the artifact schema
+version_schema: 2
+
+# The key holding the change(s)
+changes:
+- title: Onboarded documentation into central management solution
+  author: erinecon
+  type: minor
+  description: |
+    The documentation for this project is now managed by
+    [platform-engineering-documentation-files](https://github.com/canonical/platform-engineering-documentation-files),
+    a Copier-based solution for managing common files across Platform Engineering documentation projects.
+  urls:
+    pr: 
+      - "https://github.com/canonical/mattermost-k8s-operator/pull/93"
+    related_doc:
+    related_issue:
+  visibility: public
+  highlight: false

@@ -21,6 +21,13 @@ description: |
   It provides a self-hosted alternative to proprietary messaging services, allowing teams to communicate and collaborate effectively while maintaining control over their data.
   Check https://mattermost.com for more information.
 
+links:
+  documentation: https://canonical.com/juju/docs/mattermost-k8s-charm/latest/
+  issues:
+  - https://github.com/canonical/mattermost-k8s-operator/issues
+  source:
+  - https://github.com/canonical/mattermost-k8s-operator
+
 extensions:
   - go-framework
 

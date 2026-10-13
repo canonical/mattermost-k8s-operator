@@ -4,7 +4,7 @@
 variable "app_name" {
   description = "Name of the application in the Juju model."
   type        = string
-  default     = "__charm_name__"
+  default     = "mattermost-k8s"
 }
 
 variable "base" {
@@ -20,7 +20,7 @@ variable "channel" {
 }
 
 variable "config" {
-  description = "Application config. Details about available options can be found at https://charmhub.io/__charm_name__/configurations."
+  description = "Application config. Details about available options can be found at https://charmhub.io/mattermost-k8s/configurations."
   type        = map(string)
   default     = {}
 }
@@ -31,8 +31,8 @@ variable "constraints" {
   default     = ""
 }
 
-variable "model" {
-  description = "Reference to a `juju_model`."
+variable "model_uuid" {
+  description = "UUID of the Juju model where the application will be deployed."
   type        = string
 }
 

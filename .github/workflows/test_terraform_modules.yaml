@@ -17,4 +17,4 @@ jobs:
     with:
       k8s-controller: true
       #lxd-controller: true
-      terraform-directories: '["terraform"]'
+      terraform-directories: '["terraform", "terraform/product"]'

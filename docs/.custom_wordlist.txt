@@ -1,0 +1,27 @@
+# Leave a blank line at the end of this file to support concatenation
+Canonical('s)?
+Charmcraft
+github
+https
+html
+io
+lang
+Multipass
+npm
+Rockcraft
+readthedocs
+toctree
+ip
+MyST
+GitHub
+URL
+PR
+Read the Docs
+yaml
+AI
+placeholder
+podspec
+misconfigured
+Websocket
+postgres
+

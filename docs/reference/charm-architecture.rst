@@ -1,3 +1,5 @@
+.. _reference_charm_architecture:
+
 Charm architecture
 ==================
 
@@ -79,7 +81,7 @@ The following diagram shows a typical deployment of the Mattermost charm on a Ku
    UpdateRelStyle(mattermost, postgres, $offsetX="-20", $offsetY="10")
 
 Mattermost container
-----------
+--------------------
 
 Mattermost is a Go application started via a ``start.sh`` script that maps environment variables provided by the charm integrations (PostgreSQL, S3, SMTP, ``OAuth``) into Mattermost's native ``MM_*`` configuration format.
 
@@ -106,7 +108,7 @@ The workload that this container is running is defined in the `Mattermost rock <
 OCI images
 ----------
 
-We use `Rockcraft <https://canonical-rockcraft.readthedocs-hosted.com/en/latest/>`__ to build the OCI image for Mattermost. The image is defined in the `Mattermost rock <https://github.com/canonical/mattermost-k8s-operator/tree/main/mattermost_rock>`__ and is published to `Charmhub <https://charmhub.io/>`__, the official repository of charms. This is done by publishing a resource to Charmhub as described in the `Charmcraft how-to guides <https://canonical-charmcraft.readthedocs-hosted.com/en/stable/howto/manage-charms/#publish-a-charm-on-charmhub>`__.
+We use `Rockcraft <https://ubuntu.com/containers/rockcraft/docs/1/>`__ to build the OCI image for Mattermost. The image is defined in the `Mattermost rock <https://github.com/canonical/mattermost-k8s-operator/tree/main/mattermost_rock>`__ and is published to `Charmhub <https://charmhub.io/>`__, the official repository of charms. This is done by publishing a resource to Charmhub as described in the `Charmcraft how-to guides <https://canonical.com/juju/docs/charmcraft/4/howto/manage-charms/#publish-a-charm>`__.
 
 Integrations
 ------------
@@ -150,24 +152,19 @@ Juju events
 
 For this charm, the following events are observed:
 
-1. |pebble_ready|_: fired on Kubernetes charms when the requested container is ready. Action: check that all required integrations are present and configure the Mattermost container.
-2. |config_changed|_: usually fired in response to a configuration change using the CLI. Action: validate the configuration and restart the workload.
-3. |update_status|_: periodic event. Action: reconcile the workload state and refresh ingress data.
+1. |pebble_ready|: fired on Kubernetes charms when the requested container is ready. Action: check that all required integrations are present and configure the Mattermost container.
+2. |config_changed|: usually fired in response to a configuration change using the CLI. Action: validate the configuration and restart the workload.
+3. |update_status|: periodic event. Action: reconcile the workload state and refresh ingress data.
 4. Integration events for ``postgresql``, ``s3``, ``smtp``, and ``oauth``: fired when integration data changes. Action: update the workload configuration and restart the service.
 5. |grant_admin_role_action|_: fired when the ``grant-admin-role`` action is executed. Action: Grant the ``system_admin`` role to a user.
 
 .. |pebble_ready| replace:: :code:`pebble_ready`
-.. _pebble_ready: https://documentation.ubuntu.com/juju/latest/user/reference/hook/#container-pebble-ready
 .. |config_changed| replace:: :code:`config_changed`
-.. _config_changed: https://documentation.ubuntu.com/juju/latest/user/reference/hook/#config-changed
 .. |update_status| replace:: :code:`update_status`
-.. _update_status: https://documentation.ubuntu.com/juju/latest/user/reference/hook/#update-status
 .. |grant_admin_role_action| replace:: :code:`grant_admin_role_action`
 .. _grant_admin_role_action: https://charmhub.io/mattermost-k8s/actions
 
-..
-
-   See more in the Juju docs: `Hook <https://documentation.ubuntu.com/juju/latest/user/reference/hook/>`__
+See more about hooks in the Juju docs: :ref:`Hook <juju:hook>`.
 
 Charm code overview
 -------------------
@@ -178,4 +175,4 @@ The ``src/charm.py`` is the default entry point for a charm and has the ``Matter
 
 The charm itself is minimal, the ``go-framework`` `Charmcraft extension <https://documentation.ubuntu.com/charmcraft/stable/reference/extensions/>`__ provides the majority of the operational logic, including Pebble layer management, integration handling, and status reporting. Workload-specific configuration is handled by the ``start.sh`` script inside the rock, which converts environment variables set by the charm framework into Mattermost's native ``MM_*`` environment variable format.
 
-See more information in `Charm <https://documentation.ubuntu.com/juju/latest/user/reference/charm/>`__.
+See more information in :ref:`Charm <juju:charm>`.

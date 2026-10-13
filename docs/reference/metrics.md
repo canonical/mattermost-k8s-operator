@@ -4,6 +4,8 @@ myst:
         "description lang=en": "Technical details for Mattermost charm performance monitoring metrics, including available statistics for Prometheus and Grafana."
 ---
 
+(reference_metrics)=
+
 # Metrics
 
 Mattermost provides the following performance monitoring statistics to integrate with Prometheus and Grafana.

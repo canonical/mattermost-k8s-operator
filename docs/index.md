@@ -1,59 +1,95 @@
+---
+myst:
+  html_meta:
+    "description lang=en": "Learn how to deploy, configure and operate the Mattermost K8s charm using Juju."
+---
+
 <!-- vale Canonical.007-Headings-sentence-case = NO -->
-# __charm_name__ operator
+
+# Mattermost K8s charm
+
 <!-- vale Canonical.007-Headings-sentence-case = YES -->
 
-<!-- A single sentence that says what the product is, succinctly and memorably. Add a 1-2 sentence description of what the charm software does. -->
+A [Juju](https://juju.is/) {ref}`charm <juju:charm>`
+deploying and managing [Mattermost](https://mattermost.com/) on Kubernetes. Mattermost is a
+flexible, open source messaging platform that enables secure team collaboration.
 
-A [Juju](https://juju.is/) [charm](https://documentation.ubuntu.com/juju/3.6/reference/charm/) deploying and managing <Charm software> on 
-Kubernetes. 
+Like any Juju charm, this charm supports one-line deployment, configuration, integration, scaling,
+and more. For the Mattermost K8s charm, this includes:
 
-<!-- A paragraph of 2-5 short sentences, that describes what the product does and what need the product meets. -->
+* High-availability clustering with Mattermost Enterprise Edition.
+* S3-backed file storage and backups.
+* Integration with the Canonical Observability Stack (COS).
+* SMTP and `OAuth` integrations.
 
-Like any Juju charm, this charm supports one-line deployment, configuration, integration, scaling, and more. 
-For __charm_name__, this includes:
-* list or summary of app-specific features
+The Mattermost K8s charm allows for deployment on many different Kubernetes platforms, from
+[MicroK8s](https://microk8s.io/) to [Charmed Kubernetes](https://ubuntu.com/kubernetes) to public
+cloud Kubernetes offerings.
 
-The __charm_name__ charm allows for deployment on many different Kubernetes platforms, from [MicroK8s](https://microk8s.io/) to 
-[Charmed Kubernetes](https://ubuntu.com/kubernetes) to public cloud Kubernetes offerings.
-
-<!-- Finally, a paragraph that describes whom the product is useful for. -->
-
-This charm will make operating <charm-software> simple and straightforward for DevOps or SRE teams through Juju's clean interface. 
+This charm will make operating Mattermost simple and straightforward for DevOps or SRE teams
+through Juju's clean interface.
 
 ## In this documentation
 
-| | |
-|--|--|
-|  [Tutorials](link to tutorial)</br>  Get started - a hands-on introduction to using the charm for new users </br> |  [How-to guides](link to how-to guide) </br> Step-by-step guides covering key operations and common tasks |
-| [Reference](link to reference) </br> Technical information - specifications, APIs, architecture | [Explanation](link to explanation) </br> Concepts - discussion and clarification of key topics  |
+```{list-table}
+:header-rows: 1
+:widths: 10 25
+
+* -
+  -
+* - **Get started**
+  - {ref}`Guided tutorial <deploy_the_mattermost_charm_for_the_first_time>`
+* - **Deployment**
+  - {ref}`Charm configuration <reference_configurations>` | {ref}`High-level deployment <reference_charm_architecture>` | {ref}`Provide a certificate <how_to_provide_certificate>`
+* - **Operations**
+  - {ref}`Back up and restore <how_to_back_up_restore>` | {ref}`Integrate with COS <how_to_integrate_with_cos>` | {ref}`Upgrade <how_to_upgrade>`
+* - **Design**
+  - {ref}`Architecture <reference_charm_architecture>`
+* - **Security**
+  - {ref}`Overview <explanation_security>`
+```
+
+## How this documentation is organized
+
+This documentation uses the
+[Diátaxis documentation structure](https://diataxis.fr/).
+
+* The {ref}`Tutorial <deploy_the_mattermost_charm_for_the_first_time>` takes you step-by-step through a basic deployment of the Mattermost charm.
+* The {ref}`How-to guides <how_to_index>` assume you have basic familiarity with the Mattermost charm. Learn more about setting up, using, maintaining, and contributing to this charm.
+* {ref}`Reference <reference_index>` provides a guide to actions, configurations, relations, and other technical details.
+* {ref}`Explanation <explanation_index>` holds discussion and clarification of key concepts behind the charm, such as security.
+* {ref}`Release notes <release_notes_landing_page>` holds all the release notes for the charm, including any system or upgrade requirements.
 
 ## Contributing to this documentation
 
 Documentation is an important part of this project, and we take the same open-source approach
 to the documentation as the code. As such, we welcome community contributions, suggestions, and
 constructive feedback on our documentation.
-See [How to contribute](link to contribute page) for more information.
+See {ref}`How to contribute <how_to_contribute>` for more information.
 
-
-If there's a particular area of documentation that you'd like to see that's missing, please 
-[file a bug](link to issues page).
+If there's a particular area of documentation that you'd like to see that's missing, please
+[file a bug](https://github.com/canonical/mattermost-k8s-operator/issues).
 
 ## Project and community
 
-The __charm_name__ Operator is a member of the Ubuntu family. It's an open-source project that warmly welcomes community 
-projects, contributions, suggestions, fixes, and constructive feedback.
+The Mattermost K8s charm is a member of the Ubuntu family. It's an open-source project that warmly
+welcomes community projects, contributions, suggestions, fixes, and constructive feedback.
 
 - [Code of conduct](https://ubuntu.com/community/code-of-conduct)
 - [Get support](https://discourse.charmhub.io/)
 - [Join our online chat](https://matrix.to/#/#charmhub-charmdev:ubuntu.com)
-- [Contribute](link to Contribute page)
+- {ref}`Contribute <how_to_contribute>`
 
-Thinking about using the __charm_name__ Operator for your next project? 
+Thinking about using the Mattermost K8s charm for your next project?
 [Get in touch](https://matrix.to/#/#charmhub-charmdev:ubuntu.com)!
 
-# Contents
+```{toctree}
+:hidden:
+:maxdepth: 1
 
-1. [Tutorial](link to tutorial)
-1. [How-to](link to how-to)
-1. [Reference](link to reference)
-1. [Explanation](link to explanation)
+Tutorial <tutorial>
+how-to/index
+reference/index
+explanation/index
+release-notes/landing-page
+```
