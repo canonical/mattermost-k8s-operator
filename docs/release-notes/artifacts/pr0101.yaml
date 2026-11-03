@@ -1,0 +1,20 @@
+# Version of the artifact schema
+version_schema: 2
+
+# The key holding the change(s)
+changes:
+- title: Enabled MetalLB in the integration test MicroK8s cluster
+  author: minulo
+  type: bugfix
+  description: |
+    Enabled the MicroK8s `metallb` add-on in the integration test workflow so the
+    `traefik-k8s` LoadBalancer service obtains an external address and Traefik reaches
+    active status. This fixed integration test timeouts in `test_ingress`, `test_oauth`,
+    `test_s3` and `test_smtp`.
+  urls:
+    pr: 
+      - "https://github.com/canonical/mattermost-k8s-operator/pull/101"
+    related_doc:
+    related_issue:
+  visibility: internal
+  highlight: false
