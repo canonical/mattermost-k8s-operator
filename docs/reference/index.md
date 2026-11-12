@@ -8,9 +8,8 @@ myst:
 
 # Reference
 
-Technical specifications and architectural details describe the Mattermost K8s
-charm's configuration, interfaces, and runtime behavior. They provide a basis for
-operating the charm and integrating it with other services.
+The Mattermost charm deploys Mattermost on Kubernetes and uses Juju to configure
+it and connect it to PostgreSQL, S3, SMTP, and OAuth providers.
 
 ## Charm controls
 
@@ -40,10 +39,7 @@ metrics
 
 ## Architecture and releases
 
-Kubernetes sidecar containers and Pebble underpin the charm's workload management
-and its interactions with supporting services. The architecture provides context
-for runtime behavior, while the release history tracks changes to supported
-capabilities.
+The charm uses a Kubernetes sidecar container and Pebble to manage the workload.
 
 ```{toctree}
 :maxdepth: 1
