@@ -20,7 +20,7 @@ logs, and dashboards to the Canonical Observability Stack (COS) to help monitor 
 :maxdepth: 1
 
 Provide a certificate <provide-certificate>
-integrate-with-cos
+Integrate with COS <integrate-with-cos>
 ```
 
 ## Maintenance and contribution
@@ -31,7 +31,7 @@ fixes.
 ```{toctree}
 :maxdepth: 1
 
-back-up-restore
-upgrade
-contribute
+Back up and restore <back-up-restore>
+Upgrade <upgrade>
+Contribute <contribute>
 ```

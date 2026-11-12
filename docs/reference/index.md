@@ -8,7 +8,7 @@ myst:
 
 # Reference
 
-The Mattermost charm deploys Mattermost on Kubernetes and uses Juju to configure
+The charm deploys Mattermost on Kubernetes and uses Juju to configure
 it and connect it to PostgreSQL, S3, SMTP, and OAuth providers.
 
 ## Charm controls
