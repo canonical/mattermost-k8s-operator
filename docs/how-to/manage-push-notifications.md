@@ -40,7 +40,7 @@ Mattermost provides a hosted push proxy service, and you can also run your own:
 The global HPNS URL balances requests across the regional endpoints. To keep traffic in one
 region, use `https://us.push.mattermost.com`, `https://eu.push.mattermost.com`, or
 `https://ap.push.mattermost.com` instead. The legacy `https://push.mattermost.com` and
-`https://hpns-de.mattermost.com` URLs still work but are deprecated.
+`https://hpns-de.mattermost.com` URLs are deprecated.
 
 HPNS and TPNS only work with the Mattermost apps published in the Apple App Store and the
 Google Play Store. If you build your own mobile apps, you must host your own push proxy. See
