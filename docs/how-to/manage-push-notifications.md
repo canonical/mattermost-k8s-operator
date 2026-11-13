@@ -119,13 +119,13 @@ leaves your Mattermost server inside the push notification:
 * `true`: notifications contain the message text. The text passes through the push
   proxy service and through Apple's or Google's notification service.
 
-To include the message text in push notifications:
+To include the message text in push notifications, run:
 
 ```
 juju config mattermost-k8s push-notifications-include-message-snippet=true
 ```
 
-To stop including the message text in push notifications:
+To stop including the message text in push notifications, run:
 
 ```
 juju config mattermost-k8s push-notifications-include-message-snippet=false
