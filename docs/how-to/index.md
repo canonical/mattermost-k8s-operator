@@ -1,7 +1,7 @@
 ---
 myst:
   html_meta:
-    "description lang=en": "Task-oriented guides for the Mattermost charm: database TLS, COS integration, backups, upgrades, and contributing."
+    "description lang=en": "Task-oriented guides for the Mattermost charm: database TLS, COS integration, push notifications, backups, upgrades, and contributing."
 ---
 
 (how_to_index)=
@@ -21,6 +21,17 @@ logs, and dashboards to the Canonical Observability Stack (COS) to help monitor 
 
 Provide a certificate <provide-certificate>
 Integrate with COS <integrate-with-cos>
+```
+
+## Configuration
+
+Charm configuration options control Mattermost features, such as push notifications
+to the Mattermost mobile apps.
+
+```{toctree}
+:maxdepth: 1
+
+Manage push notifications <manage-push-notifications>
 ```
 
 ## Maintenance and contribution

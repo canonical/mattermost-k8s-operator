@@ -98,12 +98,16 @@ Best practices
 ~~~~~~~~~~~~~~
 
 -  Keep the ``push-notifications-include-message-snippet`` configuration option
-   set to ``false`` (the default). This ensures push payloads include only a
-   message identifier, and the full content is fetched by the mobile client
-   directly from the Mattermost server.
+   set to ``false`` (the default). This ensures push payloads don't include the
+   message text. With a Mattermost Entry, Enterprise, or Enterprise Advanced
+   license, payloads include only a message identifier, and the full content is
+   fetched by the mobile client directly from the Mattermost server. Without one
+   of these licenses, payloads include the sender and channel names.
 -  Only configure ``push-notification-server`` to point to a trusted push proxy
    (for example, the Mattermost Hosted Push Notification Service or a
    self-hosted push proxy).
+
+For instructions, see :ref:`how_to_manage_push_notifications`.
 
 Image proxy
 -----------
