@@ -177,7 +177,7 @@ A Mattermost Entry, Enterprise, or Enterprise Advanced license is required to co
 
 <!-- vale Canonical.007-Headings-sentence-case = NO -->
 
-# Standard metrics for Go
+## Standard metrics for Go
 
 <!-- vale Canonical.007-Headings-sentence-case = YES -->
 
