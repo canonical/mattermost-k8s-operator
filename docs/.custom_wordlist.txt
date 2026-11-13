@@ -8,6 +8,7 @@ io
 lang
 Multipass
 npm
+OAuth
 Rockcraft
 readthedocs
 toctree
