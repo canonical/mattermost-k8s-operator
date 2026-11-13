@@ -63,15 +63,12 @@ An empty output means that the charm isn't managing push notifications.
 ## Check the connection to the push notification service
 
 The Mattermost workload must be able to reach the push notification service. Check the
-connection from the Mattermost container:
+connection from the Mattermost container. The output shows the version of the push
+proxy, similar to:
 
-```
+```{terminal}
 juju ssh --container app mattermost-k8s/0 curl -sS --max-time 10 https://global.push.mattermost.com/version
-```
 
-The output shows the version of the push proxy, similar to:
-
-```text
 {"hash":"20f2a04","version":"6.6.0"}
 ```
 
