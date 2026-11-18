@@ -5,9 +5,12 @@ on:
 
 jobs:
   bot_pr_approval:
+    # The reusable workflow approves with GITHUB_TOKEN, which acts as
+    # github-actions[bot]. GitHub rejects approving your own pull request
+    # ("Review Can not approve your own pull request"), so skip PRs authored
+    # by that same identity (docs-sync and auto-update-libs PRs).
+    if: github.event.pull_request.user.login != 'github-actions[bot]'
     uses: canonical/operator-workflows/.github/workflows/bot_pr_approval.yaml@main
     permissions:
-      contents: write
       pull-requests: write
     secrets: inherit
-
