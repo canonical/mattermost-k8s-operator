@@ -23,4 +23,9 @@ jobs:
     with:
       origin-channel: ${{ github.event.inputs.origin-channel }}
       destination-channel: ${{ github.event.inputs.destination-channel }}
+      # Pin the base: the legacy ubuntu 20.04 base still has an open edge release,
+      # and without these inputs the reusable workflow promotes it instead.
+      base-name: ubuntu
+      base-channel: "24.04"
+      base-architecture: amd64
     secrets: inherit
